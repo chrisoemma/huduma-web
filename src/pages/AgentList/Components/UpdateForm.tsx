@@ -7,6 +7,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateAgent } from '../AgentSlice';
+import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 
 
 export type UpdateFormProps = {
@@ -91,20 +92,32 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   };
 
   const handleUpdate = async (values) => {
-    
+
     try {
 
       const agentId = props.values.id;
       const profile_img = imageUrl || props.values.user?.profile_img;
-      values.profile_img =profile_img;
+      values.profile_img = profile_img;
+      values.phone=validateTanzanianPhoneNumber(values.phone);
 
-      await updateAgent(agentId, { ...values, profile_img });
-      form.resetFields();
-      setImageUrl(undefined);
-      props.onCancel(true);
-      message.success('Agent updated successfully');
-      props.onTableReload();
-      stepsFormRef.current?.submit();
+      const response = await updateAgent(agentId, { ...values, profile_img });
+
+      if (response.status) {
+        setImageUrl(undefined);
+        form.resetFields();
+        props.onCancel(true);
+        message.success(response.message);
+        props.onTableReload();
+        stepsFormRef.current?.submit();
+      } else {
+        if (response.data) {
+          const errors = response.data.errors;
+          showErrorWithLineBreaks(formatErrorMessages(errors));
+        } else {
+          message.error(response.message);
+        }
+      }
+
     } catch (error) {
       console.log('Update failed:', error);
     }
@@ -113,6 +126,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   return (
     <StepsForm
+
       onFinish={async (values) => {
         await handleUpdate(values);
         await props.onSubmit(values);
@@ -186,45 +200,67 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           ]}
         />
 
-        <ProFormText
-          name="phone"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.phone',
-            defaultMessage: 'Phone',
-          })}
-          width="md"
+      <ProFormText
           rules={[
             {
               required: true,
-              message: 'Please enter the phone number!',
+              message: 'Phone number is required',
             },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const phoneNumber = value.replace(/\D/g, ''); // Remove non-numeric characters
+                const validCountryCodes = ['255', '254', '256', '250', '257']; // Add more as needed
+
+                // Check if the phone number has a valid length and starts with either a leading zero or a valid country code
+                const isValid = validCountryCodes.some(code => {
+                  const countryCodeLength = code.length;
+                  return (
+                    (phoneNumber.length === 10 && phoneNumber.startsWith('0')) ||
+                    (phoneNumber.length === 12 && phoneNumber.startsWith(code))
+                  );
+                });
+
+                if (!isValid) {
+                  return Promise.reject('Invalid phone number format');
+                }
+
+                return Promise.resolve();
+              },
+            }),
           ]}
+          width="md"
+          name="phone"
+          label="Phone"
         />
 
-        <ProFormText
-          name="email"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.email',
-            defaultMessage: 'Email',
-          })}
-          width="md"
-          rules={[
-            {
-              required: true,
-              message: 'Please enter the Email!',
-            },
-          ]}
-        />
+<ProFormText
+    name="email"
+    label={intl.formatMessage({
+        id: 'pages.searchTable.updateForm.email',
+        defaultMessage: 'Email',
+    })}
+    width="md"
+    rules={[
+        {
+            required: true,
+            message: 'Please enter the Email!',
+        },
+        {
+            type: 'email',
+            message: 'Please enter a valid email address!',
+        },
+    ]}
+/>
 
       </StepsForm.StepForm>
 
       {/* Step 2 */}
       <StepsForm.StepForm
 
-initialValues={{
-  status: props.values.user?.status === 'Active' ? 'Active' : 'In Active',
-  nida: props.values.nida,
-}}
+        initialValues={{
+          status: props.values.user?.status === 'Active' ? 'Active' : 'In Active',
+          nida: props.values.nida,
+        }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.step2',
           defaultMessage: 'Other Info',
@@ -232,18 +268,24 @@ initialValues={{
       >
 
         <ProFormText
-          name="nida"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.nida',
-            defaultMessage: 'NIDA',
-          })}
-          width="md"
           rules={[
-            {
-              required: true,
-              message: 'Please enter the NIDA!',
-            },
+
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const nida = value.replace(/\D/g, '');
+                const isLengthValid = nida.length === 20;
+
+                if (!isLengthValid) {
+                  return Promise.reject('NIDA must be 20 numbers');
+                }
+
+                return Promise.resolve();
+              },
+            }),
           ]}
+          width="md"
+          name="nida"
+          label="NIDA"
         />
 
         <ProFormRadio.Group

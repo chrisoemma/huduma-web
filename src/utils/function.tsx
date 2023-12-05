@@ -64,3 +64,24 @@ export const showErrorWithLineBreaks=(errors)=>{
         8 // The duration the message is displayed (in seconds)
     );
 }
+
+
+export function validateTanzanianPhoneNumber(phoneNumber) {
+    // Remove any spaces and non-numeric characters
+    const cleanedPhoneNumber = phoneNumber.replace(/\D/g, '');
+  
+    // Check the length and format
+    if (cleanedPhoneNumber.match(/^(0\d{9}|255\d{9})$/)) {
+      // Valid Tanzanian phone number format
+      if (cleanedPhoneNumber.startsWith('0')) {
+        return `+255${cleanedPhoneNumber.substring(1)}`;
+      } else if (cleanedPhoneNumber.startsWith('255')) {
+        return `+${cleanedPhoneNumber}`;
+      } else if (cleanedPhoneNumber.startsWith('+255')) {
+        return cleanedPhoneNumber; // No change if already formatted as '+255'
+      }
+    } else {
+      // Invalid phone number format
+      return null;
+    }
+  }

@@ -41,10 +41,13 @@ return request(`${API_URL}/agents/destroy_bunch`, {
 }
 
 
+
 export async function updateAgent(agentId: number, options?: { [key: string]: any }) {
-
-
    
+
+    console.log('agentin server',agentId);
+    console.log('optionssss',options);
+
   return request(`${API_URL}/agents/update_agent_web/${agentId}`, {
     method: 'PUT',
     data: {

@@ -519,7 +519,8 @@ const EmployeeList: React.FC = () => {
                     <ProFormText
                         rules={[
                             {
-                                message: 'Email is required',
+                            type: 'email',
+                            message: 'Please enter a valid email address!',
                             },
                         ]}
                         width="md"

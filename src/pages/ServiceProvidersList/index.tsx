@@ -20,7 +20,7 @@ import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addProvider, fetchBusinessesData, getProviders } from './ServiceProviderSlice';
 import { history } from 'umi';
-import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
+import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 
 
 const ProviderList: React.FC = () => {
@@ -115,104 +115,105 @@ const ProviderList: React.FC = () => {
     };
 
 
-  
+
 
     const handleAdd = async (formData: FormData) => {
         const first_name = formData.get('first_name') as string;
         const last_name = formData.get('last_name') as string;
         const phone = formData.get('phone') as string;
+        const  newphone =validateTanzanianPhoneNumber(phone);
         const email = formData.get('email') as string;
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
-      
-        let providerData: API.ProviderListItem = {
-          id: 0, // Set the appropriate ID
-          first_name: first_name,
-          last_name: last_name,
-          nida: nida,
-          email: email,
-          phone: phone,
-          profile_img: '',
-        };
-      
-        const uploadImage = async () => {
-          if (imageFile) {
-            const storageRef = ref(storage, `profile/${imageFile.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, imageFile);
-      
-            return new Promise<string>((resolve, reject) => {
-              uploadTask.on(
-                'state_changed',
-                (snapshot) => {
-                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                  console.log('Upload is ' + progress + '% done');
-                  switch (snapshot.state) {
-                    case 'paused':
-                      console.log('Upload is paused');
-                      break;
-                    case 'running':
-                      console.log('Upload is running');
-                      break;
-                  }
-                },
-                (error) => {
-                  // Handle unsuccessful uploads
-                  console.error('Upload error:', error);
-                  reject(error);
-                },
-                async () => {
-                  try {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    resolve(downloadURL);
-                  } catch (error) {
-                    reject(error);
-                  }
-                }
-              );
-            });
-          } else {
-            return Promise.resolve('');
-          }
-        };
-      
-        try {
-          const downloadURL = await uploadImage();
-          providerData = {
-            ...providerData,
-            profile_img: downloadURL,
-          };
-      
-          // Add provider data to the database
-          const hide = message.loading('Loading...');
-          try {
-            const response = await addProvider(providerData);
-            if (response.status) {
-              hide();
-              message.success(response.message);
-              return true;
-            } else {
-              if (response.data) {
-                const errors = response.data.errors;
-                showErrorWithLineBreaks(formatErrorMessages(errors));
-              } else {
-                message.error(response.message);
-              }
-            }
-          } catch (error) {
-            hide();
-            message.error('Adding failed, please try again!');
-            return false;
-          } finally {
-            handleModalOpen(false);
-            actionRef.current.reload();
-          }
-        } catch (error) {
-          message.error('Image upload failed, please try again!');
-          return false;
-        }
-      };
 
-      
+        let providerData: API.ProviderListItem = {
+            id: 0, // Set the appropriate ID
+            first_name: first_name,
+            last_name: last_name,
+            nida: nida,
+            email: email,
+            phone: newphone,
+            profile_img: '',
+        };
+
+        const uploadImage = async () => {
+            if (imageFile) {
+                const storageRef = ref(storage, `profile/${imageFile.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+                return new Promise<string>((resolve, reject) => {
+                    uploadTask.on(
+                        'state_changed',
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            console.log('Upload is ' + progress + '% done');
+                            switch (snapshot.state) {
+                                case 'paused':
+                                    console.log('Upload is paused');
+                                    break;
+                                case 'running':
+                                    console.log('Upload is running');
+                                    break;
+                            }
+                        },
+                        (error) => {
+                            // Handle unsuccessful uploads
+                            console.error('Upload error:', error);
+                            reject(error);
+                        },
+                        async () => {
+                            try {
+                                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                                resolve(downloadURL);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        }
+                    );
+                });
+            } else {
+                return Promise.resolve('');
+            }
+        };
+
+        try {
+            const downloadURL = await uploadImage();
+            providerData = {
+                ...providerData,
+                profile_img: downloadURL,
+            };
+
+            // Add provider data to the database
+            const hide = message.loading('Loading...');
+            try {
+                const response = await addProvider(providerData);
+                if (response.status) {
+                    hide();
+                    message.success(response.message);
+                    return true;
+                } else {
+                    if (response.data) {
+                        const errors = response.data.errors;
+                        showErrorWithLineBreaks(formatErrorMessages(errors));
+                    } else {
+                        message.error(response.message);
+                    }
+                }
+            } catch (error) {
+                hide();
+                message.error('Adding failed, please try again!');
+                return false;
+            } finally {
+                handleModalOpen(false);
+                actionRef.current.reload();
+            }
+        } catch (error) {
+            message.error('Image upload failed, please try again!');
+            return false;
+        }
+    };
+
+
 
 
     useEffect(() => {
@@ -606,10 +607,19 @@ const ProviderList: React.FC = () => {
                                 ({ getFieldValue }) => ({
                                     validator(_, value) {
                                         const phoneNumber = value.replace(/\D/g, ''); // Remove non-numeric characters
-                                        const isLengthValid = phoneNumber.length === 10 || phoneNumber.length === 12;
+                                        const validCountryCodes = ['255', '254', '256', '250', '257']; // Add more as needed
 
-                                        if (!isLengthValid) {
-                                            return Promise.reject('Phone number must be 10 or 12 digits long');
+                                        // Check if the phone number has a valid length and starts with either a leading zero or a valid country code
+                                        const isValid = validCountryCodes.some(code => {
+                                            const countryCodeLength = code.length;
+                                            return (
+                                                (phoneNumber.length === 10 && phoneNumber.startsWith('0')) ||
+                                                (phoneNumber.length === 12 && phoneNumber.startsWith(code))
+                                            );
+                                        });
+
+                                        if (!isValid) {
+                                            return Promise.reject('Invalid phone number format');
                                         }
 
                                         return Promise.resolve();
@@ -621,16 +631,24 @@ const ProviderList: React.FC = () => {
                             label="Phone"
                         />
 
-                        <ProFormText
-                            rules={[
-                                {
-                                    message: 'Email is required',
-                                },
-                            ]}
-                            width="md"
-                            name="email"
-                            label="Email"
-                        />
+<ProFormText
+    name="email"
+    label={intl.formatMessage({
+        id: 'pages.searchTable.updateForm.email',
+        defaultMessage: 'Email',
+    })}
+    width="md"
+    rules={[
+        {
+            required: true,
+            message: 'Please enter the Email!',
+        },
+        {
+            type: 'email',
+            message: 'Please enter a valid email address!',
+        },
+    ]}
+/>
 
                         <ProFormText
                             rules={[
