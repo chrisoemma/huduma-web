@@ -1,5 +1,4 @@
 import { Footer } from '@/components';
-import { login } from '@/services/ant-design-pro/api';
 import { getFakeCaptcha } from '@/services/ant-design-pro/login';
 import {
   AlipayCircleOutlined,
@@ -21,52 +20,10 @@ import { Alert, message, Tabs } from 'antd';
 import Settings from '../../../../config/defaultSettings';
 import React, { useState } from 'react';
 import { flushSync } from 'react-dom';
+import { login} from '../AuthSlice';
+import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 
-// const ActionIcons = () => {
-//   const langClassName = useEmotionCss(({ token }) => {
-//     return {
-//       marginLeft: '8px',
-//       color: 'rgba(0, 0, 0, 0.2)',
-//       fontSize: '24px',
-//       verticalAlign: 'middle',
-//       cursor: 'pointer',
-//       transition: 'color 0.3s',
-//       '&:hover': {
-//         color: token.colorPrimaryActive,
-//       },
-//     };
-//   });
 
-//   return (
-//     <>
-//       <AlipayCircleOutlined key="AlipayCircleOutlined" className={langClassName} />
-//       <TaobaoCircleOutlined key="TaobaoCircleOutlined" className={langClassName} />
-//       <WeiboCircleOutlined key="WeiboCircleOutlined" className={langClassName} />
-//     </>
-//   );
-// };
-
-// const Lang = () => {
-//   const langClassName = useEmotionCss(({ token }) => {
-//     return {
-//       width: 42,
-//       height: 42,
-//       lineHeight: '42px',
-//       position: 'fixed',
-//       right: 16,
-//       borderRadius: token.borderRadius,
-//       ':hover': {
-//         backgroundColor: token.colorBgTextHover,
-//       },
-//     };
-//   });
-
-//   return (
-//     <div className={langClassName} data-lang>
-//       {SelectLang && <SelectLang />}
-//     </div>
-//   );
-// };
 
 const LoginMessage: React.FC<{
   content: string;
@@ -102,45 +59,51 @@ const Login: React.FC = () => {
 
   const intl = useIntl();
 
-  const fetchUserInfo = async () => {
-    const userInfo = await initialState?.fetchUserInfo?.();
-    if (userInfo) {
-      flushSync(() => {
-        setInitialState((s) => ({
-          ...s,
-          currentUser: userInfo,
-        }));
-      });
-    }
-  };
 
-  const handleSubmit = async (values: API.LoginParams) => {
-    try {
-      // 登录
-      const msg = await login({ ...values, type });
-      if (msg.status === 'ok') {
-        const defaultLoginSuccessMessage = intl.formatMessage({
-          id: 'pages.login.success',
-          defaultMessage: 'Successfully login！',
-        });
-        message.success(defaultLoginSuccessMessage);
-        await fetchUserInfo();
-        const urlParams = new URL(window.location.href).searchParams;
-        history.push(urlParams.get('redirect') || '/dashboard');
-        return;
-      }
-      console.log(msg);
-      // 如果失败去设置用户错误信息
-      setUserLoginState(msg);
-    } catch (error) {
-      const defaultLoginFailureMessage = intl.formatMessage({
-        id: 'pages.login.failure',
-        defaultMessage: 'Login fail',
+
+const handleSubmit = async (values: API.LoginParams) => {
+  try {
+    const loginData = {
+      phone: validateTanzanianPhoneNumber(values.phone),
+      password: values.password,
+    };
+
+    const response = await login(loginData);
+  
+    if (response.status) {
+      const defaultLoginSuccessMessage = intl.formatMessage({
+        id: 'pages.login.success',
+        defaultMessage: 'Successfully login！',
       });
-      console.log(error);
-      message.error(defaultLoginFailureMessage);
+
+      message.success(defaultLoginSuccessMessage);
+
+      // Store token and user data in the initial state
+      setInitialState((prevState) => ({
+        ...prevState,
+        currentUser: response.userData,
+        token: response.token,
+      }));
+
+      const urlParams = new URL(window.location.href).searchParams;
+      history.push(urlParams.get('redirect') || '/dashboard');
+      return;
+    } else {
+        message.error(response.message);
     }
-  };
+    setUserLoginState(response);
+  } catch (error) {
+    const defaultLoginFailureMessage = intl.formatMessage({
+      id: 'pages.login.failure',
+      defaultMessage: 'Login fail',
+    });
+    console.error('Login error:', error);
+    message.error(defaultLoginFailureMessage);
+  }
+};
+
+
+
   const { status, type: loginType } = userLoginState;
 
   return (
@@ -149,7 +112,7 @@ const Login: React.FC = () => {
         <title>
           {intl.formatMessage({
             id: 'menu.login',
-            defaultMessage: '登录页',
+            defaultMessage: 'Login',
           })}
           - {Settings.title}
         </title>
@@ -172,14 +135,7 @@ const Login: React.FC = () => {
           initialValues={{
             autoLogin: true,
           }}
-          // actions={[
-          //   <FormattedMessage
-          //     key="loginWith"
-          //     id="pages.login.loginWith"
-          //     defaultMessage="其他登录方式"
-          //   />,
-          //   // <ActionIcons key="icons" />,
-          // ]}
+     
           onFinish={async (values) => {
             await handleSubmit(values as API.LoginParams);
           }}
@@ -210,22 +166,22 @@ const Login: React.FC = () => {
           {type === 'account' && (
             <>
               <ProFormText
-                name="username"
+                name="phone"
                 fieldProps={{
                   size: 'large',
                   prefix: <UserOutlined />,
                 }}
                 placeholder={intl.formatMessage({
-                  id: 'pages.login.username.placeholder',
-                  defaultMessage: '用户名: admin or user',
+                  id: 'pages.login.phoneNumber',
+                  defaultMessage: 'Phone number',
                 })}
                 rules={[
                   {
                     required: true,
                     message: (
                       <FormattedMessage
-                        id="pages.login.username.required"
-                        defaultMessage="请输入用户名!"
+                        id="pages.login.phoneNumberRequired"
+                        defaultMessage="Please input your phone number"
                       />
                     ),
                   },
@@ -238,8 +194,8 @@ const Login: React.FC = () => {
                   prefix: <LockOutlined />,
                 }}
                 placeholder={intl.formatMessage({
-                  id: 'pages.login.password.placeholder',
-                  defaultMessage: '密码: ant.design',
+                  id: 'pages.login.passwordPlaceholder',
+                  defaultMessage: 'Password',
                 })}
                 rules={[
                   {
@@ -247,7 +203,7 @@ const Login: React.FC = () => {
                     message: (
                       <FormattedMessage
                         id="pages.login.password.required"
-                        defaultMessage="请输入密码！"
+                        defaultMessage="Please input your password"
                       />
                     ),
                   },
@@ -261,15 +217,13 @@ const Login: React.FC = () => {
               marginBottom: 24,
             }}
           >
-            <ProFormCheckbox noStyle name="autoLogin">
-              <FormattedMessage id="pages.login.rememberMe" defaultMessage="自动登录" />
-            </ProFormCheckbox>
+         
             <a
               style={{
                 float: 'right',
               }}
             >
-              <FormattedMessage id="pages.login.forgotPassword" defaultMessage="忘记密码" />
+              <FormattedMessage id="pages.login.forgotPassword" defaultMessage="Forgot Password" />
             </a>
           </div>
         </LoginForm>

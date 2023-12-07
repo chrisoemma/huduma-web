@@ -68,13 +68,13 @@ describe('Login Page', () => {
 
     await rootContainer.findAllByText('Ant Design');
 
-    const userNameInput = await rootContainer.findByPlaceholderText('Username: admin or user');
+    const userNameInput = await rootContainer.findByPlaceholderText('Username:');
 
     act(() => {
       fireEvent.change(userNameInput, { target: { value: 'admin' } });
     });
 
-    const passwordInput = await rootContainer.findByPlaceholderText('Password: ant.design');
+    const passwordInput = await rootContainer.findByPlaceholderText('Password:');
 
     act(() => {
       fireEvent.change(passwordInput, { target: { value: 'ant.design' } });
@@ -82,7 +82,6 @@ describe('Login Page', () => {
 
     await (await rootContainer.findByText('Login')).click();
 
-    // 等待接口返回结果
     await waitTime(5000);
 
     await rootContainer.findAllByText('Ant Design Pro');
