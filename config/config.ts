@@ -29,7 +29,6 @@ export default defineConfig({
 
   title: 'Huduma Yoyote',
   layout: {
-    locale: true,
     ...defaultSettings,
     theme: 'custom-theme.less'
   },

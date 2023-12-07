@@ -132,6 +132,7 @@ const handleSubmit = async (values: API.LoginParams) => {
           logo={<img alt="logo" src="/espe.png" />}
           title="Huduma Yoyote"
       
+          submitter={{ searchConfig: { submitText: "Login" } }}
           initialValues={{
             autoLogin: true,
           }}
@@ -149,7 +150,7 @@ const handleSubmit = async (values: API.LoginParams) => {
                 key: 'account',
                 label: intl.formatMessage({
                   id: 'pages.login.accountLogin.tab',
-                  defaultMessage: '账户密码登录',
+                  defaultMessage: 'Login',
                 }),
               },
             ]}
@@ -159,7 +160,7 @@ const handleSubmit = async (values: API.LoginParams) => {
             <LoginMessage
               content={intl.formatMessage({
                 id: 'pages.login.accountLogin.errorMessage',
-                defaultMessage: '账户或密码错误(admin/ant.design)',
+                defaultMessage: '(admin/ant.design)',
               })}
             />
           )}
@@ -226,6 +227,8 @@ const handleSubmit = async (values: API.LoginParams) => {
               <FormattedMessage id="pages.login.forgotPassword" defaultMessage="Forgot Password" />
             </a>
           </div>
+
+          
         </LoginForm>
       </div>
     

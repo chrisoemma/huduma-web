@@ -19,7 +19,7 @@ export default {
   'pages.getCaptchaSecondText': '秒後重新獲取',
   'pages.login.rememberMe': '自動登錄',
   'pages.login.forgotPassword': '忘記密碼 ?',
-  'pages.login.submit': '登錄',
+  'pages.login.submit': 'Login', 
   'pages.login.loginWith': '其他登錄方式 :',
   'pages.login.registerAccount': '註冊賬戶',
   'pages.welcome.link': '歡迎使用',
