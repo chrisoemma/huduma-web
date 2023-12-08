@@ -26,3 +26,28 @@ import { request } from '@umijs/max';
       }
     });
   }
+
+
+  export async function removeEmployee(options?: { [key: string]: any }) {
+  
+    return request(`${API_URL}/employees/destroy_bunch`, {
+      method: 'DELETE',
+      data:{
+        method: 'delete',
+        ...(options || {}),
+      }
+    });
+    }
+    
+  
+    export async function updateEmployee(employeeId: number, options?: { [key: string]: any }) {
+    
+      return request(`${API_URL}/employees/update_employee_web/${employeeId}`, {
+        method: 'PUT',
+        data: {
+          method: 'put',
+          ...(options || {}),
+        },
+      });
+    }
+

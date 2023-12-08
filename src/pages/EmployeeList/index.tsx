@@ -14,14 +14,11 @@ import {
 import { FormattedMessage, useIntl, useParams, useRequest } from '@umijs/max';
 import { Button, Drawer, Image, Input, Space, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
-//import type { FormValueType } from './components/UpdateForm';
-//import UpdateForm from './components/UpdateForm';
+import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addEmployee, getProviderEmployees } from './EmployeeSlice';
-import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
-import { constant } from 'lodash';
-
+import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 
 
 const EmployeeList: React.FC = () => {
@@ -74,6 +71,7 @@ const EmployeeList: React.FC = () => {
     const handleAdd = async (formData: FormData) => {
         const name = formData.get('name') as string;
         const phone = formData.get('phone') as string;
+        const newphone = validateTanzanianPhoneNumber(phone);
         const email = formData.get('email') as string;
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
@@ -83,7 +81,7 @@ const EmployeeList: React.FC = () => {
           name: name,
           nida: nida,
           email: email,
-          phone: phone,
+          phone:newphone,
           profile_img: '',
         };
       
@@ -133,7 +131,6 @@ const EmployeeList: React.FC = () => {
             ...employeeData,
             profile_img: downloadURL,
           };
-      
           // Add employee data to the database
           const hide = message.loading('Loading...');
           try {
@@ -566,7 +563,7 @@ const EmployeeList: React.FC = () => {
                     />
                 </ProForm.Group>
             </ModalForm>
-            {/* <UpdateForm
+            <UpdateForm
                 onSubmit={async (value) => {
                     const success = await handleUpdate(value);
                     if (success) {
@@ -592,7 +589,7 @@ const EmployeeList: React.FC = () => {
                         actionRef.current.reload();
                     }
                 }}
-            /> */}
+            />
 
             <Drawer
                 width={600}

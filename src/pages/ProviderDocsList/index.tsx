@@ -10,6 +10,7 @@ import {
   ProFormTextArea,
   ProFormUploadButton,
   ProTable,
+  ProFormSelect,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl, useRequest } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
@@ -18,9 +19,10 @@ import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { getProviderDocs, updateDocStatus } from './ProviderDocsSlice';
+import { addProviderDoc, getProviderBusiness, getProviderDocs, updateDocStatus } from './ProviderDocsSlice';
 import { useParams } from 'react-router-dom';
 import { Document } from 'react-pdf';
+import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 
 
 
@@ -41,6 +43,8 @@ const ProviderDocsList: React.FC = () => {
   const [tableData, setTableData] = useState<API.ProviderDocsListItem[]>([]);
 
   const intl = useIntl();
+  const [regDocs, setRegDocs] = useState([]);
+  const [businesses,setBusinesses]=useState([]);
 
 
 
@@ -50,6 +54,40 @@ const ProviderDocsList: React.FC = () => {
     setCurrentDocument(document);
     setDocumentDrawerVisible(true);
   };
+
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await getRegistrationDoc();
+        const regDocs = response.data.docs;
+      //  console.log('regDocs',regDocs);
+        setRegDocs(regDocs);
+        actionRef.current?.reloadAndRest();
+      } catch (error) {
+        console.error('Error fetching Reg docs data:', error);
+      }
+    }
+    fetchData();
+  }, []);
+
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await getProviderBusiness(id);
+        const businesses = response.data.businesses;
+       // console.log('businesses',businesses);
+        setBusinesses(businesses);
+        actionRef.current?.reloadAndRest();
+      } catch (error) {
+        console.error('Error fetching Businesses data:', error);
+      }
+    }
+    fetchData();
+  }, []);
+
+
 
 
   const handleStatus=async (id,status)=>{
@@ -156,18 +194,30 @@ const ProviderDocsList: React.FC = () => {
   };
 
 
-
+  const [formData, setFormData] = useState({
+    name: '',
+    doc_type: 'registration', // Default document type
+    doc_name: '', // Registration Doc field
+    business: '', // Business field
+    // ... (other form fields)
+  });
   
 
   const handleAdd = async (formData: FormData) => {
 
-    const name = formData.get('name') as string;
-    const imageFile = formData.get('image') as File;
+    const imageFile = formData.get('doc_url') as File;
+    const business = formData.get('business') as string;
+    const doc_format=formData.get('doc_format') as string;
+    const working_document_id= formData.get('working_document_id') as string;
+    const doc_type=formData.get('doc_type') as string
 
 
-     
+
+    
 
     try {
+
+      const fileType = imageFile.type;
       const storageRef = ref(storage, `images/${imageFile.name}`);
 
       if (imageFile) {
@@ -194,16 +244,20 @@ const ProviderDocsList: React.FC = () => {
           async () => {
             try {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const categoryData: API.ProviderDocsListItem = {
-                id: 0, // Set the appropriate ID
-                name: name,
-                img_url: downloadURL, // Save the download URL to the database
+              const providerDocData: API.ProviderDocList = {
+                id: 0, 
+                business:business,
+                doc_url: downloadURL,
+                working_document_id:working_document_id,
+                doc_format:doc_format,
+                doc_type:fileType
+
               };
 
               // Save the data to the database
               const hide = message.loading('Loading...');
               try {
-                await addCategory(categoryData);
+            const response= await addProviderDoc(id,providerDocData);
                 hide();
                 message.success('Added successfully');
                 return true
@@ -224,25 +278,7 @@ const ProviderDocsList: React.FC = () => {
           }
         );
       } else {
-        // If no image is uploaded, create an object without img_url
-        const categoryData: API.ProviderDocsListItem = {
-          id: 0, // Set the appropriate ID
-          name: name,
-          img_url: '', // No image URL in this case
-        };
-
-        // Save the data to the database
-        const hide = message.loading('Loading...');
-        try {
-          await addCategory(categoryData);
-          hide();
-          message.success('Added successfully');
-          return true
-        } catch (error) {
-          hide();
-          message.error('Adding failed, please try again!');
-          return false
-        }
+          message.error('Please upload Document of type image or pdf')
       }
     } catch (error) {
       message.error('Image upload failed, please try again!');
@@ -498,17 +534,20 @@ const ProviderDocsList: React.FC = () => {
       )}
       <ModalForm
         title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newCategory',
-          defaultMessage: 'Doc Name',
+          id: 'pages.searchTable.createForm.newDoc',
+          defaultMessage: 'New Document',
         })}
         width="400px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
-          formData.append('name', value.name);
+          formData.append('doc_format', value.name);
+          formData.append('business',value.business);
+          formData.append('working_document_id',value.working_document_id);
+          formData.append('doc_type',value.doc_type)
           if (value.image) {
-            formData.append('image', value.image[0].originFileObj);
+            formData.append('doc_url', value.image[0].originFileObj);
           }
 
           const success = await handleAdd(formData);
@@ -533,12 +572,75 @@ const ProviderDocsList: React.FC = () => {
             name="name"
             label="Name"
           />
+           
+           <ProFormSelect
+  name="doc_type"
+  width="md"
+  label={intl.formatMessage({
+    id: 'pages.searchTable.updateForm.docType',
+    defaultMessage: 'Select Document Type',
+  })}
+  valueEnum={{
+    registration: 'Registration Doc',
+    business: 'Business Doc',
+  }}
+  onChange={(value) => {
+    setFormData((prevData) => {
+      const updatedData = { ...prevData, doc_type: value };
+      // If "registration" is selected, reset the value of the "business" field
+      if (value === 'registration') {
+        updatedData.business = '';
+      }
+
+      // If "business" is selected, reset the value of the "doc_name" field (if needed)
+      if (value === 'business') {
+        updatedData.doc_name = '';
+      }
+
+      return updatedData;
+    });
+  }}
+/>
+
+         <ProFormSelect
+          name="working_document_id"
+          width="md"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.registration',
+            defaultMessage: 'Select Registration Doc',
+          })}
+          valueEnum={regDocs.reduce((enumObj, doc) => {
+            enumObj[doc.id] = doc.doc_name;
+            return enumObj;
+          }, {})}
+
+          disabled={formData.doc_type !== 'registration'}
+          //{...(formData.doc_type === 'registration' ? { initialValue: '' } : {})}
+        />
+
+
+         <ProFormSelect
+          name="business"
+          width="md"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.registration',
+            defaultMessage: 'Select Business',
+          })}
+          valueEnum={businesses?.reduce((enumObj, business) => {
+            enumObj[business.service.id] = business.service.name;
+            return enumObj;
+          }, {})}
+          disabled={formData.doc_type !== 'business'}
+         // {...(formData.doc_type === 'business' ? { initialValue: '' } : {})}
+        />
+
           <ProFormUploadButton
             name="image"
-            label="Upload Image"
+            label="Upload document"
             style={{ display: 'none' }}
             fieldProps={{
-              accept: 'image/*',
+              accept: 'image/*,.pdf',
+              multiple: false,
               max: 1,
               listType: 'picture-card',
               title: 'Click or Drag to Upload', // Custom title
