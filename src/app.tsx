@@ -14,7 +14,7 @@ const loginPath = '/user/login';
 
 
 
-
+// ...
 
 export async function getInitialState(): Promise<{
   settings?: Partial<LayoutSettings>;
@@ -31,14 +31,17 @@ export async function getInitialState(): Promise<{
   }
 
   // If the user is not on the login page, assume that they are logged in
-  const {initialState} = useModel('@@initialState');
-  const currentUser = initialState?.currentUser;
+  const storedUser = localStorage.getItem('currentUser');
+  const storedToken = localStorage.getItem('token');
+  const currentUser = storedUser ? JSON.parse(storedUser) : null;
 
   return {
     currentUser,
     settings: defaultSettings as Partial<LayoutSettings>,
   };
 }
+
+// ...
 
 
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
@@ -67,7 +70,7 @@ export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) =
 
     childrenRender: (children) => {
 
-         console.log('initialState',initialState)
+         //console.log('initialState',initialState)
      
       return (
         <>

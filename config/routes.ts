@@ -107,15 +107,20 @@ export default [
         name: 'Registration docs',
         component: './RegistrationDocList',
       },
+      {
+        path: '/settings/system-admins',
+        name: 'System admins',
+        component: './AdminList',
+      },
      
     ],
   },
-  {
-    name: 'System logs',
-    icon: 'table',
-    path: '/list',
-    component: './TableList',
-  },
+  // {
+  //   name: 'System logs',
+  //   icon: 'table',
+  //   path: '/list',
+  //   component: './TableList',
+  // },
   {
     path: '/',
     redirect: 'dashboard',

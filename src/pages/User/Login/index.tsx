@@ -18,7 +18,7 @@ import { useEmotionCss } from '@ant-design/use-emotion-css';
 import { FormattedMessage, history, SelectLang, useIntl, useModel, Helmet } from '@umijs/max';
 import { Alert, message, Tabs } from 'antd';
 import Settings from '../../../../config/defaultSettings';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { login} from '../AuthSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
@@ -61,47 +61,66 @@ const Login: React.FC = () => {
 
 
 
-const handleSubmit = async (values: API.LoginParams) => {
-  try {
-    const loginData = {
-      phone: validateTanzanianPhoneNumber(values.phone),
-      password: values.password,
-    };
+  const handleSubmit = async (values: API.LoginParams) => {
+    try {
+      const loginData = {
+        phone: validateTanzanianPhoneNumber(values.phone),
+        password: values.password,
+      };
+      console.log('Starting handleSubmit');
 
-    const response = await login(loginData);
   
-    if (response.status) {
-      const defaultLoginSuccessMessage = intl.formatMessage({
-        id: 'pages.login.success',
-        defaultMessage: 'Successfully login！',
-      });
+      const response = await login(loginData);
+  
+      if (response.status) {
 
-      message.success(defaultLoginSuccessMessage);
+        console.log('Successful login');
 
-      // Store token and user data in the initial state
-      setInitialState((prevState) => ({
-        ...prevState,
-        currentUser: response.userData,
-        token: response.token,
-      }));
-
-      const urlParams = new URL(window.location.href).searchParams;
-      history.push(urlParams.get('redirect') || '/dashboard');
-      return;
-    } else {
+        const defaultLoginSuccessMessage = intl.formatMessage({
+          id: 'pages.login.success',
+          defaultMessage: 'Successfully login！',
+        });
+  
+        message.success(defaultLoginSuccessMessage);
+  
+        // Set user data and token in local storage
+        localStorage.setItem('currentUser', JSON.stringify(response.userData));
+        localStorage.setItem('token', response.token);
+  
+        // Update the user data and token in the initial state
+        setInitialState((prevState) => ({
+          ...prevState,
+          currentUser: response.userData,
+          token: response.token,
+        }));
+        // Redirect to the dashboard
+        const urlParams = new URL(window.location.href).searchParams;
+      
+        history.push(urlParams.get('redirect') || '/dashboard');
+      } else {
+        console.log('Login failed');
         message.error(response.message);
+        // Move setUserLoginState to here if needed
+        setUserLoginState(response);
+      }
+    } catch (error) {
+      const defaultLoginFailureMessage = intl.formatMessage({
+        id: 'pages.login.failure',
+        defaultMessage: 'Login fail',
+      });
+      console.error('Login error:', error);
+      message.error(defaultLoginFailureMessage);
+      // Move setUserLoginState to here if needed
+      setUserLoginState({ status: 'error', type: 'account', message: defaultLoginFailureMessage });
     }
-    setUserLoginState(response);
-  } catch (error) {
-    const defaultLoginFailureMessage = intl.formatMessage({
-      id: 'pages.login.failure',
-      defaultMessage: 'Login fail',
-    });
-    console.error('Login error:', error);
-    message.error(defaultLoginFailureMessage);
-  }
-};
+  };
+  
 
+  useEffect(() => {
+    if (userLoginState.status === 'error' && userLoginState.type === 'account') {
+      // Handle error-related side effects or logic
+    }
+  }, [userLoginState]);
 
 
   const { status, type: loginType } = userLoginState;
@@ -132,7 +151,9 @@ const handleSubmit = async (values: API.LoginParams) => {
           logo={<img alt="logo" src="/espe.png" />}
           title="Huduma Yoyote"
       
-          submitter={{ searchConfig: { submitText: "Login" } }}
+          submitter={{ searchConfig: { submitText: "Login" },
+           
+        }}
           initialValues={{
             autoLogin: true,
           }}

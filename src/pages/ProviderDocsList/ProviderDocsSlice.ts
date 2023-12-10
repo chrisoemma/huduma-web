@@ -33,7 +33,7 @@ import { request } from '@umijs/max';
 
    export async function addProviderDoc(providerId:number, options?: { [key: string]: any }) {
 
-    return request(`${API_URL}/providers/documents/store_documents/${providerId}`, {
+    return request(`${API_URL}/providers/documents/${providerId}`, {
       method: 'POST',
       data:{
         method: 'post',

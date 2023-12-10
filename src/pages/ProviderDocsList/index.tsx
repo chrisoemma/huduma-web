@@ -23,6 +23,7 @@ import { addProviderDoc, getProviderBusiness, getProviderDocs, updateDocStatus }
 import { useParams } from 'react-router-dom';
 import { Document } from 'react-pdf';
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
+import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
 
 
 
@@ -45,8 +46,7 @@ const ProviderDocsList: React.FC = () => {
   const intl = useIntl();
   const [regDocs, setRegDocs] = useState([]);
   const [businesses,setBusinesses]=useState([]);
-
-
+  const [form] = ProForm.useForm();
 
   const [documentDrawerVisible, setDocumentDrawerVisible] = useState<boolean>(false);
   const [currentDocument, setCurrentDocument] = useState<API.ProviderDocsListItem | undefined>(undefined);
@@ -206,14 +206,11 @@ const ProviderDocsList: React.FC = () => {
   const handleAdd = async (formData: FormData) => {
 
     const imageFile = formData.get('doc_url') as File;
-    const business = formData.get('business') as string;
+    const business = formData.get('business') as string | undefined;
     const doc_format=formData.get('doc_format') as string;
-    const working_document_id= formData.get('working_document_id') as string;
+    const working_document_id= formData.get('working_document_id');
     const doc_type=formData.get('doc_type') as string
-
-
-
-    
+    const businessId = business==='undefined'? null: business
 
     try {
 
@@ -246,21 +243,28 @@ const ProviderDocsList: React.FC = () => {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               const providerDocData: API.ProviderDocList = {
                 id: 0, 
-                business:business,
+                business:businessId,
                 doc_url: downloadURL,
-                working_document_id:working_document_id,
+                working_document_id:Number(working_document_id),
                 doc_format:doc_format,
-                doc_type:fileType
-
+                document_type:fileType
               };
-
               // Save the data to the database
               const hide = message.loading('Loading...');
               try {
             const response= await addProviderDoc(id,providerDocData);
-                hide();
-                message.success('Added successfully');
-                return true
+            if (response.status) {
+              hide();
+              message.success(response.message);
+              return true;
+            } else {
+              if (response.data) {
+                const errors = response.data.errors;
+                showErrorWithLineBreaks(formatErrorMessages(errors));
+              } else {
+                message.error(response.message);
+              }
+            }
               } catch (error) {
                 hide();
                 message.error('Adding failed, please try again!');
@@ -553,6 +557,7 @@ const ProviderDocsList: React.FC = () => {
           const success = await handleAdd(formData);
 
           if (success) {
+            form.resetFields();
             handleModalOpen(false);
             if (actionRef.current) {
               actionRef.current.reload();
@@ -653,16 +658,16 @@ const ProviderDocsList: React.FC = () => {
           />
         </ProForm.Group>
       </ModalForm>
-      {/* <UpdateForm
+      <UpdateForm
         onSubmit={async (value) => {
-          // const success = await handleUpdate(value);
-          // if (success) {
-          //   handleUpdateModalOpen(false);
-          //   setCurrentRow(undefined);
-          //   if (actionRef.current) {
-          //     actionRef.current.reload();
-          //   }
-          // }
+          const success = await handleUpdate(value);
+          if (success) {
+            handleUpdateModalOpen(false);
+            setCurrentRow(undefined);
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
         }}
         onCancel={() => {
           handleUpdateModalOpen(false);
@@ -679,7 +684,7 @@ const ProviderDocsList: React.FC = () => {
             actionRef.current.reload();
           }
         }}
-      /> */}
+      />
 
       <Drawer
         width={600}
