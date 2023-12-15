@@ -141,7 +141,7 @@ const ProviderUpdateForm: React.FC<ProviderUpdateFormProps> = (props) => {
       form.resetFields();
       setImageUrl(undefined);
       props.onCancel(true);
-      message.success('Provider updated successfully');
+      message.success('Provider documents updated successfully');
       props.onTableReload();
     } catch (error) {
       console.log('Update failed:', error);
@@ -163,8 +163,8 @@ const ProviderUpdateForm: React.FC<ProviderUpdateFormProps> = (props) => {
           bodyStyle={{ padding: '32px 40px 48px' }}
           destroyOnClose
           title={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.editProvider',
-            defaultMessage: 'Edit Provider',
+            id: 'pages.searchTable.updateForm.editProviderDocuments',
+            defaultMessage: 'Edit Provider documents',
           })}
           open={props.updateModalOpen}
           footer={submitter}
@@ -186,7 +186,7 @@ const ProviderUpdateForm: React.FC<ProviderUpdateFormProps> = (props) => {
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.step1',
-          defaultMessage: 'Provider info',
+          defaultMessage: 'Document info',
         })}
       >
         <ProFormText
@@ -196,7 +196,7 @@ const ProviderUpdateForm: React.FC<ProviderUpdateFormProps> = (props) => {
           rules={[
             {
               required: true,
-              message: 'Please enter the provider name!',
+              message: 'Please enter the document name!',
             },
           ]}
         />

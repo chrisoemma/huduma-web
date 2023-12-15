@@ -64,6 +64,20 @@ const AdminList: React.FC = () => {
     //   };
 
 
+    useEffect(() => {
+        async function fetchData() {
+            try {
+                const response = await getRoles();
+                const roles = response.data.roles;
+                setRoles(roles);
+                actionRef.current?.reloadAndRest(); // Reload and reset the table state
+            } catch (error) {
+                console.error('Error fetching Roles data:', error);
+            }
+        }
+
+        fetchData();
+    }, []);
 
 
 
@@ -81,9 +95,10 @@ const AdminList: React.FC = () => {
             name: name,
             email: email,
             phone: newphone,
-            role: role,
+            roles: role,
             profile_img: '',
         };
+
 
         const uploadImage = async () => {
             if (imageFile) {
@@ -161,24 +176,6 @@ const AdminList: React.FC = () => {
             return false;
         }
     };
-
-
-
-
-    useEffect(() => {
-        async function fetchData() {
-            try {
-                const response = await getRoles();
-                const roles = response.data.roles;
-                setRoles(roles);
-                actionRef.current?.reloadAndRest(); // Reload and reset the table state
-            } catch (error) {
-                console.error('Error fetching Roles data:', error);
-            }
-        }
-
-        fetchData();
-    }, []);
 
 
 
@@ -448,6 +445,7 @@ const AdminList: React.FC = () => {
                     formData.append('name', value.name);
                     formData.append('phone', value.phone);
                     formData.append('email', value.email);
+                    formData.append('role',value.role);
 
                     if (value.image) {
                         formData.append('image', value.image[0].originFileObj);

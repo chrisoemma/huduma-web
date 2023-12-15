@@ -45,7 +45,7 @@ export default {
   'pages.searchTable.updateForm.email':'Email',
   'pages.searchTable.updateForm.phone':'Phone number',
   'pages.searchTable.updateForm.ruleName.location':'Location',
-  'pages.searchTable.profilePhoto':'Profile photo',
+  'pages.searchTable.profilePhoto':'Photo',
   'pages.searchTable.updateForm.services':'Services',
   'pages.searchTable.updateForm.ruleName.nameRules': 'Please enter the category Name!',
   'pages.searchTable.updateForm.ruleDesc.descLabel': 'Rule Description',

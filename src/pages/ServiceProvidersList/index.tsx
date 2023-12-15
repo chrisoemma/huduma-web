@@ -383,7 +383,7 @@ const ProviderList: React.FC = () => {
             search: true,
         },
         {
-            title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Profile photo" />,
+            title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Photo" />,
             dataIndex: ['user', 'profile_img'],
             hideInSearch: true,
             render: (_, record) => {
@@ -430,7 +430,7 @@ const ProviderList: React.FC = () => {
                     onClick={() => {
 
                         handleUpdateModalOpen(true);
-                        setCurrentRow(record);
+                        setCurrentRow(record); //here pass the props to UpdateForm
                     }}
                 >
                     <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
@@ -689,6 +689,7 @@ const ProviderList: React.FC = () => {
                     </ProForm.Group>
                 </ModalForm>
                 <UpdateForm
+                    key={currentRow?.id}
                     onSubmit={async (value) => {
                         const success = await handleUpdate(value);
                         if (success) {

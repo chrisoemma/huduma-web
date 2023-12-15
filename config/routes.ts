@@ -80,7 +80,6 @@ export default [
      
     ],
   },
-
   {
     path: '/settings',
     name: 'Settings',
@@ -107,13 +106,31 @@ export default [
         name: 'Registration docs',
         component: './RegistrationDocList',
       },
+
+    ],
+  },
+
+  {
+    path: '/administrations',
+    name: 'Administrative',
+    icon: 'home',
+    routes: [
       {
-        path: '/settings/system-admins',
+        path: '/administrations/system-admins',
         name: 'System admins',
         component: './AdminList',
       },
-     
-    ],
+      {
+        path: '/administrations/permissions',
+        name: 'User permissions',
+        component: './PermissionsList',
+      },
+      {
+        path: '/administrations/roles',
+        name: 'User roles',
+        component: './RolesList',
+      },
+    ]
   },
   // {
   //   name: 'System logs',

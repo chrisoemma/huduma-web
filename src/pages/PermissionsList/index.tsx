@@ -7,19 +7,24 @@ import {
   ProForm,
   ProDescriptions,
   ProFormText,
-  ProFormTextArea,
-  ProFormUploadButton,
   ProTable,
+  ProFormCheckbox,
+  ProFormSelect,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
-import moment from 'moment';
-
-import {getPastRequests } from '../ReqestSlice';
 
 
-const PastRequestList: React.FC = () => {
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import { addPermission, getPermissionCategories, getPermissions } from '../PermissionsList/PermissionSlice';
+import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
+import { addRole, getRoles, removeRole } from '../RolesList/RoleSlice';
+import UpdateForm from './componets/UpdateForm';
+
+
+
+const PermissionList: React.FC = () => {
 
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
@@ -28,27 +33,32 @@ const PastRequestList: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.PastRequestListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.PastRequestListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.PermissionListItem>();
+  const [selectedRowsState, setSelectedRows] = useState<API.PermissionListItem[]>([]);
   const [categories, setCategories] = useState([]);
 
   const intl = useIntl();
 
 
-  const handleRemove = async (selectedRows: API.PastRequestListItem[]) => {
-  
+
+  // console.log('cureentrrrrr',currentRow);
+
+
+  const handleRemove = async (selectedRows: API.PermissionListItem[]) => {
+
 
     const hide = message.loading('Loading....');
     if (!selectedRows) return true;
     try {
       // console.log('in try and catch');
-      await removeCategory({
+      await removeRole({
         key: selectedRows.map((row) => row.id),
       });
       hide();
       message.success('Deleted successfully and will refresh soon');
       if (actionRef.current) {
         console.log('invoking this which is null')
+        actionRef.current.reloadAndRest();
       }
       return true;
     } catch (error) {
@@ -59,36 +69,45 @@ const PastRequestList: React.FC = () => {
   };
 
 
-
-  
-
   const handleAdd = async (formData: FormData) => {
 
+    const name = formData.get('name') as string;
+    const category = formData.get('category') as string;
 
-     
+      console.log('categoryyyr',category);
+
+        
 
     try {
 
-        // If no image is uploaded, create an object without img_url
-        const categoryData: API.PastRequestListItem = {
-          id: 0, // Set the appropriate ID
-          name: name,
-          img_url: '', // No image URL in this case
-        };
+      const permissionData: API.PermissionListItem = {
+        id: 0,
+        name: name,
+        category: category
+      };
 
-        // Save the data to the database
-        const hide = message.loading('Loading...');
-        try {
-          await addCategory(categoryData);
+      const hide = message.loading('Loading...');
+      try {
+        const response = await addPermission(permissionData);
+        if (response.status) {
           hide();
-          message.success('Added successfully');
-          return true
-        } catch (error) {
-          hide();
-          message.error('Adding failed, please try again!');
-          return false
+          message.success(response.message);
+          return true;
+        } else {
+          if (response.data) {
+            const errors = response.data.errors;
+            showErrorWithLineBreaks(formatErrorMessages(errors));
+          } else {
+            message.error(response.message);
+          }
         }
-      
+      } catch (error) {
+        hide();
+        console.log('errorrrs', error)
+        message.error('Adding failed, please try again!');
+        return false
+      }
+
     } catch (error) {
       message.error('Image upload failed, please try again!');
       return false
@@ -100,31 +119,36 @@ const PastRequestList: React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await getCategories();
+        const response = await getPermissionCategories();
         const categories = response.data.categories;
-        console.log('Categories:', categories);
+
+      
+
         setCategories(categories);
         actionRef.current?.reloadAndRest(); // Reload and reset the table state
       } catch (error) {
-        console.error('Error fetching category data:', error);
+        console.error('Error fetching categories data:', error);
       }
     }
-  
+
     fetchData();
   }, []);
-  
 
 
-  const columns: ProColumns<API.PastRequestListItem>[] = [
+
+
+
+  const columns: ProColumns<API.PermissionListItem>[] = [
     {
       title: (
         <FormattedMessage
-          id="pages.searchTable.updateForm.providerName"
-          defaultMessage="Provider"
+          id="pages.searchTable.updateForm.roleName"
+          defaultMessage="Permission Name"
         />
       ),
-      dataIndex: ['provider','name'],
+      dataIndex: 'name',
       valueType: 'text',
+      tip: 'The Name is the unique key',
       render: (dom, entity) => {
         return (
           <a
@@ -134,80 +158,6 @@ const PastRequestList: React.FC = () => {
             }}
           >
             {dom}
-          </a>
-        );
-      },
-      search: true,
-    },
-    
-        {
-      title: (
-        <FormattedMessage
-          id="pages.searchTable.updateForm. clientName"
-          defaultMessage="Client"
-        />
-      ),
-      dataIndex: ['client','name'],
-      valueType: 'text',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
-      search: true,
-    },
-
-        {
-      title: (
-        <FormattedMessage
-          id="pages.searchTable.updateForm.business"
-          defaultMessage="Business"
-        />
-      ),
-      dataIndex: ['service','name'],  //display list of services separeted by , what we call service in api is business while diplying
-      valueType: 'text',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
-      search: true,
-    },
-
-
-            {
-      title: (
-        <FormattedMessage
-          id="pages.searchTable.updateForm.SubServices"
-          defaultMessage="Services"
-        />
-      ),
-      dataIndex: 'requested_sub_services', //remove this and place list of sub services separated by ,
-      valueType: 'text',
-      render: (dom, entity) => {
-        const subServices = entity.requested_sub_services.map(subService => subService.name).join(', ');
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-           {subServices}
           </a>
         );
       },
@@ -215,31 +165,45 @@ const PastRequestList: React.FC = () => {
     },
 
     {
-      title: <FormattedMessage id="pages.searchTable.titleRequestTime" defaultMessage="Request Time" />,
-      dataIndex: 'request_time',
-      valueType: 'dateTime',
-      hideInForm: true,
-      render: (text, record) => moment(record.request_time).format('D/M/YYYY H:mm'),
-    },
-     //Add onother array of time created time
-     {
-      title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
-      dataIndex: 'statuses',
-      hideInForm: true,
-      render: (_, entity) => {
-        const lastStatus = entity.statuses.length > 0 ? entity.statuses[entity.statuses.length - 1].status : null;
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.updateForm.roleName"
+          defaultMessage="Category"
+        />
+      ),
+      dataIndex: 'category',
+      valueType: 'text',
+      tip: 'The Permission Category',
+      render: (dom, entity) => {
         return (
-          <span>
-            {lastStatus === 'Requested' ? (
-              <Tag color="green">{lastStatus}</Tag>
-            ) : lastStatus === 'Active' ? (
-              <Tag color="green">{lastStatus}</Tag>
-            ) : (
-              <Tag>{lastStatus}</Tag>
-            )}
-          </span>
+          <a
+            onClick={() => {
+              setCurrentRow(entity);
+              setShowDetail(true);
+            }}
+          >
+            {dom}
+          </a>
         );
       },
+      search: false,
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
+      dataIndex: 'option',
+      valueType: 'option',
+      render: (_, record) => [
+        <a
+          key="config"
+          onClick={() => {
+            handleUpdateModalOpen(true);
+            setCurrentRow(record);
+          }}
+        >
+          <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
+        </a>,
+
+      ],
     },
   ];
 
@@ -248,43 +212,53 @@ const PastRequestList: React.FC = () => {
       <ProTable
         //key={categories.length}
         headerTitle={intl.formatMessage({
-          id: 'pages.searchTable.title',
-          defaultMessage: 'Enquiry form',
+          id: 'pages.searchTable.roles',
+          defaultMessage: 'Roles',
         })}
         actionRef={actionRef}
         rowKey="id"
-      
+        toolBarRender={() => [
+          <Button
+            type="primary"
+            key="primary"
+            onClick={() => {
+              handleModalOpen(true);
+            }}
+          >
+            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+          </Button>,
+        ]}
         search={{
           labelWidth: 120,
-         filterType: 'light', 
+          //  filterType: 'light', // Use a light filter form for better layout
         }}
         request={async (params, sorter, filter) => {
-          try {      
-            const response = await getPastRequests(params);
-            const requests = response.data.requests;
-            // Filter the data based on the 'name' filter
-            const filteredRequests = requests.filter(request =>
+          try {
+            const response = await getPermissions(params);
+            const permissions = response.data.permissions;
+
+            const filteredPermissions = permissions.filter(role =>
               params.name
-                ? request.provider.name
-                    .toLowerCase()
-                    .split(' ')
-                    .some(word => word.startsWith(params.name.toLowerCase()))
+                ? role.name
+                  .toLowerCase()
+                  .split(' ')
+                  .some(word => word.startsWith(params.name.toLowerCase()))
                 : true
             );
-      
+
             return {
-              data: filteredRequests,
+              data: filteredPermissions,
               success: true,
             };
           } catch (error) {
-            console.error('Error fetching category data:', error);
+            console.error('Error fetching permissions data:', error);
             return {
               data: [],
               success: false,
             };
           }
         }}
-      
+
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -300,15 +274,15 @@ const PastRequestList: React.FC = () => {
               <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
               <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
               &nbsp;&nbsp;
-             
+
             </div>
           }
         >
           <Button
             onClick={async () => {
               await handleRemove(selectedRowsState);
-             setSelectedRows([]);
-             actionRef.current?.reload();
+              setSelectedRows([]);
+              actionRef.current?.reload();
             }}
           >
             <FormattedMessage
@@ -326,8 +300,8 @@ const PastRequestList: React.FC = () => {
       )}
       <ModalForm
         title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newCategory',
-          defaultMessage: 'Provider Name',
+          id: 'pages.searchTable.createForm.editRole',
+          defaultMessage: 'Add Permission',
         })}
         width="400px"
         open={createModalOpen}
@@ -335,9 +309,8 @@ const PastRequestList: React.FC = () => {
         onFinish={async (value) => {
           const formData = new FormData();
           formData.append('name', value.name);
-          if (value.image) {
-            formData.append('image', value.image[0].originFileObj);
-          }
+          formData.append('category', value.category);
+
 
           const success = await handleAdd(formData);
 
@@ -361,34 +334,43 @@ const PastRequestList: React.FC = () => {
             name="name"
             label="Name"
           />
-          <ProFormUploadButton
-            name="image"
-            label="Upload Image"
-            style={{ display: 'none' }}
-            fieldProps={{
-              accept: 'image/*',
-              max: 1,
-              listType: 'picture-card',
-              title: 'Click or Drag to Upload', // Custom title
-              placeholder: 'Click or Drag to Upload', // Custom placeholder
-            }}
-            onChange={(fileList) => {
-              // Handle file list changes if needed
-              // console.log('File List:', fileList);
-            }}
-          />
+
+          <ProFormSelect
+       name="category"
+       width="md"
+       label={intl.formatMessage({
+         id: 'pages.searchTable.updateForm.category',
+         defaultMessage: 'Group',
+       })}
+       valueEnum={categories.reduce((enumObj, category) => {
+         enumObj[category] = category;
+         return enumObj;
+       }, {})}
+       mode="tags"
+       maxTagCount={1}
+       showSearch
+       showArrow
+       rules={[
+         {
+           required: true,
+           message: 'Please select the group!',
+         },
+       ]}
+     />
+     
+
         </ProForm.Group>
       </ModalForm>
-      {/* <UpdateForm
+      <UpdateForm
         onSubmit={async (value) => {
-          // const success = await handleUpdate(value);
-          // if (success) {
-          //   handleUpdateModalOpen(false);
-          //   setCurrentRow(undefined);
-          //   if (actionRef.current) {
-          //     actionRef.current.reload();
-          //   }
-          // }
+          const success = await handleUpdate(value);
+          if (success) {
+            handleUpdateModalOpen(false);
+            setCurrentRow(undefined);
+            if (actionRef.current) {
+              actionRef.current.reload();
+            }
+          }
         }}
         onCancel={() => {
           handleUpdateModalOpen(false);
@@ -398,6 +380,8 @@ const PastRequestList: React.FC = () => {
 
         }}
         updateModalOpen={updateModalOpen}
+
+    
         values={currentRow || {}}
 
         onTableReload={() => {
@@ -405,7 +389,7 @@ const PastRequestList: React.FC = () => {
             actionRef.current.reload();
           }
         }}
-      /> */}
+      />
 
       <Drawer
         width={600}
@@ -416,17 +400,17 @@ const PastRequestList: React.FC = () => {
         }}
         closable={false}
       >
-        {currentRow?.provider.name && (
-          <ProDescriptions<API.PastRequestListItem>
+        {currentRow?.name && (
+          <ProDescriptions<API.PermissionListItem>
             column={2}
             title={currentRow?.name}
             request={async () => ({
               data: currentRow || {},
             })}
             params={{
-              id: currentRow?.provider.name,
+              id: currentRow?.name,
             }}
-            columns={columns as ProDescriptionsItemProps<API.PastRequestListItem>[]}
+            columns={columns as ProDescriptionsItemProps<API.PermissionListItem>[]}
           />
         )}
       </Drawer>
@@ -434,4 +418,4 @@ const PastRequestList: React.FC = () => {
   );
 };
 
-export default PastRequestList;
+export default PermissionList;
