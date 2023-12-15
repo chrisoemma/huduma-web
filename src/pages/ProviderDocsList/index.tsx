@@ -24,7 +24,7 @@ import { useParams } from 'react-router-dom';
 import { Document, Page } from 'react-pdf';
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
-import { Worker,Viewer } from '@react-pdf-viewer/core';
+//import { Worker,Viewer } from '@react-pdf-viewer/core';
 
 
 const ProviderDocsList: React.FC = () => {
@@ -157,15 +157,14 @@ const ProviderDocsList: React.FC = () => {
             />
           )}
           {currentDocument.doc_type === 'application/pdf' && (
-          
-
-<Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+  
+{/* <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
   {console.log('docurl', currentDocument?.doc_url)}
   <Viewer
     fileUrl={currentDocument?.doc_url}
     onLoadError={(error) => console.log('PDF Loading Error:', error)}
   />
-</Worker>
+</Worker> */}
             
           )}
         </>
