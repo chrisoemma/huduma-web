@@ -901,9 +901,7 @@ const ProviderList: React.FC = () => {
                                         </Tag>
                                         <p>First Name: {validationResult.result.FIRSTNAME}</p>
                                         <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
-                                        <p>
-                                            Last Name: <Tag color="red">{validationResult.result.SURNAME}</Tag>
-                                        </p>
+                                        <p> Last Name: {validationResult.result.SURNAME}</p>
                                         {/* Add more fields as needed */}
                                     </div>
                                 )}
