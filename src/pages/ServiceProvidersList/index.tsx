@@ -39,7 +39,7 @@ const ProviderList: React.FC = () => {
     const [showBusinessesDrawer, setShowBusinessesDrawer] = useState<boolean>(false);
     const [currentBusinessesData, setCurrentBusinessesData] = useState([])
     const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
-
+    const [validationResult, setValidationResult] = useState(null);
 
     const intl = useIntl();
     const [form] = ProForm.useForm();
@@ -77,17 +77,44 @@ const ProviderList: React.FC = () => {
     };
 
     const handleNidaValidationDrawerClose = () => {
+        setValidationResult(null);
         setShowNidaValidationDrawer(false);
+
     };
 
     const handleNidaChecking = async (nida) => {
+        try {
+            const response = await getNida(nida);
 
-       const response = await getNida(nida);
+            if (response.error) {
+                // Case 1: Validation error
+                console.log(`Validation Error: ${response.obj.error}`);
+                setValidationResult({ error: response.obj.error });
+            } else if (response.obj.error) {
+                // Case 2: NIDA number does not exist
+                console.log(`NIDA Number does not exist: ${response.obj.error}`);
+                setValidationResult({ error: response.obj.error });
+            } else if (response.obj.result) {
+                // Case 3: Successful NIDA number validation
+                const {
+                    FIRSTNAME,
+                    MIDDLENAME,
+                    SURNAME,
+                    SEX,
+                    DateofBirth,
+                } = response.obj.result;
 
-        console.log(response);
+                // Update state with successful result
+                setValidationResult({ result: response.obj.result });
+            }
 
-        return response
-    }
+            return response;
+        } catch (error) {
+            console.error(error);
+            setValidationResult({ error: 'Failed to perform NIDA checking' });
+            return { error: 'Failed to perform NIDA checking' };
+        }
+    };
 
 
     const getStatusColor = (status) => {
@@ -863,6 +890,25 @@ const ProviderList: React.FC = () => {
                     destroyOnClose
                 >
                     <Form>
+                        {validationResult && (
+                            <div style={{ marginTop: 20 }}>
+                                {validationResult.error ? (
+                                    <Tag color="red">Error: {validationResult.error}</Tag>
+                                ) : (
+                                    <div>
+                                        <Tag color="green" style={{ fontWeight: 'bold' }}>
+                                            NIDA Validation Successful!
+                                        </Tag>
+                                        <p>First Name: {validationResult.result.FIRSTNAME}</p>
+                                        <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
+                                        <p>
+                                            Last Name: <Tag color="red">{validationResult.result.SURNAME}</Tag>
+                                        </p>
+                                        {/* Add more fields as needed */}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                         <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
                         <Item
                             label="NIDA Number"
