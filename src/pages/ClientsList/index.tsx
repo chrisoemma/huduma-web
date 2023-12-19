@@ -12,7 +12,7 @@ import {
     ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message, Form } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
@@ -34,9 +34,12 @@ const ClientList: React.FC = () => {
     const [currentRow, setCurrentRow] = useState<API.ClientListItem>();
     const [selectedRowsState, setSelectedRows] = useState<API.ClientListItem[]>([]);
     const [clients, setClients] = useState([]);
+    const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
 
     const intl = useIntl();
     const [form] = ProForm.useForm();
+    const [validationResult, setValidationResult] = useState(null);
+    const { Item } = Form;
 
 
     //   const handleRemove = async (selectedRows: API.ClientListItem[]) => {
@@ -63,6 +66,68 @@ const ClientList: React.FC = () => {
     //     }
     //   };
 
+    const handleNidaValidationDrawerOpen = () => {
+        setShowNidaValidationDrawer(true);
+    };
+
+    const handleNidaValidationDrawerClose = () => {
+        setValidationResult(null);
+        setShowNidaValidationDrawer(false);
+
+    };
+
+    const handleNidaChecking = async (nida) => {
+        try {
+            const response = await getNida(nida);
+
+            if (response.error) {
+                // Case 1: Validation error
+                console.log(`Validation Error: ${response.obj.error}`);
+                setValidationResult({ error: response.obj.error });
+            } else if (response.obj.error) {
+                // Case 2: NIDA number does not exist
+                console.log(`NIDA Number does not exist: ${response.obj.error}`);
+                setValidationResult({ error: response.obj.error });
+            } else if (response.obj.result) {
+                // Case 3: Successful NIDA number validation
+                const {
+                    FIRSTNAME,
+                    MIDDLENAME,
+                    SURNAME,
+                    SEX,
+                    DateofBirth,
+                } = response.obj.result;
+
+                // Update state with successful result
+                setValidationResult({ result: response.obj.result });
+            }
+
+            return response;
+        } catch (error) {
+            console.error(error);
+            setValidationResult({ error: 'Failed to perform NIDA checking' });
+            return { error: 'Failed to perform NIDA checking' };
+        }
+    };
+
+
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'S.Valid':
+            case 'A.Valid':
+                return 'green';
+            case 'S.Invalid':
+            case 'A.Invalid':
+                return 'red';
+            case 'A.Pending':
+            case 'S.Pending':
+                return 'orange';
+            default:
+                return 'gray';
+        }
+    };
+
+
     const handleAdd = async (formData: FormData) => {
         const first_name = formData.get('first_name') as string;
         const last_name = formData.get('last_name') as string;
@@ -71,7 +136,7 @@ const ClientList: React.FC = () => {
         const email = formData.get('email') as string;
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
-    
+
         let userData: API.AgentListItem = {
             id: 0, // Set the appropriate ID
             first_name: first_name,
@@ -81,12 +146,12 @@ const ClientList: React.FC = () => {
             phone: newphone,
             profile_img: '',
         };
-    
+
         const uploadImage = async () => {
             if (imageFile) {
                 const storageRef = ref(storage, `profile/${imageFile.name}`);
                 const uploadTask = uploadBytesResumable(storageRef, imageFile);
-    
+
                 return new Promise<string>((resolve, reject) => {
                     uploadTask.on(
                         'state_changed',
@@ -121,14 +186,14 @@ const ClientList: React.FC = () => {
                 return Promise.resolve('');
             }
         };
-    
+
         try {
             const downloadURL = await uploadImage();
             userData = {
                 ...userData,
                 profile_img: downloadURL,
             };
-    
+
             // Add user data to the database
             const hide = message.loading('Loading...');
             try {
@@ -158,7 +223,7 @@ const ClientList: React.FC = () => {
             return false;
         }
     };
-    
+
 
 
     useEffect(() => {
@@ -241,15 +306,40 @@ const ClientList: React.FC = () => {
             valueType: 'text',
             tip: 'The NIDA number is unique',
             render: (dom, entity) => {
+                // Get the last status from the nida_statuses array
+                const lastStatus = entity.nida_statuses?.[entity.nida_statuses.length - 1]?.status;
+
+                let tagColor;
+                switch (lastStatus) {
+                    case 'S.Valid':
+                    case 'A.Valid':
+                        tagColor = 'green';
+                        break;
+                    case 'S.Invalid':
+                    case 'A.Invalid':
+                        tagColor = 'red';
+                        break;
+                    case 'A.Pending':
+                    case 'S.Pending':
+                        tagColor = 'orange';
+                        break;
+                    default:
+                        tagColor = 'gray';
+                        break;
+                }
+
                 return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
+                    <div>
+                        <a
+                            onClick={() => {
+                                setCurrentRow(entity);
+                                setShowDetail(true);
+                            }}
+                        >
+                            {dom}
+                        </a>
+                        {lastStatus && <Tag style={{ marginLeft: '5px', backgroundColor: tagColor }}>{lastStatus}</Tag>}
+                    </div>
                 );
             },
             search: true,
@@ -545,21 +635,21 @@ const ClientList: React.FC = () => {
                         label="Phone"
                     />
 
-<ProFormText
-    name="email"
-    label={intl.formatMessage({
-        id: 'pages.searchTable.updateForm.email',
-        defaultMessage: 'Email',
-    })}
-    width="md"
-    rules={[
-     
-        {
-            type: 'email',
-            message: 'Please enter a valid email address!',
-        },
-    ]}
-/>
+                    <ProFormText
+                        name="email"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.email',
+                            defaultMessage: 'Email',
+                        })}
+                        width="md"
+                        rules={[
+
+                            {
+                                type: 'email',
+                                message: 'Please enter a valid email address!',
+                            },
+                        ]}
+                    />
                     <ProFormText
                         rules={[
 
@@ -648,6 +738,70 @@ const ClientList: React.FC = () => {
                         columns={columns as ProDescriptionsItemProps<API.ClientListItem>[]}
                     />
                 )}
+
+                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                        Validate NIDA
+                    </Button>
+            </Drawer>
+
+            <Drawer
+                width={400}
+                title="Validate NIDA Number"
+                placement="right"
+                onClose={handleNidaValidationDrawerClose}
+                visible={showNidaValidationDrawer}
+                destroyOnClose
+            >
+                <Form>
+                    {validationResult && (
+                        <div style={{ marginTop: 20 }}>
+                            {validationResult.error ? (
+                                <Tag color="red">Error: {validationResult.error}</Tag>
+                            ) : (
+                                <div>
+                                    <Tag color="green" style={{ fontWeight: 'bold' }}>
+                                        NIDA Validation Successful!
+                                    </Tag>
+                                    <p>First Name: {validationResult.result.FIRSTNAME}</p>
+                                    <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
+                                    <p> Last Name: {validationResult.result.SURNAME}</p>
+                                    {/* Add more fields as needed */}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
+                    <Item
+                        label="NIDA Number"
+                        name="nidaNumber"
+                        initialValue={currentRow?.nida || ''}
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter NIDA Number',
+                            },
+                        ]}
+                    >
+                        <Input
+                            value={currentRow?.nida || ''}
+                            disabled
+
+                        />
+                    </Item>
+
+                    <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)}>
+                        Validate NIDA
+                    </Button>
+                    <div style={{ marginTop: 20 }}>
+                        <p>This NIDA has passed through the following statuses:</p>
+                        {currentRow?.nida_statuses?.map((status, index) => (
+                            <Tag key={index} color={getStatusColor(status.status)}>
+                                {status.status}
+                            </Tag>
+                        ))}
+                    </div>
+                </Form>
+
             </Drawer>
         </PageContainer>
     );
