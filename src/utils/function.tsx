@@ -85,3 +85,39 @@ export function validateTanzanianPhoneNumber(phoneNumber) {
       return null;
     }
   }
+
+  export async function validateNIDANumber(nidaNumber) {
+    // Replace 'YOUR_API_ENDPOINT' with the actual API endpoint for NIDA validation
+    const apiEndpoint = `https://ors.brela.go.tz/um/load/load_nida/${nidaNumber}`;
+  
+    try {
+      // Make a fetch request to the NIDA validation API
+      const response = await fetch(apiEndpoint);
+      
+      if (!response.ok) {
+        // Handle non-successful responses (e.g., network error, server error)
+        throw new Error(`Failed to validate NIDA number. Status: ${response.status}`);
+      }
+  
+      const result = await response.json();
+  
+      if (result.obj && result.obj.result && result.obj.result.NIN === nidaNumber) {
+    
+        return {
+          status: 'Validated',
+          data: result.obj.result,
+        };
+      } else {
+        return {
+          status: 'Invalid',
+          error: result.obj.error || 'Unknown error during validation',
+        };
+      }
+    } catch (error) {
+
+      return {
+        status: 'Error',
+        error: error.message || 'Unknown error during validation',
+      };
+    }
+  }

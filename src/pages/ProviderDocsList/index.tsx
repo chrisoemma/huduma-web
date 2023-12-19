@@ -21,6 +21,7 @@ import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addProviderDoc, getProviderBusiness, getProviderDocs, updateDocStatus } from './ProviderDocsSlice';
 import { useParams } from 'react-router-dom';
+
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
 //import { Worker,Viewer } from '@react-pdf-viewer/core';
@@ -155,7 +156,7 @@ const ProviderDocsList: React.FC = () => {
               style={{ width: '100%', height: 'auto' }}
             />
           )}
-          {/* {currentDocument.doc_type === 'application/pdf' && ( */}
+          {currentDocument.doc_type === 'application/pdf' && (
   
 {/* <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
   {console.log('docurl', currentDocument?.doc_url)}
@@ -164,9 +165,9 @@ const ProviderDocsList: React.FC = () => {
     onLoadError={(error) => console.log('PDF Loading Error:', error)}
   />
 </Worker> */}
-        
-             
-          {/* )} */}
+
+            
+          )}
         </>
       )}
       </div>

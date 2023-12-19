@@ -1,4 +1,6 @@
 export const API_URL = 'https://dev-api.espeservice.com/api/v1';
+export const NIDA_URL = 'https://ors.brela.go.tz/um/load/load_nida';
+export const APP_URL = 'https://esms.espeservice.com';
 export const YOUR_API_KEY= "AIzaSyDLT1iNx_3_PXFoatpJJdXCT56ZjeVFahY"
 export const YOUR_AUTH_DOMAIN="huduma-yoyote-3333.firebaseapp.com"
 export const YOUR_PROJECT_ID="https://huduma-yoyote-3333-default-rtdb.firebaseio.com"
