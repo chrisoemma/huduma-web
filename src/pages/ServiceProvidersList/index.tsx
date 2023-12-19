@@ -80,14 +80,16 @@ const ProviderList: React.FC = () => {
         setShowNidaValidationDrawer(false);
     };
 
-    const handleNidaChecking = (nida) => {
-
-       const response = getNida(nida);
-
-        console.log(response);
-
-        return response
-    }
+    const handleNidaChecking = async (nida) => {
+        try {
+          const response = await getNida(nida);
+          console.log(response);
+          return response;
+        } catch (error) {
+          console.error(error);
+          return { error: 'Failed to perform NIDA checking' };
+        }
+      };
 
 
     const getStatusColor = (status) => {
