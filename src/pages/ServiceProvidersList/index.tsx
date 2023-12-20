@@ -21,7 +21,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { addProvider, fetchBusinessesData, getProviders } from './ServiceProviderSlice';
 import { history } from 'umi';
 import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '@/utils/function';
-import { getNida } from '../NidaSlice';
+import { getNida, validateNida } from '../NidaSlice';
 
 
 const ProviderList: React.FC = () => {
@@ -79,42 +79,50 @@ const ProviderList: React.FC = () => {
     const handleNidaValidationDrawerClose = () => {
         setValidationResult(null);
         setShowNidaValidationDrawer(false);
-
     };
 
     const handleNidaChecking = async (nida) => {
         try {
+            const nidaValidationData = {
+                status: '',
+                user_type: 'Provider',
+            };
+    
             const response = await getNida(nida);
-
+    
             if (response.error) {
                 // Case 1: Validation error
-                console.log(`Validation Error: ${response.obj.error}`);
                 setValidationResult({ error: response.obj.error });
             } else if (response.obj.error) {
                 // Case 2: NIDA number does not exist
-                console.log(`NIDA Number does not exist: ${response.obj.error}`);
-                setValidationResult({ error: response.obj.error });
+                nidaValidationData.status = 'A.Invalid';
+                await validateNidaAndUpdateResult(currentRow?.id, nidaValidationData, 'NIDA Number does not exist');
             } else if (response.obj.result) {
                 // Case 3: Successful NIDA number validation
-                const {
-                    FIRSTNAME,
-                    MIDDLENAME,
-                    SURNAME,
-                    SEX,
-                    DateofBirth,
-                } = response.obj.result;
-
+                const { FIRSTNAME, MIDDLENAME, SURNAME, SEX, DateofBirth } = response.obj.result;
+    
                 // Update state with successful result
-                setValidationResult({ result: response.obj.result });
+                nidaValidationData.status = 'A.Valid';
+                await validateNidaAndUpdateResult(currentRow?.id, nidaValidationData, response.obj.result);
             }
-
-            return response;
+    
+            // Return the necessary information, not the entire response object
+            return {
+                error: response.error ? response.obj.error : undefined,
+                result: response.obj.result ? response.obj.result : undefined,
+            };
         } catch (error) {
             console.error(error);
             setValidationResult({ error: 'Failed to perform NIDA checking' });
             return { error: 'Failed to perform NIDA checking' };
         }
     };
+    
+    const validateNidaAndUpdateResult = async (id, nidaValidationData, result) => {
+        const nidaResponse = await validateNida(id, nidaValidationData);
+        setValidationResult(result ? { result } : { error: nidaResponse.error });
+    };
+    
 
 
     const getStatusColor = (status) => {
