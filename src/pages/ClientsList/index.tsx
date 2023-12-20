@@ -20,6 +20,7 @@ import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addClient, getClients } from './ClientsSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
+import { getNida, validateNida } from '../NidaSlice';
 
 
 const ClientList: React.FC = () => {
@@ -78,16 +79,26 @@ const ClientList: React.FC = () => {
 
     const handleNidaChecking = async (nida) => {
         try {
+
+            const nidaValidationData = {
+                status: '',
+                user_type: 'Client'
+            }
             const response = await getNida(nida);
 
             if (response.error) {
                 // Case 1: Validation error
-                console.log(`Validation Error: ${response.obj.error}`);
                 setValidationResult({ error: response.obj.error });
             } else if (response.obj.error) {
                 // Case 2: NIDA number does not exist
-                console.log(`NIDA Number does not exist: ${response.obj.error}`);
-                setValidationResult({ error: response.obj.error });
+                nidaValidationData.status = 'A.Invalid';
+
+                const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+                actionRef.current?.reloadAndRest();
+                console.log('responseuryyry', nidaResponse)
+                setValidationResult({ error: 'NIDA Number does not exist' });
+
+
             } else if (response.obj.result) {
                 // Case 3: Successful NIDA number validation
                 const {
@@ -99,9 +110,13 @@ const ClientList: React.FC = () => {
                 } = response.obj.result;
 
                 // Update state with successful result
-                setValidationResult({ result: response.obj.result });
-            }
 
+                nidaValidationData.status = 'A.Valid';
+                const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+                actionRef.current?.reloadAndRest();
+                setValidationResult({ result: response.obj.result });
+
+            }
             return response;
         } catch (error) {
             console.error(error);
@@ -739,9 +754,9 @@ const ClientList: React.FC = () => {
                     />
                 )}
 
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
-                        Validate NIDA
-                    </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                    Validate NIDA
+                </Button>
             </Drawer>
 
             <Drawer

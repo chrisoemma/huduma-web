@@ -20,7 +20,7 @@ import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addAgent, getAgents } from './AgentSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
-import { getNida } from '../NidaSlice';
+import { getNida, validateNida } from '../NidaSlice';
 
 
 const AgentList: React.FC = () => {
@@ -81,16 +81,26 @@ const AgentList: React.FC = () => {
 
     const handleNidaChecking = async (nida) => {
         try {
+
+            const nidaValidationData = {
+                status:'',
+                user_type:'Agent'
+            }
             const response = await getNida(nida);
 
             if (response.error) {
                 // Case 1: Validation error
-                console.log(`Validation Error: ${response.obj.error}`);
                 setValidationResult({ error: response.obj.error });
             } else if (response.obj.error) {
                 // Case 2: NIDA number does not exist
-                console.log(`NIDA Number does not exist: ${response.obj.error}`);
-                setValidationResult({ error: response.obj.error });
+             nidaValidationData.status='A.Invalid';
+
+             const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
+             actionRef.current?.reloadAndRest();
+             console.log('responseuryyry',nidaResponse)
+                setValidationResult({ error: 'NIDA Number does not exist' });
+
+                
             } else if (response.obj.result) {
                 // Case 3: Successful NIDA number validation
                 const {
@@ -100,11 +110,13 @@ const AgentList: React.FC = () => {
                     SEX,
                     DateofBirth,
                 } = response.obj.result;
-
-                // Update state with successful result
+                  
+                nidaValidationData.status='A.Valid';
+                const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
+                actionRef.current?.reloadAndRest();
                 setValidationResult({ result: response.obj.result });
+ 
             }
-
             return response;
         } catch (error) {
             console.error(error);

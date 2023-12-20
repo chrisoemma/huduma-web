@@ -24,7 +24,7 @@ import { useParams } from 'react-router-dom';
 
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
-import { getNida } from '../NidaSlice';
+import { getNida, validateNida } from '../NidaSlice';
 //import { Worker,Viewer } from '@react-pdf-viewer/core';
 
 
@@ -108,37 +108,51 @@ const ProviderDocsList: React.FC = () => {
 
   const handleNidaChecking = async (nida) => {
     try {
-      const response = await getNida(nida);
 
-      if (response.error) {
-        // Case 1: Validation error
-        console.log(`Validation Error: ${response.obj.error}`);
-        setValidationResult({ error: response.obj.error });
-      } else if (response.obj.error) {
-        // Case 2: NIDA number does not exist
-        console.log(`NIDA Number does not exist: ${response.obj.error}`);
-        setValidationResult({ error: response.obj.error });
-      } else if (response.obj.result) {
-        // Case 3: Successful NIDA number validation
-        const {
-          FIRSTNAME,
-          MIDDLENAME,
-          SURNAME,
-          SEX,
-          DateofBirth,
-        } = response.obj.result;
+        const nidaValidationData = {
+            status:'',
+            user_type:'Provider'
+        }
+        const response = await getNida(nida);
 
-        // Update state with successful result
-        setValidationResult({ result: response.obj.result });
-      }
+        if (response.error) {
+            // Case 1: Validation error
+            setValidationResult({ error: response.obj.error });
+        } else if (response.obj.error) {
+            // Case 2: NIDA number does not exist
+         nidaValidationData.status='A.Invalid';
 
-      return response;
+         const nidaResponse = await validateNida(currentDocument?.provider_id,nidaValidationData);
+         actionRef.current?.reloadAndRest();
+         console.log('responseuryyry',nidaResponse)
+            setValidationResult({ error: 'NIDA Number does not exist' });
+
+            
+        } else if (response.obj.result) {
+            // Case 3: Successful NIDA number validation
+            const {
+                FIRSTNAME,
+                MIDDLENAME,
+                SURNAME,
+                SEX,
+                DateofBirth,
+            } = response.obj.result;
+
+            // Update state with successful result
+              
+            nidaValidationData.status='A.Valid';
+            const nidaResponse = await validateNida(currentRow?.provider_id,nidaValidationData);
+            actionRef.current?.reloadAndRest();
+            setValidationResult({ result: response.obj.result });
+
+        }
+        return response;
     } catch (error) {
-      console.error(error);
-      setValidationResult({ error: 'Failed to perform NIDA checking' });
-      return { error: 'Failed to perform NIDA checking' };
+        console.error(error);
+        setValidationResult({ error: 'Failed to perform NIDA checking' });
+        return { error: 'Failed to perform NIDA checking' };
     }
-  };
+};
 
 
   const getStatusColor = (status) => {
