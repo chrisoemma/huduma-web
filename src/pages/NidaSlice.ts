@@ -13,6 +13,7 @@ export async function getNida(nidaNumber: number) {
 }
 
 
+
 export async function validateNida(id: number, options?: { [key: string]: any }) {
    
   return request(`${API_URL}/admin/validate_nida/${id}`, {

@@ -26,7 +26,8 @@ import { useParams } from 'react-router-dom';
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
-//import { Worker,Viewer } from '@react-pdf-viewer/core';
+import { Worker, Viewer } from '@react-pdf-viewer/core';
+import '@react-pdf-viewer/core/lib/styles/index.css';
 
 
 const ProviderDocsList: React.FC = () => {
@@ -55,12 +56,12 @@ const ProviderDocsList: React.FC = () => {
   const [currentDocument, setCurrentDocument] = useState<API.ProviderDocsListItem | undefined>(undefined);
   const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
   const [validationResult, setValidationResult] = useState(null);
-  const [providerData,setProviderData]=useState(null);
-  const [nidaNumber,setNida]=useState(null)
+  const [providerData, setProviderData] = useState(null);
+  const [nidaNumber, setNida] = useState(null)
   const [loadingValidation, setLoading] = useState(false);
 
 
-  const handleOpenDocumentDrawer = (document: API.ProviderDocsListItem,nida) => {
+  const handleOpenDocumentDrawer = (document: API.ProviderDocsListItem, nida) => {
     setCurrentDocument(document);
     setNida(nida)
     setDocumentDrawerVisible(true);
@@ -128,7 +129,7 @@ const ProviderDocsList: React.FC = () => {
 
         const nidaResponse = await validateNida(currentDocument?.provider_id, nidaValidationData);
         actionRef.current?.reloadAndRest();
-      
+
         setValidationResult({ error: 'NIDA Number does not exist' });
       } else if (response.obj.result) {
         // Case 3: Successful NIDA number validation
@@ -147,7 +148,7 @@ const ProviderDocsList: React.FC = () => {
       setValidationResult({ error: 'Failed to perform NIDA checking' });
       return { error: 'Failed to perform NIDA checking' };
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
 
@@ -194,71 +195,71 @@ const ProviderDocsList: React.FC = () => {
 
 
   const NidaValidationDrawer = (
-   
-    <Drawer
-    width={400}
-    title="Validate NIDA Number"
-    placement="right"
-    onClose={handleNidaValidationDrawerClose}
-    visible={showNidaValidationDrawer}
-    destroyOnClose
-  >
 
-   
-    <Form>
-      {validationResult && (
+    <Drawer
+      width={400}
+      title="Validate NIDA Number"
+      placement="right"
+      onClose={handleNidaValidationDrawerClose}
+      visible={showNidaValidationDrawer}
+      destroyOnClose
+    >
+
+
+      <Form>
+        {validationResult && (
+
+          <div style={{ marginTop: 20 }}>
+            {validationResult.error ? (
+              <Tag color="red">Error: {validationResult.error}</Tag>
+            ) : (
+              <div>
+                <Tag color="green" style={{ fontWeight: 'bold' }}>
+                  NIDA Validation Successful!
+                </Tag>
+                <p>First Name: {validationResult.result.FIRSTNAME}</p>
+                <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
+                <p> Last Name: {validationResult.result.SURNAME}</p>
+                {/* Add more fields as needed */}
+              </div>
+            )}
+          </div>
+        )}
+        <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
+        <Item
+          label="NIDA Number"
+          name="nidaNumber"
+          initialValue={nidaNumber || ''}
+          rules={[
+            {
+              required: true,
+              message: 'Please enter NIDA Number',
+            },
+          ]}
+        >
+          <Input
+            value={nidaNumber || ''}
+            disabled
+
+          />
+        </Item>
+
+        <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loadingValidation}>
+          {loadingValidation ? 'Validating...' : 'Validate NIDA'}
+        </Button>
+        {loadingValidation && <PageLoading />}
 
         <div style={{ marginTop: 20 }}>
-          {validationResult.error ? (
-            <Tag color="red">Error: {validationResult.error}</Tag>
-          ) : (
-            <div>
-              <Tag color="green" style={{ fontWeight: 'bold' }}>
-                NIDA Validation Successful!
-              </Tag>
-              <p>First Name: {validationResult.result.FIRSTNAME}</p>
-              <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
-              <p> Last Name: {validationResult.result.SURNAME}</p>
-              {/* Add more fields as needed */}
-            </div>
-          )}
+          <p>This NIDA has passed through the following statuses:</p>
+          {currentRow?.nida_statuses?.map((status, index) => (
+            <Tag key={index} color={getStatusColor(status.status)}>
+              {status.status}
+            </Tag>
+          ))}
         </div>
-      )}
-      <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
-      <Item
-        label="NIDA Number"
-        name="nidaNumber"
-        initialValue={nidaNumber || ''}
-        rules={[
-          {
-            required: true,
-            message: 'Please enter NIDA Number',
-          },
-        ]}
-      >
-        <Input
-          value={nidaNumber || ''}
-          disabled
+      </Form>
 
-        />
-      </Item>
-
-      <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loadingValidation}>
-        {loadingValidation ? 'Validating...' : 'Validate NIDA'}
-      </Button>
-      {loadingValidation && <PageLoading />}
-
-    <div style={{ marginTop: 20 }}>
-      <p>This NIDA has passed through the following statuses:</p>
-      {currentRow?.nida_statuses?.map((status, index) => (
-        <Tag key={index} color={getStatusColor(status.status)}>
-          {status.status}
-        </Tag>
-      ))}
-    </div>
-    </Form>
-
-  </Drawer>
+    </Drawer>
 
   );
 
@@ -296,15 +297,15 @@ const ProviderDocsList: React.FC = () => {
         {currentDocument?.status === 'Rejected' && (
           <Button style={{ marginRight: 20 }} onClick={() => handleStatus(currentDocument?.id, 'Approved')}>Approve</Button>
         )}
-          
-          {
-            currentDocument?.doc_format=='Nida'?(
-              <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+
+        {
+          currentDocument?.doc_format == 'Nida' ? (
+            <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
               Validate NIDA
             </Button>
-            ):(<></>)
-          }
-       
+          ) : (<></>)
+        }
+
       </div>
       <div style={{ paddingTop: 20 }}>
         {currentDocument?.doc_type && currentDocument?.doc_url && (
@@ -318,13 +319,13 @@ const ProviderDocsList: React.FC = () => {
             )}
             {currentDocument.doc_type === 'application/pdf' && (
 
-              {/* <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
-  {console.log('docurl', currentDocument?.doc_url)}
-  <Viewer
-    fileUrl={currentDocument?.doc_url}
-    onLoadError={(error) => console.log('PDF Loading Error:', error)}
-  />
-</Worker> */}
+              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+                {console.log('docurl', currentDocument?.doc_url)}
+                <Viewer
+                  fileUrl={currentDocument?.doc_url}
+                  onLoadError={(error) => console.log('PDF Loading Error:', error)}
+                />
+              </Worker>
 
 
             )}
@@ -477,7 +478,7 @@ const ProviderDocsList: React.FC = () => {
         return (
           <a
             onClick={() => {
-              handleOpenDocumentDrawer(entity,entity.provider.nida);
+              handleOpenDocumentDrawer(entity, entity.provider.nida);
             }}
           >
             {dom}
@@ -637,13 +638,13 @@ const ProviderDocsList: React.FC = () => {
           labelWidth: 120,
           //  filterType: 'light', // Use a light filter form for better layout
         }}
-        
+
         request={async (params, sorter, filter) => {
           try {
             const response = await getProviderDocs(id, params);
             const docs = response.data.documents;
             const provider = response.data
-        
+
             // Fetch provider information for each document
             const dataWithProvider = docs.map(doc => ({
               ...doc,
@@ -652,14 +653,14 @@ const ProviderDocsList: React.FC = () => {
                 // Include other provider information if needed
               },
             }));
-        
+
             // Filter the data based on the 'name' filter
             const filteredDocs = dataWithProvider.filter((doc) =>
               params.name
                 ? doc.doc_format
-                    .toLowerCase()
-                    .split(' ')
-                    .some((word) => word.startsWith(params.doc_format.toLowerCase()))
+                  .toLowerCase()
+                  .split(' ')
+                  .some((word) => word.startsWith(params.doc_format.toLowerCase()))
                 : true
             );
 
