@@ -98,9 +98,9 @@ const ProviderList: React.FC = () => {
                 // Case 2: NIDA number does not exist
              nidaValidationData.status='A.Invalid';
 
-            // const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
+             const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
 
-             //console.log('responseuryyry',nidaResponse);
+             console.log('responseuryyry',nidaResponse)
                 setValidationResult({ error: 'NIDA Number does not exist' });
 
                 
@@ -117,7 +117,7 @@ const ProviderList: React.FC = () => {
                 // Update state with successful result
 
                 nidaValidationData.status='A.Valid';
-              //  const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
+                const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
                 setValidationResult({ result: response.obj.result });
  
             }
