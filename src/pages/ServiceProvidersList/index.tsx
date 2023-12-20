@@ -118,6 +118,7 @@ const ProviderList: React.FC = () => {
 
                 nidaValidationData.status='A.Valid';
                 const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
+                console.log('responseuryyry',nidaResponse)
                 setValidationResult({ result: response.obj.result });
  
             }
