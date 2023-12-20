@@ -84,51 +84,46 @@ const ProviderList: React.FC = () => {
 
     const handleNidaChecking = async (nida) => {
         try {
-
             const nidaValidationData = {
-                status:'',
-                user_type:'Provider'
-            }
+                status: '',
+                user_type: 'Provider',
+            };
+    
             const response = await getNida(nida);
-
+    
             if (response.error) {
                 // Case 1: Validation error
                 setValidationResult({ error: response.obj.error });
             } else if (response.obj.error) {
                 // Case 2: NIDA number does not exist
-             nidaValidationData.status='A.Invalid';
-
-             const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
-
-             console.log('responseuryyry',nidaResponse)
-                setValidationResult({ error: 'NIDA Number does not exist' });
-
-                
+                nidaValidationData.status = 'A.Invalid';
+                await validateNidaAndUpdateResult(currentRow?.id, nidaValidationData, 'NIDA Number does not exist');
             } else if (response.obj.result) {
                 // Case 3: Successful NIDA number validation
-                const {
-                    FIRSTNAME,
-                    MIDDLENAME,
-                    SURNAME,
-                    SEX,
-                    DateofBirth,
-                } = response.obj.result;
-
+                const { FIRSTNAME, MIDDLENAME, SURNAME, SEX, DateofBirth } = response.obj.result;
+    
                 // Update state with successful result
-
-                nidaValidationData.status='A.Valid';
-                const nidaResponse = await validateNida(currentRow?.id,nidaValidationData);
-                console.log('responseuryyry',nidaResponse)
-                setValidationResult({ result: response.obj.result });
- 
+                nidaValidationData.status = 'A.Valid';
+                await validateNidaAndUpdateResult(currentRow?.id, nidaValidationData, response.obj.result);
             }
-            return response;
+    
+            // Return the necessary information, not the entire response object
+            return {
+                error: response.error ? response.obj.error : undefined,
+                result: response.obj.result ? response.obj.result : undefined,
+            };
         } catch (error) {
             console.error(error);
             setValidationResult({ error: 'Failed to perform NIDA checking' });
             return { error: 'Failed to perform NIDA checking' };
         }
     };
+    
+    const validateNidaAndUpdateResult = async (id, nidaValidationData, result) => {
+        const nidaResponse = await validateNida(id, nidaValidationData);
+        setValidationResult(result ? { result } : { error: nidaResponse.error });
+    };
+    
 
 
     const getStatusColor = (status) => {
