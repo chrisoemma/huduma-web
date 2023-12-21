@@ -26,9 +26,9 @@ import { useParams } from 'react-router-dom';
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
-import { Document, Page } from 'react-pdf';
-import { Worker, Viewer } from '@react-pdf-viewer/core';
-import '@react-pdf-viewer/core/lib/styles/index.css';
+import { Document, Page,pdfjs } from 'react-pdf';
+
+
 
 
 const ProviderDocsList: React.FC = () => {
@@ -68,6 +68,14 @@ const ProviderDocsList: React.FC = () => {
   function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
     setNumPages(numPages);
   }
+
+
+
+  // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+  //   'pdfjs-dist/build/pdf.worker.min.js',
+  //   import.meta.url,
+  // ).toString();
+  pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
   const handleOpenDocumentDrawer = (document: API.ProviderDocsListItem, nida) => {
     setCurrentDocument(document);
@@ -326,24 +334,11 @@ const ProviderDocsList: React.FC = () => {
               />
             )}
             {currentDocument.doc_type === 'application/pdf' && (
-
-              <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
-                {console.log('docurl', currentDocument?.doc_url)}
-                <Viewer
-                  fileUrl={currentDocument?.doc_url}
-                  onLoadError={(error) => console.log('PDF Loading Error:', error)}
-                />
-              </Worker>
-
-               
-//               <Document
-//   file={currentDocument?.doc_url}
-//   onLoadError={(error) => console.log('Error loading PDF:', error)}
-//   onLoadSuccess={onDocumentLoadSuccess}
-// >
-//               <Page pageNumber={pageNumber} />
-//               {console.log('pdfff',currentDocument?.doc_url)}
-//             </Document>
+         
+              <Document file={currentDocument?.doc_url}    onLoadError={(error) => console.log('Error loading PDF:', error)}  onLoadSuccess={onDocumentLoadSuccess}>
+              <Page pageNumber={pageNumber} />
+              {console.log('pdfff',currentDocument?.doc_url)}
+            </Document>
 
 
             )}
