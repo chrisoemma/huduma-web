@@ -26,6 +26,7 @@ import { useParams } from 'react-router-dom';
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
+import { Document, Page } from 'react-pdf';
 import { Worker, Viewer } from '@react-pdf-viewer/core';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 
@@ -60,6 +61,13 @@ const ProviderDocsList: React.FC = () => {
   const [nidaNumber, setNida] = useState(null)
   const [loadingValidation, setLoading] = useState(false);
 
+
+  const [numPages, setNumPages] = useState<number>();
+  const [pageNumber, setPageNumber] = useState<number>(1);
+
+  function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
+    setNumPages(numPages);
+  }
 
   const handleOpenDocumentDrawer = (document: API.ProviderDocsListItem, nida) => {
     setCurrentDocument(document);
@@ -326,6 +334,16 @@ const ProviderDocsList: React.FC = () => {
                   onLoadError={(error) => console.log('PDF Loading Error:', error)}
                 />
               </Worker>
+
+               
+//               <Document
+//   file={currentDocument?.doc_url}
+//   onLoadError={(error) => console.log('Error loading PDF:', error)}
+//   onLoadSuccess={onDocumentLoadSuccess}
+// >
+//               <Page pageNumber={pageNumber} />
+//               {console.log('pdfff',currentDocument?.doc_url)}
+//             </Document>
 
 
             )}
