@@ -109,7 +109,12 @@ export default [
 
     ],
   },
-
+  {
+    name: 'Sub Service Approval',
+    icon: 'table',
+    path: '/sub-service-approval',
+    component: './SubserviceChangeStatus',
+  },
   {
     path: '/administrations',
     name: 'Administrative',
@@ -132,12 +137,14 @@ export default [
       },
     ]
   },
+
   // {
   //   name: 'System logs',
   //   icon: 'table',
   //   path: '/list',
   //   component: './TableList',
   // },
+ 
   {
     path: '/',
     redirect: 'dashboard',

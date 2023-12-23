@@ -334,17 +334,15 @@ const ProviderDocsList: React.FC = () => {
               />
             )}
             {currentDocument.doc_type === 'application/pdf' && (
-         
-              <Document file={currentDocument?.doc_url}    onLoadError={(error) => console.log('Error loading PDF:', error)}  onLoadSuccess={onDocumentLoadSuccess}>
+            <Document file={currentDocument?.doc_url}   
+               onLoadError={(error) => console.log('Error loading PDF:', error)}  
+               onLoadSuccess={onDocumentLoadSuccess}>
               <Page pageNumber={pageNumber} />
-              {console.log('pdfff',currentDocument?.doc_url)}
+                {console.log('pdfff',currentDocument?.doc_url)}
             </Document>
-
-
             )}
           </>
         )}
-
 
       </div>
     </Drawer>
