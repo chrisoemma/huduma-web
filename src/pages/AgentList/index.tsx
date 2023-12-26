@@ -834,9 +834,8 @@ const AgentList: React.FC = () => {
                                 value={currentRow?.nida || ''}
                                 disabled
 
-                            />
+                            /> 
                         </Item>
-
                         <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loading}>
         {loading ? 'Validating...' : 'Validate NIDA'}
       </Button>
