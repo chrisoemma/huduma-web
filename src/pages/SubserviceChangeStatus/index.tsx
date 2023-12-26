@@ -18,7 +18,7 @@ import React, { useRef, useState, useEffect } from 'react';
 //import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { getProviderSubservices } from './SubServiceStatusChangeSlice';
+import { changeStatus, getProviderSubservices } from './SubServiceStatusChangeSlice';
 
 
 const SubserviceChangeList: React.FC = () => {
@@ -53,43 +53,40 @@ const SubserviceChangeList: React.FC = () => {
         handleApproveAllModalOpen(isOpen);
     };
 
-    const handleRemove = async (selectedRows: API.SubserviceChangeListItem[]) => {
 
-        const hide = message.loading('Loading....');
-        if (!selectedRows) return true;
+
+     const handleApproval  = async (status)=>{
+
+        const hide = message.loading('Loading...');
         try {
-            // console.log('in try and catch');
-            await removeCategory({
-                key: selectedRows.map((row) => row.id),
-            });
-            hide();
-            message.success('Deleted successfully and will refresh soon');
-            if (actionRef.current) {
-                console.log('invoking this which is null')
-                actionRef.current.reloadAndRest();
+            const statusChangeData= {
+                status:status
             }
-            return true;
+            const response= await changeStatus(currentRow.id,statusChangeData);
+            hide();
+            message.success('Status successfully changed');
+            return true
         } catch (error) {
             hide();
-            message.error('Delete failed, please try again');
-            return false;
+            message.error('Status change failed, please try again!');
+            return false
+        } finally {
+            handleModalOpen(false);
+            actionRef.current.reload();
         }
-    };
+          
+     }
 
 
-    const approvalSubservice = (status) =>{
-            
-    }
+    const handleApprovalAll = async (formData: FormData) => {
 
+        const description = formData.get('description') as string;
+        const imageFile = formData.get('img_url') as File;
 
-
-    const handleAdd = async (formData: FormData) => {
-
-        const name = formData.get('name') as string;
-        const imageFile = formData.get('image') as File;
-
-
-
+          console.log('descriptions',description);
+          console.log('img_file',imageFile);
+          console.log('current id',currentRow.id);
+    
 
         try {
             const storageRef = ref(storage, `images/${imageFile.name}`);
@@ -118,25 +115,25 @@ const SubserviceChangeList: React.FC = () => {
                     async () => {
                         try {
                             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                            const categoryData: API.SubserviceChangeListItem = {
-                                id: 0, // Set the appropriate ID
-                                name: name,
-                                img_url: downloadURL, // Save the download URL to the database
+                            const statusChangeData: API.SubserviceChangeListItem = {
+                                id: 0,
+                                description: description,
+                                img_url: downloadURL, 
+                                status:'Approve all'
                             };
-
-                            // Save the data to the database
+                                     
                             const hide = message.loading('Loading...');
                             try {
-                                await addCategory(categoryData);
+                                await changeStatus(currentRow.id,statusChangeData);
                                 hide();
-                                message.success('Added successfully');
+                                message.success('Status successfully changed');
                                 return true
                             } catch (error) {
                                 hide();
-                                message.error('Adding failed, please try again!');
+                                message.error('Status change failed, please try again!');
                                 return false
                             } finally {
-                                handleModalOpen(false);
+                                handleApproveAllModalOpen(false);
                                 actionRef.current.reload();
                             }
                         } catch (error) {
@@ -147,26 +144,6 @@ const SubserviceChangeList: React.FC = () => {
                         }
                     }
                 );
-            } else {
-                // If no image is uploaded, create an object without img_url
-                const categoryData: API.SubserviceChangeListItem = {
-                    id: 0, // Set the appropriate ID
-                    name: name,
-                    img_url: '', // No image URL in this case
-                };
-
-                // Save the data to the database
-                const hide = message.loading('Loading...');
-                try {
-                    await addCategory(categoryData);
-                    hide();
-                    message.success('Added successfully');
-                    return true
-                } catch (error) {
-                    hide();
-                    message.error('Adding failed, please try again!');
-                    return false
-                }
             }
         } catch (error) {
             message.error('Image upload failed, please try again!');
@@ -303,7 +280,7 @@ const SubserviceChangeList: React.FC = () => {
                         <a
                             onClick={() => {
                                 handleApprovalModal('Reject');
-                                // Handle Reject action
+                                setCurrentRow(record);
                             }}
                         >
                             <FormattedMessage id="pages.searchTable.reject" defaultMessage="Reject" />
@@ -312,7 +289,7 @@ const SubserviceChangeList: React.FC = () => {
                     <div>
                         <a
                             onClick={() => {
-                                // Handle Reject action
+                               
                                 handleApproveAllModal(true);
                                 setCurrentRow(record);
                             }}
@@ -331,8 +308,8 @@ const SubserviceChangeList: React.FC = () => {
             <ProTable
                 //key={categories.length}
                 headerTitle={intl.formatMessage({
-                    id: 'pages.searchTable.title',
-                    defaultMessage: 'Enquiry form',
+                    id: 'pages.searchTable.title1',
+                    defaultMessage: 'Approval List',
                 })}
                 actionRef={actionRef}
                 rowKey="id"
@@ -346,7 +323,7 @@ const SubserviceChangeList: React.FC = () => {
                         const response = await getProviderSubservices(params);
                         const subservices = response.data.sub_services;
                         // Filter the data based on the 'name' filter
-                        console.log('subservices', subservices);
+                        //console.log('subservices', subservices);
 
                         const filteredSubservices = subservices.filter(subservice =>
                             params.name
@@ -371,11 +348,7 @@ const SubserviceChangeList: React.FC = () => {
                 }}
 
                 columns={columns}
-                rowSelection={{
-                    onChange: (_, selectedRows) => {
-                        setSelectedRows(selectedRows);
-                    },
-                }}
+             
             />
             {selectedRowsState?.length > 0 && (
                 <FooterToolbar
@@ -389,24 +362,6 @@ const SubserviceChangeList: React.FC = () => {
                         </div>
                     }
                 >
-                    <Button
-                        onClick={async () => {
-                            await handleRemove(selectedRowsState);
-                            setSelectedRows([]);
-                            actionRef.current?.reload();
-                        }}
-                    >
-                        <FormattedMessage
-                            id="pages.searchTable.batchDeletion"
-                            defaultMessage="Batch deletion"
-                        />
-                    </Button>
-                    {/* <Button type="primary">
-            <FormattedMessage
-              id="pages.searchTable.batchApproval"
-              defaultMessage="Batch approval"
-            />
-          </Button> */}
                 </FooterToolbar>
             )}
 
@@ -417,7 +372,9 @@ const SubserviceChangeList: React.FC = () => {
                 onVisibleChange={handleApprovalModalOpen}
                 onFinish={async () => {
                     console.log(`${approvalAction}ing...`);
-                    handleApprovalModalOpen(false); 
+                    handleApprovalModalOpen(false);
+                   const status= approvalAction=='Approve'?'Accepted':'Rejected';
+                    handleApproval(status)
                 }}
             >
                 <p>{`Are you sure you want to ${approvalAction} this?`}</p>
@@ -428,15 +385,26 @@ const SubserviceChangeList: React.FC = () => {
                 width="600px"
                 visible={approveAllModalOpen}
                 onVisibleChange={handleApproveAllModal}
-                onFinish={async (values) => {
-                    // Handle approve all logic
-                    console.log('Approving All:', values);
-                    handleApproveAllModal(false); // Close the modal after submission
+                onFinish={async (value) => {
+                    const formData = new FormData();
+                    formData.append('description', value.description);
+                    if (value.img_url) {
+                        formData.append('img_url', value.img_url[0].originFileObj);
+                    }
+
+                    const success = await handleApprovalAll(formData);
+
+                    if (success) {
+                        handleApproveAllModalOpen(false);
+                        if (actionRef.current) {
+                            actionRef.current.reload();
+                        }
+                    }
                 }}
             >
                 {/* Add form fields for approving all, e.g., an image upload and a text area */}
                 <ProFormUploadButton
-                    name="newImage"
+                    name="img_url"
                     label="Upload New Image"
                     fieldProps={{
                         accept: 'image/*',
@@ -453,64 +421,6 @@ const SubserviceChangeList: React.FC = () => {
                 />
                 {/* Add other fields or components as needed */}
             </ModalForm>
-
-
-            <ModalForm
-                title={intl.formatMessage({
-                    id: 'pages.searchTable.createForm.newCategory',
-                    defaultMessage: 'Service',
-                })}
-                width="400px"
-                open={createModalOpen}
-                onOpenChange={handleModalOpen}
-                onFinish={async (value) => {
-                    const formData = new FormData();
-                    formData.append('name', value.name);
-                    if (value.image) {
-                        formData.append('image', value.image[0].originFileObj);
-                    }
-
-                    const success = await handleAdd(formData);
-
-                    if (success) {
-                        handleModalOpen(false);
-                        if (actionRef.current) {
-                            actionRef.current.reload();
-                        }
-                    }
-                }}
-            >
-                <ProForm.Group>
-                    <ProFormText
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Name is required',
-                            },
-                        ]}
-                        width="md"
-                        name="name"
-                        label="Name"
-                    />
-                    <ProFormUploadButton
-                        name="image"
-                        label="Upload Image"
-                        style={{ display: 'none' }}
-                        fieldProps={{
-                            accept: 'image/*',
-                            max: 1,
-                            listType: 'picture-card',
-                            title: 'Click or Drag to Upload', // Custom title
-                            placeholder: 'Click or Drag to Upload', // Custom placeholder
-                        }}
-                        onChange={(fileList) => {
-                            // Handle file list changes if needed
-                            // console.log('File List:', fileList);
-                        }}
-                    />
-                </ProForm.Group>
-            </ModalForm>
-     
 
             <Drawer
                 width={600}

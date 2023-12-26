@@ -17,10 +17,26 @@ export async function getProviderSubservices(
     });
   }
 
+  export async function getPastProviderSubservices(
+    params: {
+      current?: number;
+      pageSize?: number;
+    },
+    options?: { [key: string]: any },
+  ) {
+    return request(`${API_URL}/admin/past_sub_services`, {
+      method: 'GET',
+      params: {
+        ...params,
+      },
+      ...(options || {}),
+    });
+  }
+
 
 export async function changeStatus(subId:number, options?: { [key: string]: any }) {
 
-  return request(`${API_URL}/admin/status_change/${subId}`, {
+  return request(`${API_URL}/admin/change_status/${subId}`, {
     method: 'PUT',
     data: {
       method: 'put',

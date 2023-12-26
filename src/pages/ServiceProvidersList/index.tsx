@@ -659,6 +659,7 @@ const ProviderList: React.FC = () => {
                     open={createModalOpen}
                     onOpenChange={handleModalOpen}
                     onFinish={async (value) => {
+                            // //
                         const formData = new FormData();
                         formData.append('name', value.name);
                         formData.append('first_name', value.first_name)
@@ -668,7 +669,6 @@ const ProviderList: React.FC = () => {
                         formData.append('nida', value.nida);
                         if (value.image) {
                             formData.append('image', value.image[0].originFileObj);
-
                         }
 
                         const success = await handleAdd(formData);

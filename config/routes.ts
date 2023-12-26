@@ -40,7 +40,7 @@ export default [
   {
     path: '/user-management',
     name: 'user-management',
-    icon: 'crown',
+    icon: 'gold',
     routes: [
 
       {
@@ -83,7 +83,7 @@ export default [
   {
     path: '/settings',
     name: 'Settings',
-    icon: 'user',
+    icon: 'windows',
     routes: [
 
       {
@@ -110,15 +110,26 @@ export default [
     ],
   },
   {
-    name: 'Sub Service Approval',
+    path: '/provider-sub-services',
+    name: 'Provider sub services',
     icon: 'table',
-    path: '/sub-service-approval',
-    component: './SubserviceChangeStatus',
+    routes: [
+      {
+        path: '/provider-sub-services/approval',
+        name: 'Approval of sub services',
+        component: './SubserviceChangeStatus',
+      },
+      {
+        path: '/provider-sub-services/list',
+        name: 'Provider sub service list', 
+        component: './ProviderSubServiceList',
+      },
+    ],
   },
   {
     path: '/administrations',
     name: 'Administrative',
-    icon: 'home',
+    icon: 'holder',
     routes: [
       {
         path: '/administrations/system-admins',
