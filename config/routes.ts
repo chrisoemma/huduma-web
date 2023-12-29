@@ -148,6 +148,28 @@ export default [
       },
     ]
   },
+  {
+    path: '/system-logs',
+    name: 'Syetem logs',
+    icon: 'apartment',
+    routes: [
+      {
+        path: '/system-logs/users',
+        name: 'Users',
+        component: './UserLogList',
+      },
+      {
+        path: '/system-logs/settings',
+        name: 'Settings Logs',
+        component: './PermissionsList',
+      },
+      {
+        path: '/system-logs/administrative',
+        name: 'Administrative logs',
+        component: './RolesList',
+      },
+    ]
+  },
 
   // {
   //   name: 'System logs',

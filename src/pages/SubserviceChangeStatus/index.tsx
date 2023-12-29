@@ -87,7 +87,6 @@ const SubserviceChangeList: React.FC = () => {
           console.log('img_file',imageFile);
           console.log('current id',currentRow.id);
     
-
         try {
             const storageRef = ref(storage, `images/${imageFile.name}`);
 
