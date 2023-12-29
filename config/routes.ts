@@ -158,16 +158,16 @@ export default [
         name: 'Users',
         component: './UserLogList',
       },
-      {
-        path: '/system-logs/settings',
-        name: 'Settings Logs',
-        component: './PermissionsList',
-      },
-      {
-        path: '/system-logs/administrative',
-        name: 'Administrative logs',
-        component: './RolesList',
-      },
+      // {
+      //   path: '/system-logs/settings',
+      //   name: 'Settings Logs',
+      //   component: './PermissionsList',
+      // },
+      // {
+      //   path: '/system-logs/administrative',
+      //   name: 'Administrative logs',
+      //   component: './RolesList',
+      // },
     ]
   },
 
