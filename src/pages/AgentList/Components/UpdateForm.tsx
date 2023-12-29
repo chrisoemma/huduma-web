@@ -4,7 +4,7 @@ import { Modal, Upload, Image, Form, Button, message, } from 'antd';
 import { ProFormText, StepsForm, ProFormSelect, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateAgent } from '../AgentSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
@@ -23,7 +23,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.user?.profile_img);
   //const [services, setServices] = useState([]);
-
+  const { initialState } = useModel('@@initialState');
 
   const stepsFormRef = useRef();
 
@@ -100,6 +100,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       values.profile_img = profile_img;
       values.phone=validateTanzanianPhoneNumber(values.phone);
 
+      const currentUser = initialState?.currentUser;
+       values.action_by = currentUser?.id;
+         
       const response = await updateAgent(agentId, { ...values, profile_img });
 
       if (response.status) {

@@ -12,7 +12,7 @@ import {
     ProTable,
     PageLoading,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message,Form } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
@@ -42,6 +42,7 @@ const AgentList: React.FC = () => {
 
     const [validationResult, setValidationResult] = useState(null);
     const { Item } = Form;
+    const { initialState } = useModel('@@initialState');
 
 
     //console.log('business data',currentBusinessesData);
@@ -179,6 +180,9 @@ const AgentList: React.FC = () => {
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
 
+        const currentUser = initialState?.currentUser;
+      
+
         let agentData: API.AgentListItem = {
             id: 0, // Set the appropriate ID
             first_name: first_name,
@@ -187,6 +191,7 @@ const AgentList: React.FC = () => {
             email: email,
             phone: newphone,
             profile_img: '',
+            action_by:currentUser?.id
         };
 
         const uploadImage = async () => {

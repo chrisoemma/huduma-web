@@ -29,31 +29,90 @@ const UserLogList: React.FC = () => {
     const intl = useIntl();
 
     const columns: ProColumns<API.UserLogListItem>[] = [
+      
 
         {
-            title: (
-              <FormattedMessage
-                id="pages.searchTable.updateForm.actionData"
-                defaultMessage="Action Data"
-              />
-            ),
-            dataIndex: 'action_data',
-            search: false,
-            valueType: 'text',
-            render: (dom, entity) => {
-              const actionData = JSON.parse(entity.action_data);
+          title: (
+            <FormattedMessage
+              id="pages.searchTable.updateForm.actionData"
+              defaultMessage="Action Data"
+            />
+          ),
+          dataIndex: 'action_data',
+          search: false,
+          valueType: 'text',
+          render: (dom, entity) => {
+            const actionData = JSON.parse(entity.action_data);
         
+            // Check if it's an "Edit" action
+            if (entity.action_type === 'Edit') {
+              // Check if any changes occurred
+              const changesDetected = Object.keys(actionData.from).some(
+                key => actionData.from[key] !== actionData.current[key]
+              );
+        
+              // If changes are detected, display both 'from' and 'current' with a red tag
+              if (changesDetected) {
+                return (
+                    <div>
+                    {Object.keys(actionData.from).map((key) => (
+                      <p key={key}>
+                        <strong>{key}:</strong>
+                        {actionData.from[key] !== actionData.current[key] ? (
+                          <span>
+                            {actionData.from[key]} (From) -&gt; {actionData.current[key]} (To)
+                          </span>
+                        ) : (
+                          actionData.from[key]
+                        )}
+                      </p>
+                    ))}
+                  </div>
+                );
+              }
+              // If no changes, display only 'current'
               return (
                 <div>
-                  <strong> Name:</strong> {actionData.name}
-                  <strong> NIDA:</strong> {actionData.nida}
-                  <strong> Phone:</strong> {actionData.phone}
-                  <strong> Status:</strong> {actionData.status}
-                  {/* Add more fields as needed */}
+                  {Object.keys(actionData.current).map((key) => (
+                    <p key={key}>
+                      <strong>{key}:</strong> {actionData.current[key]}
+                    </p>
+                  ))}
                 </div>
               );
-            },
+            }
+        
+            // Check if it's a "Create" action
+            if (entity.action_type === 'Create') {
+              return (
+                <div>
+                  <p>
+                    <strong>Name:</strong> {actionData.name}
+                  </p>
+                  <p>
+                    <strong>NIDA:</strong> {actionData.nida}
+                  </p>
+                  <p>
+                    <strong>Phone:</strong> {actionData.phone}
+                  </p>
+                  <p>
+                    <strong>Status:</strong> {actionData.status}
+                  </p>
+                </div>
+              );
+            }
+        
+            // Default rendering if the action type is neither "Edit" nor "Create"
+            return (
+              <div>
+                <p><strong>Action Data:</strong> {dom}</p>
+              </div>
+            );
           },
+        },
+        
+          
+          
         {
             title: (
                 <FormattedMessage
@@ -64,16 +123,21 @@ const UserLogList: React.FC = () => {
             dataIndex: 'action_type',
             search: false,
             valueType: 'text',
-            render: (dom, entity) => {
+        render: (text, record) => {
+                let color = '';
+                if (text == 'Create') {
+                    color = 'green';
+                
+                } else if (text == 'Edit') {
+                    color = 'yellow';
+                }else{
+                    color='red'
+                }
+
                 return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
+                    <span>
+                        <Tag color={color}>{text}</Tag>
+                    </span>
                 );
             },
         },
@@ -103,6 +167,29 @@ const UserLogList: React.FC = () => {
               );
             },
           },
+          {
+            title: (
+                <FormattedMessage
+                    id="pages.searchTable.updateForm.actionBy"
+                    defaultMessage="Action by"
+                />
+            ),
+            dataIndex: 'action_by',
+            search: false,
+            valueType: 'text',
+            render: (dom, entity) => {
+                return (
+                    <a
+                        onClick={() => {
+                            setCurrentRow(entity);
+                            setShowDetail(true);
+                        }}
+                    >
+                        {dom}
+                    </a>
+                );
+            },
+        },
         {
             title: (
                 <FormattedMessage
@@ -126,29 +213,7 @@ const UserLogList: React.FC = () => {
                 );
             },
         },
-  
-        {
-            title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Seen Status" />,
-            dataIndex: 'seen_status',
-            hideInForm: true,
-            search: false,
-            render: (text, record) => {
-                let color = '';
-                if (text == '1') {
-                    color = 'green';
-                    text='Seen';
-                } else if (text == '0') {
-                    color = 'red';
-                    text='Not seen';
-                }
 
-                return (
-                    <span>
-                        <Tag color={color}>{text}</Tag>
-                    </span>
-                );
-            },
-        },
     ];
 
     
@@ -172,6 +237,8 @@ const UserLogList: React.FC = () => {
                     try {
                         const response = await getUserLogs(params);
                         const logs = response.data.logs;
+
+                        logs.reverse();
                     
                         const filteredLogs = logs.filter(log =>
                             params.name

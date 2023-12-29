@@ -150,7 +150,7 @@ export default [
   },
   {
     path: '/system-logs',
-    name: 'Syetem logs',
+    name: 'System logs',
     icon: 'apartment',
     routes: [
       {
