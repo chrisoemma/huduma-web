@@ -19,7 +19,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './Components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addAgent, getAgents } from './AgentSlice';
+import { addAgent, getAgents, removeAgent } from './AgentSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
 
@@ -45,30 +45,33 @@ const AgentList: React.FC = () => {
     const { initialState } = useModel('@@initialState');
 
 
-    //console.log('business data',currentBusinessesData);
-    //   const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
+  //  console.log('business data',currentBusinessesData);
+      const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
 
+        const hide = message.loading('Loading....');
+        if (!selectedRows) return true;
+        try {
+          // console.log('in try and catch');
+          const currentUser = initialState?.currentUser;
+                const  action_by=currentUser?.id;
+        const response=  await removeAgent({
+            key: selectedRows.map((row) => row.id),
+            action_by: action_by,
+          });
 
-    //     const hide = message.loading('Loading....');
-    //     if (!selectedRows) return true;
-    //     try {
-    //       // console.log('in try and catch');
-    //       await removeCategory({
-    //         key: selectedRows.map((row) => row.id),
-    //       });
-    //       hide();
-    //       message.success('Deleted successfully and will refresh soon');
-    //       if (actionRef.current) {
-    //         console.log('invoking this which is null')
-    //         actionRef.current.reloadAndRest();
-    //       }
-    //       return true;
-    //     } catch (error) {
-    //       hide();
-    //       message.error('Delete failed, please try again');
-    //       return false;
-    //     }
-    //   };
+          hide();
+          message.success('Deleted successfully');
+          if (actionRef.current) {
+            console.log('invoking this which is null')
+            actionRef.current.reloadAndRest();
+          }
+          return true;
+        } catch (error) {
+          hide();
+          message.error('Delete failed, please try again');
+          return false;
+        }
+      };
 
 
     const handleNidaValidationDrawerOpen = () => {
@@ -140,35 +143,6 @@ const AgentList: React.FC = () => {
                 return 'gray';
         }
     };
-
-
-
-    //   const handleRemove = async (selectedRows: API.AgentListItem[]) => {
-
-
-    //     const hide = message.loading('Loading....');
-    //     if (!selectedRows) return true;
-    //     try {
-    //       // console.log('in try and catch');
-    //       await removeCategory({
-    //         key: selectedRows.map((row) => row.id),
-    //       });
-    //       hide();
-    //       message.success('Deleted successfully and will refresh soon');
-    //       if (actionRef.current) {
-    //         console.log('invoking this which is null')
-    //         actionRef.current.reloadAndRest();
-    //       }
-    //       return true;
-    //     } catch (error) {
-    //       hide();
-    //       message.error('Delete failed, please try again');
-    //       return false;
-    //     }
-    //   };
-
-
-
 
 
     const handleAdd = async (formData: FormData) => {
@@ -575,7 +549,8 @@ const AgentList: React.FC = () => {
                 >
                     <Button
                         onClick={async () => {
-                            // await handleRemove(selectedRowsState);
+                             
+                             await handleRemove(selectedRowsState);
                             setSelectedRows([]);
                             actionRef.current?.reload();
                         }}

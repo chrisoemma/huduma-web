@@ -31,11 +31,14 @@ export async function getAgents(
 
   export async function removeAgent(options?: { [key: string]: any }) {
     //console.log('keyyyyeyye',options)
+    const { action_by, ...otherOptions } = options || {};
+
 return request(`${API_URL}/agents/destroy_bunch`, {
   method: 'DELETE',
   data:{
     method: 'delete',
-    ...(options || {}),
+    action_by: action_by,
+    ...(otherOptions || {}),
   }
 });
 }

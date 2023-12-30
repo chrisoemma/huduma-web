@@ -81,6 +81,23 @@ const UserLogList: React.FC = () => {
                 </div>
               );
             }
+
+            if (entity.action_type === 'Delete') {
+              return (
+                <div>
+                  <p>
+                    <strong>Name:</strong> {actionData.name}
+                  </p>
+                  <p>
+                    <strong>NIDA:</strong> {actionData.nida}
+                  </p>
+                  <p>
+                    <strong>Phone:</strong> {actionData.phone}
+                  </p>
+                 
+                </div>
+              );
+            }
         
             // Check if it's a "Create" action
             if (entity.action_type === 'Create') {
