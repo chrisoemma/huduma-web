@@ -30,12 +30,15 @@ export async function getClients(
 
 
   export async function removeClient(options?: { [key: string]: any }) {
-  
+
+    const { action_by, ...otherOptions } = options || {};
+
 return request(`${API_URL}/clients/destroy_bunch`, {
   method: 'DELETE',
   data:{
     method: 'delete',
-    ...(options || {}),
+    action_by: action_by,
+    ...(otherOptions || {}),
   }
 });
 }

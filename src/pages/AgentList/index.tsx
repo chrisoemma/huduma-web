@@ -43,7 +43,7 @@ const AgentList: React.FC = () => {
     const [validationResult, setValidationResult] = useState(null);
     const { Item } = Form;
     const { initialState } = useModel('@@initialState');
-
+   
 
   //  console.log('business data',currentBusinessesData);
       const handleRemove = async (selectedRows: API.ProviderListItem[]) => {

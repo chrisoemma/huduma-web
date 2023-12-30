@@ -31,11 +31,14 @@ export async function getProviders(
 
   export async function removeProvider(options?: { [key: string]: any }) {
     //console.log('keyyyyeyye',options)
+    const { action_by, ...otherOptions } = options || {};
+
 return request(`${API_URL}/providers/destroy_bunch`, {
   method: 'DELETE',
   data:{
     method: 'delete',
-    ...(options || {}),
+    action_by: action_by,
+    ...(otherOptions || {}),
   }
 });
 }

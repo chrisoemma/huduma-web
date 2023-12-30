@@ -12,14 +12,14 @@ import {
     ProTable,
     PageLoading,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl,useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message, Form } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './Components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addProvider, fetchBusinessesData, getProviders } from './ServiceProviderSlice';
+import { addProvider, fetchBusinessesData, getProviders, removeProvider } from './ServiceProviderSlice';
 import { history } from 'umi';
 import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
@@ -46,32 +46,35 @@ const ProviderList: React.FC = () => {
     const intl = useIntl();
     const [form] = ProForm.useForm();
     const { Item } = Form;
+    const { initialState } = useModel('@@initialState');
+
+    
+      const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
 
 
-    //console.log('business data',currentBusinessesData);
-    //   const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
-
-
-    //     const hide = message.loading('Loading....');
-    //     if (!selectedRows) return true;
-    //     try {
-    //       // console.log('in try and catch');
-    //       await removeCategory({
-    //         key: selectedRows.map((row) => row.id),
-    //       });
-    //       hide();
-    //       message.success('Deleted successfully and will refresh soon');
-    //       if (actionRef.current) {
-    //         console.log('invoking this which is null')
-    //         actionRef.current.reloadAndRest();
-    //       }
-    //       return true;
-    //     } catch (error) {
-    //       hide();
-    //       message.error('Delete failed, please try again');
-    //       return false;
-    //     }
-    //   };
+        const hide = message.loading('Loading....');
+        if (!selectedRows) return true;
+        try {
+          // console.log('in try and catch');
+          const currentUser = initialState?.currentUser;
+                const  action_by=currentUser?.id;
+        const response=  await removeProvider({
+            key: selectedRows.map((row) => row.id),
+            action_by: action_by,
+          });
+          hide();
+          message.success('Deleted successfully and will refresh soon');
+          if (actionRef.current) {
+            console.log('invoking this which is null')
+            actionRef.current.reloadAndRest();
+          }
+          return true;
+        } catch (error) {
+          hide();
+          message.error('Delete failed, please try again');
+          return false;
+        }
+      };
 
 
     const handleNidaValidationDrawerOpen = () => {
@@ -205,6 +208,7 @@ const ProviderList: React.FC = () => {
         const email = formData.get('email') as string;
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
+        const currentUser = initialState?.currentUser;
 
         let providerData: API.ProviderListItem = {
             id: 0, // Set the appropriate ID
@@ -214,6 +218,7 @@ const ProviderList: React.FC = () => {
             email: email,
             phone: newphone,
             profile_img: '',
+            action_by:currentUser?.id
         };
 
         const uploadImage = async () => {
@@ -631,7 +636,7 @@ const ProviderList: React.FC = () => {
                     >
                         <Button
                             onClick={async () => {
-                                // await handleRemove(selectedRowsState);
+                                 await handleRemove(selectedRowsState);
                                 setSelectedRows([]);
                                 actionRef.current?.reload();
                             }}

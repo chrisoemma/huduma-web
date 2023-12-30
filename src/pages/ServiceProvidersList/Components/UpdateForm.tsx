@@ -4,7 +4,7 @@ import { Modal, Upload, Image, Form, Button, message, } from 'antd';
 import { ProFormText, StepsForm, ProFormSelect, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl,useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateProvider } from '../ServiceProviderSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
@@ -26,7 +26,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const stepsFormRef = useRef();
   const [workingDocumentPercentage, setWorkingDocumentPercentage] = useState<number>(0);
 
-
+  const { initialState } = useModel('@@initialState');
   
   useEffect(() => {
     if (props.updateModalOpen) {
@@ -166,6 +166,8 @@ const calculateAverage = (arr) => {
       values.profile_img = profile_img;
 
       values.phone = validateTanzanianPhoneNumber(values.phone);
+      const currentUser = initialState?.currentUser;
+      values.action_by = currentUser?.id;
 
       const response = await updateProvider(providerId, { ...values, profile_img });
       if (response.status) {
