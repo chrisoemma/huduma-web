@@ -36,6 +36,67 @@ const PreviousCommisionList: React.FC = () => {
 
   const intl = useIntl();
 
+  const [paymentHistoryVisible, setPaymentHistoryVisible] = useState<boolean>(false);
+  const [paymentHistory, setPaymentHistory] = useState<API.CommissionPayment[]>([]);
+
+  const handlePaymentHistoryClick = () => {
+    // Extract payment history from the selected row
+    const paymentHistory = currentRow?.commissionPayments || [];
+    setPaymentHistory(paymentHistory)
+    setPaymentHistoryVisible(true);
+    
+  };
+
+
+
+  const PaymentHistoryDrawer: React.FC<{ visible: boolean; onClose: () => void; paymentHistory: API.CommissionPayment[] }> = ({ visible, onClose, paymentHistory }) => {
+    return (
+      <Drawer
+        width={600}
+        visible={visible}
+        onClose={onClose}
+        title={<FormattedMessage id="pages.searchTable.paymentHistory" defaultMessage="Payment History" />}
+        closable={true}
+      >
+        {paymentHistory.map((payment, index) => (
+          <div key={index} style={{ marginBottom: 16 }}>
+            <ProDescriptions<API.CommissionPayment>
+              column={2}
+              title={`Payment #${index + 1}`}
+              request={async () => ({
+                data: payment || {},
+              })}
+              params={{
+                id: payment.id,
+              }}
+              columns={[
+                {
+                  title: 'Amount',
+                  dataIndex: 'amount',
+                  valueType: 'text',
+                  render: (text) => `$${text}`,
+                },
+                {
+                  title: 'Date',
+                  dataIndex: 'paid_date',
+                  valueType: 'text',
+                  render: (text) => `${text}`,
+                },
+                {
+                  title: 'Status',
+                  dataIndex: 'status',
+                  valueType: 'text',
+                  render: (text) => <Tag color={text === 'Incomplete' ? 'red' : 'green'}>{text}</Tag>,
+                },
+                // Add more columns as needed
+              ]}
+            />
+          </div>
+        ))}
+      </Drawer>
+    );
+  };
+
 
 
   
@@ -158,6 +219,26 @@ const PreviousCommisionList: React.FC = () => {
           );
       },
   },
+  {
+    title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
+    dataIndex: 'option',
+    valueType: 'option',
+    render: (_, record) => (
+      <>
+      <div key="paymentHistory" style={{ marginTop: 10 }}>
+      <a onClick={
+         ()=>{
+          setCurrentRow(record);
+        handlePaymentHistoryClick()
+         }
+        }>
+        <FormattedMessage id="pages.searchTable.paymentHistory" defaultMessage="Payment History" />
+      </a>
+    </div>
+    <PaymentHistoryDrawer visible={paymentHistoryVisible} onClose={() => setPaymentHistoryVisible(false)} paymentHistory={paymentHistory} />
+      </>
+    ),
+  },
 
   ];
 
@@ -206,7 +287,6 @@ const PreviousCommisionList: React.FC = () => {
     
       />
  
-
       <Drawer
         width={600}
         open={showDetail}

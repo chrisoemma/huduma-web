@@ -11,15 +11,15 @@ import {
   ProFormUploadButton,
   ProTable,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
 
 
 
-import { getMonthName } from '@/utils/function';
-import { getActiveCommisions } from '../CommisionSlice';
+import { formatErrorMessages, getMonthName, showErrorWithLineBreaks } from '@/utils/function';
+import { AddPayment, getActiveCommisions } from '../CommisionSlice';
 
 
 const ActiveCommisionList: React.FC = () => {
@@ -35,40 +35,115 @@ const ActiveCommisionList: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<API.ActiveCommisionListItem[]>([]);
 
   const intl = useIntl();
+  const { initialState } = useModel('@@initialState');
+
+  const [paymentHistoryVisible, setPaymentHistoryVisible] = useState<boolean>(false);
+  const [paymentHistory, setPaymentHistory] = useState<API.CommissionPayment[]>([]);
+
+  const handlePaymentHistoryClick = () => {
+    // Extract payment history from the selected row
+    const paymentHistory = currentRow?.commissionPayments || [];
+    setPaymentHistory(paymentHistory)
+    setPaymentHistoryVisible(true);
+    
+  };
 
 
 
-  const handleAdd = async (formData: FormData) => {
+  const handlePayment = async (formData: FormData) => {
 
     try {
 
-        // If no image is uploaded, create an object without img_url
-        const categoryData: API.ActiveCommisionListItem = {
-          id: 0, // Set the appropriate ID
-          name: name,
-          img_url: '', // No image URL in this case
-        };
+      const currentUser = initialState?.currentUser;
+     const  action_by=currentUser?.id;
 
-        // Save the data to the database
-        const hide = message.loading('Loading...');
-        try {
-          await addCategory(categoryData);
+      const amount = formData.get('amount') as string;
+      const paymentData: API.ActiveCommisionListItem = {
+        id: 0, // Set the appropriate ID
+        amount: amount,
+        action_by:action_by
+      };
+
+      // Save the data to the database
+      const hide = message.loading('Loading...');
+      try {
+
+        const response = await AddPayment(currentRow?.commision,paymentData);
+        if (response.status) {
           hide();
-          message.success('Added successfully');
-          return true
-        } catch (error) {
-          hide();
-          message.error('Adding failed, please try again!');
-          return false
+          message.success(response.message);
+          return true;
+        } else {
+          if (response.data) {
+            const errors = response.data.errors;
+            showErrorWithLineBreaks(formatErrorMessages(errors));
+          } else {
+            message.error(response.message);
+          }
         }
-      
+      } catch (error) {
+        hide();
+        console.log('errorrrs', error)
+        message.error('Adding failed, please try again!');
+        return false
+      }
+
     } catch (error) {
       message.error('Image upload failed, please try again!');
       return false
     }
   };
 
-  
+
+  const PaymentHistoryDrawer: React.FC<{ visible: boolean; onClose: () => void; paymentHistory: API.CommissionPayment[] }> = ({ visible, onClose, paymentHistory }) => {
+    return (
+      <Drawer
+        width={600}
+        visible={visible}
+        onClose={onClose}
+        title={<FormattedMessage id="pages.searchTable.paymentHistory" defaultMessage="Payment History" />}
+        closable={true}
+      >
+        {paymentHistory.map((payment, index) => (
+          <div key={index} style={{ marginBottom: 16 }}>
+            <ProDescriptions<API.CommissionPayment>
+              column={2}
+              title={`Payment #${index + 1}`}
+              request={async () => ({
+                data: payment || {},
+              })}
+              params={{
+                id: payment.id,
+              }}
+              columns={[
+                {
+                  title: 'Amount',
+                  dataIndex: 'amount',
+                  valueType: 'text',
+                  render: (text) => `$${text}`,
+                },
+                {
+                  title: 'Date',
+                  dataIndex: 'paid_date',
+                  valueType: 'text',
+                  render: (text) => `${text}`,
+                },
+                {
+                  title: 'Status',
+                  dataIndex: 'status',
+                  valueType: 'text',
+                  render: (text) => <Tag color={text === 'Incomplete' ? 'red' : 'green'}>{text}</Tag>,
+                },
+                // Add more columns as needed
+              ]}
+            />
+          </div>
+        ))}
+      </Drawer>
+    );
+  };
+
+
   const columns: ProColumns<API.ActiveCommisionListItem>[] = [
     {
       title: (
@@ -93,15 +168,15 @@ const ActiveCommisionList: React.FC = () => {
       },
       search: true,
     },
-    
-        {
+
+    {
       title: (
         <FormattedMessage
-          id="pages.searchTable.updateForm.amountTobePaid"
-          defaultMessage="Amount to be paid"
+          id="pages.searchTable.amountPaid"
+          defaultMessage="Amount Paid"
         />
       ),
-      dataIndex: 'total_should_be_paid',
+      dataIndex: 'total_paid_so_far',
       valueType: 'text',
       render: (dom, entity) => {
         return (
@@ -115,96 +190,116 @@ const ActiveCommisionList: React.FC = () => {
           </a>
         );
       },
-      search:false,
+      search: false,
     },
 
     {
-        title: (
-          <FormattedMessage
-            id="pages.searchTable.amountPaid"
-            defaultMessage="Amount Paid"
-          />
-        ),
-        dataIndex: 'total_paid_so_far',
-        valueType: 'text',
-        render: (dom, entity) => {
-          return (
-            <a
-              onClick={() => {
-                setCurrentRow(entity);
-                setShowDetail(true);
-              }}
-            >
-              {dom}
-            </a>
-          );
-        },
-        search: false,
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.updateForm.amountTobePaid"
+          defaultMessage="Amount Remaining"
+        />
+      ),
+      dataIndex: 'amount_remaining', // Use a custom dataIndex for the calculated value
+      valueType: 'text',
+      render: (_, entity) => {
+        const amountRemaining = (parseFloat(entity.total_commission) - parseFloat(entity.total_paid_so_far)).toFixed(2);
+        return (
+          <a
+            onClick={() => {
+              setCurrentRow(entity);
+              setShowDetail(true);
+            }}
+          >
+            {amountRemaining}
+          </a>
+        );
       },
+      search: false,
+    },
 
-      {
-        title: (
-          <FormattedMessage
-            id="pages.searchTable.updateForm.Month"
-            defaultMessage="Month"
-          />
-        ),
-        dataIndex: 'month',
-        valueType: 'text',
-        render: (dom, entity) => {
-          const monthName = getMonthName(entity.month);
-          const year = entity.year;
-          const displayText = `${monthName} ${year}`;
-          return (
-            <a
-              onClick={() => {
-                setCurrentRow(entity);
-                setShowDetail(true);
-              }}
-            >
-              {displayText}
-            </a>
-          );
-        },
-        search: true,
+    {
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.updateForm.Month"
+          defaultMessage="Month"
+        />
+      ),
+      dataIndex: 'month',
+      valueType: 'text',
+      render: (dom, entity) => {
+        const monthName = getMonthName(entity.month);
+        const year = entity.year;
+        const displayText = `${monthName} ${year}`;
+        return (
+          <a
+            onClick={() => {
+              setCurrentRow(entity);
+              setShowDetail(true);
+            }}
+          >
+            {displayText}
+          </a>
+        );
       },
+      search: true,
+    },
     {
       title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
       dataIndex: 'status',
       hideInForm: true,
       render: (text, record) => {
-          let color = '';
-          if (text == 'Paid') {
-              color = 'green';
-          } else if (text == 'Unpaid') {
-              color = 'red';
-          }else{
-            color = 'yellow';
-          }
-          return (
-              <span>
-                  <Tag color={color}>{text}</Tag>
-              </span>
-          );
+        let color = '';
+        if (text == 'Paid') {
+          color = 'green';
+        } else if (text == 'Unpaid') {
+          color = 'red';
+        } else {
+          color = 'yellow';
+        }
+        return (
+          <span>
+            <Tag color={color}>{text}</Tag>
+          </span>
+        );
       },
-  },
+    },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
       dataIndex: 'option',
       valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-          //  handleUpdateModalOpen(true);
+      render: (_, record) => (
+        <>
+          {record.status !== 'Paid' && (
+            <div key="pay">
+              <a
+                onClick={() => {
+                  handleModalOpen(true);
+                  setCurrentRow(record);
+                }}
+              >
+                <FormattedMessage id="pages.searchTable.pay" defaultMessage="Pay" />
+              </a>
+            </div>
+          )}
+        <div key="paymentHistory" style={{ marginTop: 10 }}>
+        <a onClick={
+           ()=>{
             setCurrentRow(record);
-          }}
-        >
-          <FormattedMessage id="pages.searchTable.pay" defaultMessage="Pay" />
-        </a>,
-       
-      ],
+          handlePaymentHistoryClick()
+           }
+          }>
+          <FormattedMessage id="pages.searchTable.paymentHistory" defaultMessage="Payment History" />
+        </a>
+      </div>
+
+      {/* Payment History Drawer */}
+      <PaymentHistoryDrawer visible={paymentHistoryVisible} onClose={() => setPaymentHistoryVisible(false)} paymentHistory={paymentHistory} />
+
+        </>
+      ),
     },
+
   ];
 
   return (
@@ -219,22 +314,22 @@ const ActiveCommisionList: React.FC = () => {
         rowKey="id"
         search={{
           labelWidth: 120,
-         filterType: 'light', 
+          filterType: 'light',
         }}
         request={async (params, sorter, filter) => {
-          try {      
+          try {
             const response = await getActiveCommisions(params);
-            const commisions = response.data.commissions            ;
+            const commisions = response.data.commissions;
             // Filter the data based on the 'name' filter
             const activeCommisions = commisions.filter(commision =>
               params.name
                 ? commision.provider.name
-                    .toLowerCase()
-                    .split(' ')
-                    .some(word => word.startsWith(params.name.toLowerCase()))
+                  .toLowerCase()
+                  .split(' ')
+                  .some(word => word.startsWith(params.name.toLowerCase()))
                 : true
             );
-      
+
             return {
               data: activeCommisions,
               success: true,
@@ -247,7 +342,7 @@ const ActiveCommisionList: React.FC = () => {
             };
           }
         }}
-      
+
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -255,54 +350,20 @@ const ActiveCommisionList: React.FC = () => {
           },
         }}
       />
-      {selectedRowsState?.length > 0 && (
-        <FooterToolbar
-          extra={
-            <div>
-              <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
-              <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-              <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
-              &nbsp;&nbsp;
-             
-            </div>
-          }
-        >
-          <Button
-            onClick={async () => {
-              await handleRemove(selectedRowsState);
-             setSelectedRows([]);
-             actionRef.current?.reload();
-            }}
-          >
-            <FormattedMessage
-              id="pages.searchTable.batchDeletion"
-              defaultMessage="Batch deletion"
-            />
-          </Button>
-          {/* <Button type="primary">
-            <FormattedMessage
-              id="pages.searchTable.batchApproval"
-              defaultMessage="Batch approval"
-            />
-          </Button> */}
-        </FooterToolbar>
-      )}
+
       <ModalForm
         title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newCategory',
-          defaultMessage: 'Provider Name',
+          id: 'pages.searchTable.createForm.payment',
+          defaultMessage: 'Add Payment',
         })}
         width="400px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
-          formData.append('name', value.name);
-          if (value.image) {
-            formData.append('image', value.image[0].originFileObj);
-          }
+          formData.append('amount', value.amount); // Use 'amount' instead of 'name' as per your form field name
 
-          const success = await handleAdd(formData);
+          const success = await handlePayment(formData);
 
           if (success) {
             handleModalOpen(false);
@@ -317,28 +378,22 @@ const ActiveCommisionList: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: 'Name is required',
+                message: 'Amount is required',
               },
+
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const amountRemaining = parseFloat(currentRow?.total_commission || 0) - parseFloat(currentRow?.total_paid_so_far || 0);
+                  if (isNaN(amountRemaining) || value <= amountRemaining) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('Amount should not exceed Amount Remaining'));
+                },
+              }),
             ]}
             width="md"
-            name="name"
-            label="Name"
-          />
-          <ProFormUploadButton
-            name="image"
-            label="Upload Image"
-            style={{ display: 'none' }}
-            fieldProps={{
-              accept: 'image/*',
-              max: 1,
-              listType: 'picture-card',
-              title: 'Click or Drag to Upload', // Custom title
-              placeholder: 'Click or Drag to Upload', // Custom placeholder
-            }}
-            onChange={(fileList) => {
-              // Handle file list changes if needed
-              // console.log('File List:', fileList);
-            }}
+            name="amount"
+            label="Amount"
           />
         </ProForm.Group>
       </ModalForm>

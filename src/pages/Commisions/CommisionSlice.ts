@@ -35,6 +35,17 @@ export async function getActiveCommisions(
     });
   }
 
+  export async function AddPayment(commisionId: number, options?: { [key: string]: any }) {
+    
+    return request(`${API_URL}/admin/commisions/payment/${commisionId}`, {
+      method: 'Post',
+      data: {
+        method: 'post',
+        ...(options || {}),
+      },
+    });
+  }
+
 
 
 

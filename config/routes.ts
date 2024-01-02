@@ -81,6 +81,23 @@ export default [
     ],
   },
   {
+    path: '/provider-sub-services',
+    name: 'Provider sub services',
+    icon: 'table',
+    routes: [
+      {
+        path: '/provider-sub-services/approval',
+        name: 'Approval of sub services',
+        component: './SubserviceChangeStatus',
+      },
+      {
+        path: '/provider-sub-services/list',
+        name: 'Provider sub service list', 
+        component: './ProviderSubServiceList',
+      },
+    ],
+  },
+  {
     path: '/commissions',
     name: 'Commissions',
     icon: 'alert',
@@ -97,6 +114,28 @@ export default [
       },
      
     ],
+  },
+  {
+    path: '/administrations',
+    name: 'Administrative',
+    icon: 'holder',
+    routes: [
+      {
+        path: '/administrations/system-admins',
+        name: 'System admins',
+        component: './AdminList',
+      },
+      {
+        path: '/administrations/permissions',
+        name: 'User permissions',
+        component: './PermissionsList',
+      },
+      {
+        path: '/administrations/roles',
+        name: 'User roles',
+        component: './RolesList',
+      },
+    ]
   },
   {
     path: '/settings',
@@ -126,45 +165,6 @@ export default [
       },
 
     ],
-  },
-  {
-    path: '/provider-sub-services',
-    name: 'Provider sub services',
-    icon: 'table',
-    routes: [
-      {
-        path: '/provider-sub-services/approval',
-        name: 'Approval of sub services',
-        component: './SubserviceChangeStatus',
-      },
-      {
-        path: '/provider-sub-services/list',
-        name: 'Provider sub service list', 
-        component: './ProviderSubServiceList',
-      },
-    ],
-  },
-  {
-    path: '/administrations',
-    name: 'Administrative',
-    icon: 'holder',
-    routes: [
-      {
-        path: '/administrations/system-admins',
-        name: 'System admins',
-        component: './AdminList',
-      },
-      {
-        path: '/administrations/permissions',
-        name: 'User permissions',
-        component: './PermissionsList',
-      },
-      {
-        path: '/administrations/roles',
-        name: 'User roles',
-        component: './RolesList',
-      },
-    ]
   },
   {
     path: '/system-logs',
