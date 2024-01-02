@@ -121,3 +121,14 @@ export function validateTanzanianPhoneNumber(phoneNumber) {
       };
     }
   }
+
+  export const monthNames = [
+    'January', 'February', 'March', 'April',
+    'May', 'June', 'July', 'August',
+    'September', 'October', 'November', 'December'
+  ];
+  
+  export const getMonthName = (monthNumber) => {
+    return monthNames[parseInt(monthNumber, 10) - 1];
+  };
+  

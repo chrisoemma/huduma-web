@@ -771,6 +771,15 @@ const AgentList: React.FC = () => {
                     <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
                         Validate NIDA
                     </Button>
+                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                        Commisions History
+                    </Button>
+                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                       Providers
+                    </Button>
+                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                        Clients
+                    </Button>
             </Drawer>
             <Drawer
                     width={400}

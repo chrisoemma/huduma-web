@@ -81,6 +81,24 @@ export default [
     ],
   },
   {
+    path: '/commissions',
+    name: 'Commissions',
+    icon: 'alert',
+    routes: [
+      {
+        path: '/commissions/active-commisions',
+        name: 'Active',
+        component: './Commisions/ActiveCommisionList',
+      },
+      {
+        path: '/commissions/previous-commissions',
+        name: 'Previous',
+        component: './Commisions/PreviousCommisionList',
+      },
+     
+    ],
+  },
+  {
     path: '/settings',
     name: 'Settings',
     icon: 'windows',

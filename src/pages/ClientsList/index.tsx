@@ -760,6 +760,9 @@ const ClientList: React.FC = () => {
                 <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
                     Validate NIDA
                 </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                    Requests
+                </Button>
             </Drawer>
 
             <Drawer
