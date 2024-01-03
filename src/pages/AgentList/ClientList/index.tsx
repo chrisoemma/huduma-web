@@ -256,7 +256,7 @@ const ClientList: React.FC = () => {
         async function fetchData() {
             try {
                 const response = await getAgentClients(id);
-                const clients = response.data.clients;
+                const clients = response.data.clients.clients;
 
                 setClients(clients);
                 actionRef.current?.reloadAndRest();
@@ -506,7 +506,7 @@ const ClientList: React.FC = () => {
                 request={async (params, sorter, filter) => {
                     try {
                         const response = await getAgentClients(id);
-                        const clients = response.data.clients;
+                        const clients = response.data.clients.clients;
 
                         // Filter the data based on the search parameters
                         const filteredClients = clients.filter(client => {

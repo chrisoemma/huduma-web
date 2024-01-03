@@ -310,7 +310,7 @@ const ProviderList: React.FC = () => {
         async function fetchData() {
             try {
                 const response = await getAgentProviders(id);
-                const providers = response.data.providers;
+                const providers = response.data.providers.providers;
 
                 setProvider(providers);
                 actionRef.current?.reloadAndRest(); // Reload and reset the table state
@@ -593,7 +593,7 @@ const ProviderList: React.FC = () => {
                     request={async (params, sorter, filter) => {
                         try {
                             const response = await getAgentProviders(id);
-                            const providers = response.data.providers;
+                            const providers = response.data.providers.providers;
 
                             // Filter the data based on the search parameters
                             const filteredProviders = providers.filter(provider => {
