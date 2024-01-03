@@ -43,6 +43,26 @@ export default [
     ],
   },
   {
+    path: '/user-management',
+    routes: [
+      {
+        name: 'Clients',
+        path: 'agents/clients/:id',
+        component: './AgentList/ClientList',
+      },
+    ],
+  },
+  {
+    path: '/user-management',
+    routes: [
+      {
+        name: 'Providers',
+        path: 'agents/providers/:id',
+        component: './AgentList/ProviderList',
+      },
+    ],
+  },
+  {
     path: '/dashboard',
     name: 'Dashboard',
     icon: 'home',

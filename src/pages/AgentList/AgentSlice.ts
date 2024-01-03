@@ -72,3 +72,33 @@ export async function getAgentCommisions( agentId:number, params: {current?: num
     ...(options || {}),
   });
 }
+
+
+export async function getAgentClients( agentId:number, params: {current?: number;pageSize?: number;
+    
+},
+options?: { [key: string]: any },
+) {
+return request(`${API_URL}/agents/clients/${agentId}`, {
+  method: 'GET',
+  params: {
+    ...params,
+  },
+  ...(options || {}),
+});
+}
+
+
+export async function getAgentProviders( agentId:number, params: {current?: number;pageSize?: number;
+    
+},
+options?: { [key: string]: any },
+) {
+return request(`${API_URL}/agents/providers/${agentId}`, {
+  method: 'GET',
+  params: {
+    ...params,
+  },
+  ...(options || {}),
+});
+}

@@ -12,42 +12,50 @@ import {
     ProTable,
     PageLoading,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl, useModel } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message,Form } from 'antd';
+import { FormattedMessage, useIntl, useModel, useParams } from '@umijs/max';
+import { Button, Drawer, Image, Input, Tag, message, Form } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './Components/UpdateForm';
-import { storage } from './../../firebase/firebase';
-import { history } from 'umi';
+// import UpdateForm from './components/UpdateForm';
+// import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addAgent, getAgents, removeAgent } from './AgentSlice';
+//import { addClient, getClients, removeClient } from './ClientsSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
-import { getNida, validateNida } from '../NidaSlice';
+//import { getNida, validateNida } from '../NidaSlice';
+import { getAgentClients } from '../AgentSlice';
+import { addClient, removeClient } from '@/pages/ClientsList/ClientsSlice';
+import { getNida, validateNida } from '@/pages/NidaSlice';
+import { storage } from '@/firebase/firebase';
+import UpdateForm from '@/pages/ClientsList/components/UpdateForm';
 
 
-const AgentList: React.FC = () => {
+
+const ClientList: React.FC = () => {
 
     const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
     const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
     const [showDetail, setShowDetail] = useState<boolean>(false);
+
+    const { id } = useParams();
+
     const actionRef = useRef<ActionType>();
-    const [currentRow, setCurrentRow] = useState<API.AgentListItem>();
-    const [selectedRowsState, setSelectedRows] = useState<API.AgentListItem[]>([]);
-    const [agents, setAgents] = useState([]);
+    const [currentRow, setCurrentRow] = useState<API.ClientListItem>();
+    const [selectedRowsState, setSelectedRows] = useState<API.ClientListItem[]>([]);
+    const [clients, setClients] = useState([]);
     const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
     const [loading, setLoading] = useState(false);
+
     const intl = useIntl();
     const [form] = ProForm.useForm();
-
     const [validationResult, setValidationResult] = useState(null);
     const { Item } = Form;
     const { initialState } = useModel('@@initialState');
-   
 
-  //  console.log('business data',currentBusinessesData);
-      const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
+
+      const handleRemove = async (selectedRows: API.ClientListItem[]) => {
+
 
         const hide = message.loading('Loading....');
         if (!selectedRows) return true;
@@ -55,11 +63,10 @@ const AgentList: React.FC = () => {
           // console.log('in try and catch');
           const currentUser = initialState?.currentUser;
                 const  action_by=currentUser?.id;
-        const response=  await removeAgent({
+            const response=  await removeClient({
             key: selectedRows.map((row) => row.id),
             action_by: action_by,
           });
-
           hide();
           message.success('Deleted successfully');
           if (actionRef.current) {
@@ -73,7 +80,6 @@ const AgentList: React.FC = () => {
           return false;
         }
       };
-
 
     const handleNidaValidationDrawerOpen = () => {
         setShowNidaValidationDrawer(true);
@@ -91,7 +97,7 @@ const AgentList: React.FC = () => {
     
           const nidaValidationData = {
             status: '',
-            user_type: 'Agent',
+            user_type: 'Client',
           };
     
           const response = await getNida(nida);
@@ -150,15 +156,13 @@ const AgentList: React.FC = () => {
         const first_name = formData.get('first_name') as string;
         const last_name = formData.get('last_name') as string;
         const phone = formData.get('phone') as string;
-        const  newphone =validateTanzanianPhoneNumber(phone);
+        const newphone = validateTanzanianPhoneNumber(phone);
         const email = formData.get('email') as string;
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
-
         const currentUser = initialState?.currentUser;
-      
 
-        let agentData: API.AgentListItem = {
+        let userData: API.AgentListItem = {
             id: 0, // Set the appropriate ID
             first_name: first_name,
             last_name: last_name,
@@ -211,15 +215,15 @@ const AgentList: React.FC = () => {
 
         try {
             const downloadURL = await uploadImage();
-            agentData = {
-                ...agentData,
+            userData = {
+                ...userData,
                 profile_img: downloadURL,
             };
 
-            // Add agent data to the database
+            // Add user data to the database
             const hide = message.loading('Loading...');
             try {
-                const response = await addAgent(agentData);
+                const response = await addClient(userData);
                 if (response.status) {
                     hide();
                     message.success(response.message);
@@ -248,17 +252,16 @@ const AgentList: React.FC = () => {
 
 
 
-
     useEffect(() => {
         async function fetchData() {
             try {
-                const response = await getAgents();
-                const agents = response.data.agents;
+                const response = await getAgentClients(id);
+                const clients = response.data.clients;
 
-                setAgents(agents);
-                actionRef.current?.reloadAndRest(); // Reload and reset the table state
+                setClients(clients);
+                actionRef.current?.reloadAndRest();
             } catch (error) {
-                console.error('Error fetching Agents data:', error);
+                console.error('Error fetching Clients data:', error);
             }
         }
 
@@ -266,53 +269,18 @@ const AgentList: React.FC = () => {
     }, []);
 
 
-    const handleViewCommissions = () => {
 
-        if (history) {
-            // Assuming you have a route named '/documents/:providerId'
-            const route = `/user-management/agents/commisions/${currentRow?.id}`;
-            history.push({
-                pathname: route,
-                state: { agentName: currentRow?.name }, // Pass your values here
-              });
-        }
-    }
-
-    const handleViewClients = () => {
-
-        if (history) {
-            // Assuming you have a route named '/documents/:providerId'
-            const route = `/user-management/agents/clients/${currentRow?.id}`;
-            history.push({
-                pathname: route,
-               // state: { agentName: currentRow?.name }, // Pass your values here
-              });
-        }
-    }
-
-    const handleViewProviders = () => {
-
-        if (history) {
-            // Assuming you have a route named '/documents/:providerId'
-            const route = `/user-management/agents/providers/${currentRow?.id}`;
-            history.push({
-                pathname: route,
-               // state: { agentName: currentRow?.name }, // Pass your values here
-              });
-        }
-    }
-
-    const columns: ProColumns<API.AgentListItem>[] = [
+    const columns: ProColumns<API.ClientListItem>[] = [
         {
             title: (
                 <FormattedMessage
-                    id="pages.searchTable.updateForm.ruleName.agentName"
-                    defaultMessage="Agent Name"
+                    id="pages.searchTable.updateForm.ruleName.clientName"
+                    defaultMessage="Client Name"
                 />
             ),
             dataIndex: 'name',
             valueType: 'text',
-            tip: 'The Agent Name',
+            tip: 'The Client Name',
             render: (dom, entity) => {
 
                 return (
@@ -336,7 +304,7 @@ const AgentList: React.FC = () => {
                     defaultMessage="Phone"
                 />
             ),
-            dataIndex: 'phone',
+            dataIndex: ['user', 'phone'],
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
@@ -476,7 +444,7 @@ const AgentList: React.FC = () => {
                 let color = '';
                 if (text == 'Active' || text == 'Approved') {
                     color = 'green';
-                } else if (text == 'Pending approval') {
+                } else if (text == 'In Active') {
                     text = 'Pending';
                     color = 'yellow'
                 } else if (text == 'Deactivated' || text == 'Suspended') {
@@ -503,7 +471,8 @@ const AgentList: React.FC = () => {
                     }}
                 >
                     <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
-                </a>,
+                </a>
+
 
             ],
         },
@@ -536,27 +505,27 @@ const AgentList: React.FC = () => {
                 }}
                 request={async (params, sorter, filter) => {
                     try {
-                        const response = await getAgents();
-                        const agents = response.data.agents;
+                        const response = await getAgentClients(id);
+                        const clients = response.data.clients;
 
                         // Filter the data based on the search parameters
-                        const filteredAgents = agents.filter(agent => {
+                        const filteredClients = clients.filter(client => {
                             return (
-                                (params.name ? agent.name.toLowerCase().includes(params.name.toLowerCase()) : true) &&
-                                (params.phone ? agent.phone.toLowerCase().includes(params.phone.toLowerCase()) : true) &&
-                                (params.nida ? agent.nida.toLowerCase().includes(params.nida.toLowerCase()) : true) &&
-                                (params.email ? agent.user.email.toLowerCase().includes(params.email.toLowerCase()) : true) &&
-                                (params.location ? agent.location.toLowerCase().includes(params.location.toLowerCase()) : true) &&
-                                (params.status ? agent.status.toLowerCase().includes(params.status.toLowerCase()) : true)
+                                (params.name ? client.name.toLowerCase().includes(params.name.toLowerCase()) : true) &&
+                                (params.phone ? client.phone.toLowerCase().includes(params.phone.toLowerCase()) : true) &&
+                                (params.nida ? client.nida.toLowerCase().includes(params.nida.toLowerCase()) : true) &&
+                                (params.email ? client.user.email.toLowerCase().includes(params.email.toLowerCase()) : true) &&
+                                (params.location ? client.location.toLowerCase().includes(params.location.toLowerCase()) : true) &&
+                                (params.status ? client.status.toLowerCase().includes(params.status.toLowerCase()) : true)
                             );
                         });
 
                         return {
-                            data: filteredAgents,
+                            data: filteredClients,
                             success: true,
                         };
                     } catch (error) {
-                        console.error('Error fetching agents data:', error);
+                        console.error('Error fetching clients data:', error);
                         return {
                             data: [],
                             success: false,
@@ -585,7 +554,6 @@ const AgentList: React.FC = () => {
                 >
                     <Button
                         onClick={async () => {
-                             
                              await handleRemove(selectedRowsState);
                             setSelectedRows([]);
                             actionRef.current?.reload();
@@ -607,8 +575,8 @@ const AgentList: React.FC = () => {
             <ModalForm
                 form={form}
                 title={intl.formatMessage({
-                    id: 'pages.searchTable.createForm.newAgent',
-                    defaultMessage: 'New Agent',
+                    id: 'pages.searchTable.createForm.newClient',
+                    defaultMessage: 'New Client',
                 })}
                 width="400px"
                 open={createModalOpen}
@@ -621,10 +589,8 @@ const AgentList: React.FC = () => {
                     formData.append('phone', value.phone);
                     formData.append('email', value.email);
                     formData.append('nida', value.nida);
-
                     if (value.image) {
                         formData.append('image', value.image[0].originFileObj);
-
                     }
 
                     const success = await handleAdd(formData);
@@ -662,58 +628,54 @@ const AgentList: React.FC = () => {
                         label="Last Name"
                     />
 
-       <ProFormText
-          rules={[
-            {
-              required: true,
-              message: 'Phone number is required',
-            },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                const phoneNumber = value.replace(/\D/g, ''); // Remove non-numeric characters
-                const validCountryCodes = ['255', '254', '256', '250', '257']; // Add more as needed
+                    <ProFormText
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Phone number is required',
+                            },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    const phoneNumber = value.replace(/\D/g, ''); // Remove non-numeric characters
+                                    const validCountryCodes = ['255', '254', '256', '250', '257']; // Add more as needed
 
-                // Check if the phone number has a valid length and starts with either a leading zero or a valid country code
-                const isValid = validCountryCodes.some(code => {
-                  const countryCodeLength = code.length;
-                  return (
-                    (phoneNumber.length === 10 && phoneNumber.startsWith('0')) ||
-                    (phoneNumber.length === 12 && phoneNumber.startsWith(code))
-                  );
-                });
+                                    // Check if the phone number has a valid length and starts with either a leading zero or a valid country code
+                                    const isValid = validCountryCodes.some(code => {
+                                        const countryCodeLength = code.length;
+                                        return (
+                                            (phoneNumber.length === 10 && phoneNumber.startsWith('0')) ||
+                                            (phoneNumber.length === 12 && phoneNumber.startsWith(code))
+                                        );
+                                    });
 
-                if (!isValid) {
-                  return Promise.reject('Invalid phone number format');
-                }
+                                    if (!isValid) {
+                                        return Promise.reject('Invalid phone number format');
+                                    }
 
-                return Promise.resolve();
-              },
-            }),
-          ]}
-          width="md"
-          name="phone"
-          label="Phone"
-        />
+                                    return Promise.resolve();
+                                },
+                            }),
+                        ]}
+                        width="md"
+                        name="phone"
+                        label="Phone"
+                    />
 
-<ProFormText
-    name="email"
-    label={intl.formatMessage({
-        id: 'pages.searchTable.updateForm.email',
-        defaultMessage: 'Email',
-    })}
-    width="md"
-    rules={[
-        {
-            required: true,
-            message: 'Please enter the Email!',
-        },
-        {
-            type: 'email',
-            message: 'Please enter a valid email address!',
-        },
-    ]}
-/>
+                    <ProFormText
+                        name="email"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.email',
+                            defaultMessage: 'Email',
+                        })}
+                        width="md"
+                        rules={[
 
+                            {
+                                type: 'email',
+                                message: 'Please enter a valid email address!',
+                            },
+                        ]}
+                    />
                     <ProFormText
                         rules={[
 
@@ -752,7 +714,6 @@ const AgentList: React.FC = () => {
                     />
                 </ProForm.Group>
             </ModalForm>
-
             <UpdateForm
                 onSubmit={async (value) => {
                     const success = await handleUpdate(value);
@@ -791,7 +752,7 @@ const AgentList: React.FC = () => {
                 closable={false}
             >
                 {currentRow?.name && (
-                    <ProDescriptions<API.AgentListItem>
+                    <ProDescriptions<API.ClientListItem>
                         column={2}
                         title={currentRow?.name}
                         request={async () => ({
@@ -800,84 +761,80 @@ const AgentList: React.FC = () => {
                         params={{
                             id: currentRow?.name,
                         }}
-                        columns={columns as ProDescriptionsItemProps<API.AgentListItem>[]}
+                        columns={columns as ProDescriptionsItemProps<API.ClientListItem>[]}
                     />
                 )}
 
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
-                        Validate NIDA
-                    </Button>
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewCommissions}>
-                        Commisions History
-                    </Button>
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewProviders}>
-                       Providers
-                    </Button>
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewClients}>
-                        Clients
-                    </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                    Validate NIDA
+                </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                    Requests
+                </Button>
             </Drawer>
-            <Drawer
-                    width={400}
-                    title="Validate NIDA Number"
-                    placement="right"
-                    onClose={handleNidaValidationDrawerClose}
-                    visible={showNidaValidationDrawer}
-                    destroyOnClose
-                >
-                    <Form>
-                        {validationResult && (
-                            <div style={{ marginTop: 20 }}>
-                                {validationResult.error ? (
-                                    <Tag color="red">Error: {validationResult.error}</Tag>
-                                ) : (
-                                    <div>
-                                        <Tag color="green" style={{ fontWeight: 'bold' }}>
-                                            NIDA Validation Successful!
-                                        </Tag>
-                                        <p>First Name: {validationResult.result.FIRSTNAME}</p>
-                                        <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
-                                        <p> Last Name: {validationResult.result.SURNAME}</p>
-                                        {/* Add more fields as needed */}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
-                        <Item
-                            label="NIDA Number"
-                            name="nidaNumber"
-                            initialValue={currentRow?.nida || ''}
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Please enter NIDA Number',
-                                },
-                            ]}
-                        >
-                            <Input
-                                value={currentRow?.nida || ''}
-                                disabled
 
-                            /> 
-                        </Item>
-                        <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loading}>
+            <Drawer
+                width={400}
+                title="Validate NIDA Number"
+                placement="right"
+                onClose={handleNidaValidationDrawerClose}
+                visible={showNidaValidationDrawer}
+                destroyOnClose
+            >
+                <Form>
+                    {validationResult && (
+                        <div style={{ marginTop: 20 }}>
+                            {validationResult.error ? (
+                                <Tag color="red">Error: {validationResult.error}</Tag>
+                            ) : (
+                                <div>
+                                    <Tag color="green" style={{ fontWeight: 'bold' }}>
+                                        NIDA Validation Successful!
+                                    </Tag>
+                                    <p>First Name: {validationResult.result.FIRSTNAME}</p>
+                                    <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
+                                    <p> Last Name: {validationResult.result.SURNAME}</p>
+                                    {/* Add more fields as needed */}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
+                    <Item
+                        label="NIDA Number"
+                        name="nidaNumber"
+                        initialValue={currentRow?.nida || ''}
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter NIDA Number',
+                            },
+                        ]}
+                    >
+                        <Input
+                            value={currentRow?.nida || ''}
+                            disabled
+
+                        />
+                    </Item>
+
+        <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loading}>
         {loading ? 'Validating...' : 'Validate NIDA'}
       </Button>
       {loading && <PageLoading />}
-                        <div style={{ marginTop: 20 }}>
-                            <p>This NIDA has passed through the following statuses:</p>
-                            {currentRow?.nida_statuses?.map((status, index) => (
-                                <Tag key={index} color={getStatusColor(status.status)}>
-                                    {status.status}
-                                </Tag>
-                            ))}
-                        </div>
-                    </Form>
+                    <div style={{ marginTop: 20 }}>
+                        <p>This NIDA has passed through the following statuses:</p>
+                        {currentRow?.nida_statuses?.map((status, index) => (
+                            <Tag key={index} color={getStatusColor(status.status)}>
+                                {status.status}
+                            </Tag>
+                        ))}
+                    </div>
+                </Form>
 
-                </Drawer>
+            </Drawer>
         </PageContainer>
     );
 };
 
-export default AgentList;
+export default ClientList;
