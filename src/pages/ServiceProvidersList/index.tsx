@@ -153,7 +153,7 @@ const ProviderList: React.FC = () => {
     const handleViewDocs = () => {
         if (history) {
             // Assuming you have a route named '/documents/:providerId'
-            const route = `/documents/provider/${currentRow?.id}`;
+            const route = `/user-management/service-providers/documents/provider/${currentRow?.id}`;
             history.push(route);
         }
     };
@@ -162,7 +162,7 @@ const ProviderList: React.FC = () => {
     const handleViewEmployees = () => {
         if (history) {
             // Assuming you have a route named '/documents/:providerId'
-            const route = `/employees/provider/${currentRow?.id}`;
+            const route = `/user-management/service-providers/employees/provider/${currentRow?.id}`;
             history.push(route);
         }
     }

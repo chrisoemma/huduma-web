@@ -57,6 +57,7 @@ const PreviousCommisionList: React.FC = () => {
         onClose={onClose}
         title={<FormattedMessage id="pages.searchTable.paymentHistory" defaultMessage="Payment History" />}
         closable={true}
+        
       >
         {paymentHistory.map((payment, index) => (
           <div key={index} style={{ marginBottom: 16 }}>

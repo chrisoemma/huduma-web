@@ -12,22 +12,33 @@ export default [
     ],
   },
   {
-    path: '/documents',
+    path: '/user-management',
     routes: [
       {
         name: 'Provider-docs',
-        path: 'provider/:id',
+        path: 'service-providers/documents/provider/:id',
         component: './ProviderDocsList/',
       },
     ],
   },
   {
-    path: '/employees',
+    path: '/user-management',
     routes: [
       {
         name: 'Employees',
-        path: 'provider/:id',
+        path: 'service-providers/employees/provider/:id',
         component: './EmployeeList/',
+      },
+    ],
+  },
+
+  {
+    path: '/user-management',
+    routes: [
+      {
+        name: 'Agent Commissions',
+        path: 'agents/commisions/:id',
+        component: './AgentList/CommissionList',
       },
     ],
   },

@@ -48,9 +48,6 @@ return request(`${API_URL}/agents/destroy_bunch`, {
 export async function updateAgent(agentId: number, options?: { [key: string]: any }) {
    
 
-    console.log('agentin server',agentId);
-    console.log('optionssss',options);
-
   return request(`${API_URL}/agents/update_agent_web/${agentId}`, {
     method: 'PUT',
     data: {
@@ -60,3 +57,18 @@ export async function updateAgent(agentId: number, options?: { [key: string]: an
   });
 }
 
+
+
+export async function getAgentCommisions( agentId:number, params: {current?: number;pageSize?: number;
+    
+  },
+  options?: { [key: string]: any },
+) {
+  return request(`${API_URL}/admin/commisions/agent_commisions/${agentId}`, {
+    method: 'GET',
+    params: {
+      ...params,
+    },
+    ...(options || {}),
+  });
+}

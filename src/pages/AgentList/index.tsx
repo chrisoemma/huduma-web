@@ -18,6 +18,7 @@ import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './Components/UpdateForm';
 import { storage } from './../../firebase/firebase';
+import { history } from 'umi';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addAgent, getAgents, removeAgent } from './AgentSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
@@ -265,6 +266,17 @@ const AgentList: React.FC = () => {
     }, []);
 
 
+    const handleViewCommissions = () => {
+
+        if (history) {
+            // Assuming you have a route named '/documents/:providerId'
+            const route = `/user-management/agents/commisions/${currentRow?.id}`;
+            history.push({
+                pathname: route,
+                state: { agentName: currentRow?.name }, // Pass your values here
+              });
+        }
+    }
 
     const columns: ProColumns<API.AgentListItem>[] = [
         {
@@ -771,7 +783,7 @@ const AgentList: React.FC = () => {
                     <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
                         Validate NIDA
                     </Button>
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewCommissions}>
                         Commisions History
                     </Button>
                     <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>

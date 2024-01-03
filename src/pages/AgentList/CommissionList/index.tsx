@@ -11,7 +11,7 @@ import {
   ProFormUploadButton,
   ProTable,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl, useModel } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel, useParams } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
@@ -19,26 +19,43 @@ import moment from 'moment';
 
 
 import { formatErrorMessages, getMonthName, showErrorWithLineBreaks } from '@/utils/function';
-import { AddPayment, getActiveCommisions } from '../CommisionSlice';
+import { AddPayment } from '@/pages/Commisions/CommisionSlice';
+import { getAgentCommisions } from '../AgentSlice';
+import { useLocation } from 'umi';
 
 
-const ActiveCommisionList: React.FC = () => {
+const CommissionList: React.FC = () => {
 
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
+  const location = useLocation();
 
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.ActiveCommisionListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.ActiveCommisionListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.CommissionListItem>();
+  const [selectedRowsState, setSelectedRows] = useState<API.CommissionListItem[]>([]);
 
   const intl = useIntl();
   const { initialState } = useModel('@@initialState');
 
   const [paymentHistoryVisible, setPaymentHistoryVisible] = useState<boolean>(false);
   const [paymentHistory, setPaymentHistory] = useState<API.CommissionPayment[]>([]);
+  const { id } = useParams();
+  const [commissions,setCommissions]=useState([]);
+  const [agentName,setAgentName]=useState('')
+  
+
+  useEffect(() => {
+    const { state } = location;
+
+     console.log('locationnn',location)
+    if (state && state.agentName) {
+         console.log('location state',location);
+      setAgentName(location.state.agentName);
+    }
+  }, [location.state]);
 
   const handlePaymentHistoryClick = () => {
     // Extract payment history from the selected row
@@ -58,7 +75,7 @@ const ActiveCommisionList: React.FC = () => {
      const  action_by=currentUser?.id;
 
       const amount = formData.get('amount') as string;
-      const paymentData: API.ActiveCommisionListItem = {
+      const paymentData: API.CommissionListItem = {
         id: 0, // Set the appropriate ID
         amount: amount,
         action_by:action_by
@@ -144,7 +161,7 @@ const ActiveCommisionList: React.FC = () => {
   };
 
 
-  const columns: ProColumns<API.ActiveCommisionListItem>[] = [
+  const columns: ProColumns<API.CommissionListItem>[] = [
     {
       title: (
         <FormattedMessage
@@ -319,8 +336,8 @@ const ActiveCommisionList: React.FC = () => {
       <ProTable
         //key={categories.length}
         headerTitle={intl.formatMessage({
-          id: 'pages.searchTable.title',
-          defaultMessage: 'Enquiry form',
+          id: 'pages.searchTable.agentName',
+          defaultMessage: `Agent ${agentName}`,
         })}
         actionRef={actionRef}
         rowKey="id"
@@ -330,8 +347,9 @@ const ActiveCommisionList: React.FC = () => {
         }}
         request={async (params, sorter, filter) => {
           try {
-            const response = await getActiveCommisions(params);
+            const response = await getAgentCommisions(id,params);
             const commisions = response.data.commissions;
+                              setCommissions(commisions)
             // Filter the data based on the 'name' filter
             const activeCommisions = commisions.filter(commision =>
               params.name
@@ -420,7 +438,7 @@ const ActiveCommisionList: React.FC = () => {
         closable={false}
       >
         {currentRow?.agent_name && (
-          <ProDescriptions<API.ActiveCommisionListItem>
+          <ProDescriptions<API.CommissionListItem>
             column={2}
             title={currentRow?.agent_name}
             request={async () => ({
@@ -429,7 +447,7 @@ const ActiveCommisionList: React.FC = () => {
             params={{
               id: currentRow?.agent_name,
             }}
-            columns={columns as ProDescriptionsItemProps<API.ActiveCommisionListItem>[]}
+            columns={columns as ProDescriptionsItemProps<API.CommissionListItem>[]}
           />
         )}
       </Drawer>
@@ -437,4 +455,4 @@ const ActiveCommisionList: React.FC = () => {
   );
 };
 
-export default ActiveCommisionList;
+export default CommissionList;
