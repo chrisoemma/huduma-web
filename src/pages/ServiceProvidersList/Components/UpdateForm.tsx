@@ -152,7 +152,7 @@ const calculateAverage = (arr) => {
 
   const handleViewDocs = () => {
     // Assuming you have a route named '/documents/:providerId'
-    const route = `/documents/provider/${props.values.id}`;
+    const route = `/user-management/service-providers/documents/provider/${props.values.id}`;
     // Redirect to the documents route
     history.push(route);
   };

@@ -152,7 +152,6 @@ const ProviderList: React.FC = () => {
 
     const handleViewDocs = () => {
         if (history) {
-            // Assuming you have a route named '/documents/:providerId'
             const route = `/user-management/service-providers/documents/provider/${currentRow?.id}`;
             history.push(route);
         }
