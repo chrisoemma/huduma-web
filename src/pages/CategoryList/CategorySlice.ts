@@ -43,8 +43,7 @@ return request(`${API_URL}/categories/destroy_bunch`, {
 
 export async function updateCategory(categoryId: number, options?: { [key: string]: any }) {
 
-     console.log('categoryId',categoryId)
-     console.log('options',options);
+  
    
   return request(`${API_URL}/categories/${categoryId}`, {
     method: 'PUT',

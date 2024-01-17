@@ -22,7 +22,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.user?.profile_img);
-  
+
   const { initialState } = useModel('@@initialState');
   const stepsFormRef = useRef();
 
@@ -30,8 +30,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
     if (props.updateModalOpen) {
       form.setFieldsValue({
-        first_name: props.values.first_name,
-        last_name: props.values.last_name,
+        name: props.values.name,
+        // last_name: props.values.last_name,
         status: props.values.user?.status == 'Active' ? 'Active' : 'In Active',
         nida: props.values.nida,
         email: props.values.user?.email,
@@ -101,6 +101,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       const currentUser = initialState?.currentUser;
       values.action_by = currentUser?.id;
 
+      
+
       const response = await updateClient(clientId, { ...values, profile_img });
 
       // console.log('responseeclient',response)
@@ -144,7 +146,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           title={intl.formatMessage({
 
             id: 'pages.searchTable.updateForm.editprovider',
-            defaultMessage: 'Edit Provider',
+            defaultMessage: 'Edit Client',
           })}
 
           open={props.updateModalOpen}
@@ -160,8 +162,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
       <StepsForm.StepForm
         initialValues={{
-          first_name: props.values.first_name,
-          last_name: props.values.last_name,
+          name: props.values.name,
+          //  last_name: props.values.last_name,
           status: props.values.user?.status === 'Active' ? 'Active' : 'In Active',
           nida: props.values.nida,
           email: props.values.user?.email,
@@ -169,25 +171,25 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.providerInfo',
-          defaultMessage: 'Provider Info',
+          defaultMessage: 'Client Info',
         })}
       >
 
         <ProFormText
-          name="first_name"
+          name="name"
           label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.firstName',
-            defaultMessage: 'First Name',
+            id: 'pages.searchTable.updateForm.Name',
+            defaultMessage: 'Name',
           })}
           width="md"
           rules={[
             {
               required: true,
-              message: 'Please enter the first name!',
+              message: 'Please enter the  name!',
             },
           ]}
         />
-        <ProFormText
+        {/* <ProFormText
           name="last_name"
           label={intl.formatMessage({
             id: 'pages.searchTable.updateForm.lastName',
@@ -200,7 +202,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
               message: 'Please enter the last name!',
             },
           ]}
-        />
+        /> */}
 
         <ProFormText
           rules={[
@@ -236,20 +238,20 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         />
 
 
-<ProFormText
-    name="email"
-    label={intl.formatMessage({
-        id: 'pages.searchTable.updateForm.email',
-        defaultMessage: 'Email',
-    })}
-    width="md"
-    rules={[
-        {
-            type: 'email',
-            message: 'Please enter a valid email address!',
-        },
-    ]}
-/>
+        <ProFormText
+          name="email"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.email',
+            defaultMessage: 'Email',
+          })}
+          width="md"
+          rules={[
+            {
+              type: 'email',
+              message: 'Please enter a valid email address!',
+            },
+          ]}
+        />
 
       </StepsForm.StepForm>
 
@@ -268,10 +270,19 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
         <ProFormText
           rules={[
-
             ({ getFieldValue }) => ({
               validator(_, value) {
-                const nida = value.replace(/\D/g, '');
+                if (!value) {
+                  return Promise.resolve(); // Empty input is allowed
+                }
+
+                const hasNumbers = /\d/.test(value);
+
+                if (!hasNumbers) {
+                  return Promise.resolve(); // No numbers entered, validation is not required
+                }
+
+                const nida = value.replace(/\D/g, ''); // Remove non-digit characters
                 const isLengthValid = nida.length === 20;
 
                 if (!isLengthValid) {
@@ -286,7 +297,6 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           name="nida"
           label="NIDA"
         />
-
         <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({

@@ -122,6 +122,7 @@ type EmployeeListItem = {
 type ClientListItem ={
   first_name:string,
   last_name:string,
+  name:string
   email:string,
   nida:string,
   profile_img:string,

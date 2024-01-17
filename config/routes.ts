@@ -146,6 +146,12 @@ export default [
      
     ],
   },
+   {
+    name: 'Banners',
+    icon: 'table',
+    path: '/banners',
+    component: './BannerList',
+  },
   {
     path: '/administrations',
     name: 'Administrative',

@@ -153,8 +153,7 @@ const ClientList: React.FC = () => {
 
 
     const handleAdd = async (formData: FormData) => {
-        const first_name = formData.get('first_name') as string;
-        const last_name = formData.get('last_name') as string;
+        const name = formData.get('name') as string;
         const phone = formData.get('phone') as string;
         const newphone = validateTanzanianPhoneNumber(phone);
         const email = formData.get('email') as string;
@@ -162,10 +161,9 @@ const ClientList: React.FC = () => {
         const nida = formData.get('nida') as string;
         const currentUser = initialState?.currentUser;
 
-        let userData: API.AgentListItem = {
+        let userData: API.ClientListItem = {
             id: 0, // Set the appropriate ID
-            first_name: first_name,
-            last_name: last_name,
+            name: name,
             nida: nida,
             email: email,
             phone: newphone,
@@ -584,8 +582,8 @@ const ClientList: React.FC = () => {
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('name', value.name);
-                    formData.append('first_name', value.first_name)
-                    formData.append('last_name', value.last_name)
+                    // formData.append('first_name', value.first_name)
+                    // formData.append('last_name', value.last_name)
                     formData.append('phone', value.phone);
                     formData.append('email', value.email);
                     formData.append('nida', value.nida);
@@ -609,23 +607,12 @@ const ClientList: React.FC = () => {
                         rules={[
                             {
                                 required: true,
-                                message: 'First Name is required',
+                                message: 'Name is required',
                             },
                         ]}
                         width="md"
-                        name="first_name"
-                        label="First Name"
-                    />
-                    <ProFormText
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Last Name is required',
-                            },
-                        ]}
-                        width="md"
-                        name="last_name"
-                        label="Last Name"
+                        name="name"
+                        label="Name"
                     />
 
                     <ProFormText
@@ -676,26 +663,8 @@ const ClientList: React.FC = () => {
                             },
                         ]}
                     />
-                    <ProFormText
-                        rules={[
+                          
 
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    const nida = value.replace(/\D/g, '');
-                                    const isLengthValid = nida.length === 20;
-
-                                    if (!isLengthValid) {
-                                        return Promise.reject('NIDA must be 20 numbers');
-                                    }
-
-                                    return Promise.resolve();
-                                },
-                            }),
-                        ]}
-                        width="md"
-                        name="nida"
-                        label="NIDA"
-                    />
                     <ProFormUploadButton
                         name="image"
                         label="Profile photo"

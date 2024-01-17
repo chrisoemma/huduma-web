@@ -145,8 +145,8 @@ const ClientList: React.FC = () => {
 
 
     const handleAdd = async (formData: FormData) => {
-        const first_name = formData.get('first_name') as string;
-        const last_name = formData.get('last_name') as string;
+        const name = formData.get('name') as string;
+        // const last_name = formData.get('last_name') as string;
         const phone = formData.get('phone') as string;
         const newphone = validateTanzanianPhoneNumber(phone);
         const email = formData.get('email') as string;
@@ -154,12 +154,12 @@ const ClientList: React.FC = () => {
         const nida = formData.get('nida') as string;
         const currentUser = initialState?.currentUser;
 
-        let userData: API.AgentListItem = {
-            id: 0, // Set the appropriate ID
-            first_name: first_name,
-            last_name: last_name,
-            nida: nida,
-            email: email,
+        let userData: API.ClientListItem = {
+           // first_name: first_name,
+           // last_name: last_name,
+             name:name,
+            nida: nida ==='undefined' || nida ==='' ?null:nida,
+            email:email==='undefined' || email ==='' ?null: email,
             phone: newphone,
             profile_img: '',
             action_by:currentUser?.id
@@ -212,10 +212,15 @@ const ClientList: React.FC = () => {
                 profile_img: downloadURL,
             };
 
+            console.log('user data',userData);
+         
+
             // Add user data to the database
             const hide = message.loading('Loading...');
             try {
                 const response = await addClient(userData);
+                     console.log('resposne',response);
+             
                 if (response.status) {
                     hide();
                     message.success(response.message);
@@ -437,7 +442,7 @@ const ClientList: React.FC = () => {
                 if (text == 'Active' || text == 'Approved') {
                     color = 'green';
                 } else if (text == 'In Active') {
-                    text = 'Pending';
+                    text = 'Waiting Verification';
                     color = 'yellow'
                 } else if (text == 'Deactivated' || text == 'Suspended') {
                     color = 'red';
@@ -601,24 +606,14 @@ const ClientList: React.FC = () => {
                         rules={[
                             {
                                 required: true,
-                                message: 'First Name is required',
+                                message: 'Name is required',
                             },
                         ]}
                         width="md"
-                        name="first_name"
-                        label="First Name"
+                        name="name"
+                        label="Name"
                     />
-                    <ProFormText
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Last Name is required',
-                            },
-                        ]}
-                        width="md"
-                        name="last_name"
-                        label="Last Name"
-                    />
+                  
 
                     <ProFormText
                         rules={[
@@ -668,26 +663,36 @@ const ClientList: React.FC = () => {
                             },
                         ]}
                     />
-                    <ProFormText
-                        rules={[
+           <ProFormText
+    rules={[
+        ({ getFieldValue }) => ({
+            validator(_, value) {
+                if (!value) {
+                    return Promise.resolve(); // Empty input is allowed
+                }
 
-                            ({ getFieldValue }) => ({
-                                validator(_, value) {
-                                    const nida = value.replace(/\D/g, '');
-                                    const isLengthValid = nida.length === 20;
+                const hasNumbers = /\d/.test(value);
 
-                                    if (!isLengthValid) {
-                                        return Promise.reject('NIDA must be 20 numbers');
-                                    }
+                if (!hasNumbers) {
+                    return Promise.resolve(); // No numbers entered, validation is not required
+                }
 
-                                    return Promise.resolve();
-                                },
-                            }),
-                        ]}
-                        width="md"
-                        name="nida"
-                        label="NIDA"
-                    />
+                const nida = value.replace(/\D/g, ''); // Remove non-digit characters
+                const isLengthValid = nida.length === 20;
+
+                if (!isLengthValid) {
+                    return Promise.reject('NIDA must be 20 numbers');
+                }
+
+                return Promise.resolve();
+            },
+        }),
+    ]}
+    width="md"
+    name="nida"
+    label="NIDA"
+/>
+
                     <ProFormUploadButton
                         name="image"
                         label="Profile photo"
