@@ -1,10 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Upload, Image, Form, Button, message } from 'antd';
+import { Modal, Upload, Image, Form, Button, message, } from 'antd';
 import { ProFormText, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
+import {
+    ProFormDateTimePicker,
+    ProFormTextArea,
+
+  } from '@ant-design/pro-components';
+import { updateBanner } from '../BannerSlice';
+import moment from 'moment';
 
 export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
@@ -17,7 +24,7 @@ export type UpdateFormProps = {
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
-  const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.images?.[0]?.img_url);
+  const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.url);
 
   const { Dragger } = Upload;
 
@@ -25,8 +32,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   
     if (props.updateModalOpen) {
       form.setFieldsValue({
-        name: props.values.name,
+        description: props.values.description,
         status: props.values.status,
+        start_date:props.values.start_date,
+        end_date:props.values.end_date,
       });
 
     }
@@ -41,7 +50,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   };
 
   const handleUpload = async (file: File) => {
-    const storageRef = ref(storage, `images/${file.name}`);
+    const storageRef = ref(storage, `banners/${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
 
     return new Promise<string | undefined>((resolve, reject) => {
@@ -78,18 +87,16 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const handleUpdate = async () => {
     try {
       const values = await form.validateFields();
-      const categoryId = props.values.id;
+      const bannerId = props.values.id;
 
-      // If a new image was uploaded, use the new URL; otherwise, use the existing one
-      const img_url = imageUrl || props.values.images?.[0]?.img_url;
-      // Update the category
-      await updateCategory(categoryId, { ...values, img_url });
+      const url = imageUrl || props.values.url;
 
-      // Reset the form and close the modal
+      await updateBanner(bannerId, { ...values, url });
+
       form.resetFields();
       setImageUrl(undefined);
       props.onCancel(true);
-      message.success('Category updated successfully');
+      message.success('Banner updated successfully');
       props.onTableReload();
     } catch (error) {
       console.log('Update failed:', error);
@@ -131,24 +138,58 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       <Form
         form={form}
         initialValues={{
-          name: props.values.name,
+          decription: props.values.decription,
           status: props.values.status,
+          start_date:props.values.start_date,
+         end_date:props.values.end_date,
         }}
       >
-        <ProFormText
-          name="name"
+        <ProFormTextArea
+          name="description"
           label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.ruleName.nameLabel',
-            defaultMessage: 'Category Name',
+            id: 'pages.searchTable.updateForm.ruleName.Description',
+            defaultMessage: 'Description',
           })}
           width="md"
-          rules={[
-            {
-              required: true,
-              message: 'Please enter the category name!',
-            },
-          ]}
+    
         />
+
+<ProFormDateTimePicker
+    rules={[
+      {
+        required: true,
+        message: 'Start Date is required',
+      },
+    ]}
+    width="md"
+    name="start_date"
+    label="Start Date"
+   
+  />
+
+
+
+  <ProFormDateTimePicker
+    rules={[
+        {
+          required: true,
+          message: 'End Date is required',
+        },
+        ({ getFieldValue }) => ({
+          validator(_, value) {
+            const startDate = getFieldValue('start_date');
+            if (startDate && value && moment(value).isBefore(startDate)) {
+              return Promise.reject('End Date must be equal or after Start Date');
+            }
+            return Promise.resolve();
+          },
+        }),
+      ]}
+    width="md"
+    name="end_date"
+    label="End Date"
+    
+  />
         <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({
@@ -157,19 +198,19 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           })}
           options={[
             {
-              value: '1',
+              value: 'Active',
               label: 'Active',
             },
             {
-              value: '2',
-              label: 'Inactive',
+              value: 'In Active',
+              label: 'In active',
             },
           ]}
         />
 
         <Form.Item
           name="image"
-          label="Category Image"
+          label="Banner Image"
           valuePropName="fileList"
           getValueFromEvent={(e) => {
             if (Array.isArray(e)) {
@@ -192,7 +233,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         </Form.Item>
 
         <Form.Item label="Current Image">
-          {props.values.images && <Image src={props.values.images?.[0]?.img_url} width={200} />}
+          {props.values?.url && <Image src={props.values?.url} width={200} />}
         </Form.Item>
       </Form>
     </Modal>

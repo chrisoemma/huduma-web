@@ -20,7 +20,7 @@ import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { getCategories } from '../CategoryList/CategorySlice';
-import { addBanner, getBanners } from './BannerSlice';
+import { addBanner, getBanners, removeBanners } from './BannerSlice';
 import moment from 'moment';
 
 
@@ -48,7 +48,7 @@ const BannerList: React.FC = () => {
     if (!selectedRows) return true;
     try {
       // console.log('in try and catch');
-      await removeCategory({
+      await removeBanners({
         key: selectedRows.map((row) => row.id),
       });
       hide();
@@ -76,8 +76,6 @@ const BannerList: React.FC = () => {
     const end_date = formData.get('end_date') as string;
     const imageFile = formData.get('image') as File;
 
-
-     
 
     try {
       const storageRef = ref(storage, `banners/${imageFile.name}`);
@@ -268,7 +266,10 @@ const BannerList: React.FC = () => {
         request={async (params, sorter, filter) => {
           try {      
             const response = await getBanners(params);
+
+            console.log('resposnseee',response);
             const banners = response.data.banners;
+            
             const filteredBanners = banners.filter(banner =>
               params.description
                 ? banner.description
@@ -334,7 +335,7 @@ const BannerList: React.FC = () => {
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
-          formData.append('description', value.name);
+          formData.append('description', value.description);
           formData.append('start_date', value.start_date);
           formData.append('end_date', value.end_date);
           if (value.image) {
