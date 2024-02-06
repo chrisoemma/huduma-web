@@ -81,11 +81,8 @@ const SubserviceChangeList: React.FC = () => {
     const handleApprovalAll = async (formData: FormData) => {
 
         const description = formData.get('description') as string;
+        const name = formData.get('name') as string;
         const imageFile = formData.get('img_url') as File;
-
-          console.log('descriptions',description);
-          console.log('img_file',imageFile);
-          console.log('current id',currentRow.id);
     
         try {
             const storageRef = ref(storage, `images/${imageFile.name}`);
@@ -117,6 +114,7 @@ const SubserviceChangeList: React.FC = () => {
                             const statusChangeData: API.SubserviceChangeListItem = {
                                 id: 0,
                                 description: description,
+                                name:name,
                                 img_url: downloadURL, 
                                 status:'Approve all'
                             };
@@ -222,7 +220,7 @@ const SubserviceChangeList: React.FC = () => {
             },
         },
         {
-            title: <FormattedMessage id="pages.searchTable.titleImage" defaultMessage="Image" />,
+            title: <FormattedMessage id="pages.searchTable.titleImage" defaultMessage="Imagewe" />,
             dataIndex: 'assets',
             hideInSearch: true,
             render: (_, record) => {
@@ -382,6 +380,7 @@ const SubserviceChangeList: React.FC = () => {
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('description', value.description);
+                    formData.append('name', value.name);
                     if (value.img_url) {
                         formData.append('img_url', value.img_url[0].originFileObj);
                     }
@@ -397,7 +396,21 @@ const SubserviceChangeList: React.FC = () => {
                 }}
             >
                 {/* Add form fields for approving all, e.g., an image upload and a text area */}
-                <ProFormUploadButton
+                <ProFormText
+                  
+                        name="name"
+                        label="Name"
+                        placeholder="Please enter name, if you wish  to change name of this sub service"
+                    />
+                
+           
+                <ProFormTextArea
+                    name="description"
+                    label="Description"
+                    placeholder="Enter description..."
+                />
+
+                  <ProFormUploadButton
                     name="img_url"
                     label="Upload New Image"
                     fieldProps={{
@@ -407,11 +420,6 @@ const SubserviceChangeList: React.FC = () => {
                         title: 'Click or Drag to Upload',
                         placeholder: 'Click or Drag to Upload',
                     }}
-                />
-                <ProFormTextArea
-                    name="description"
-                    label="Description"
-                    placeholder="Enter description..."
                 />
                 {/* Add other fields or components as needed */}
             </ModalForm>
