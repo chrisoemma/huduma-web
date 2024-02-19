@@ -17,6 +17,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
 
 import { getActiveRequests } from '../ReqestSlice';
+import { combineSubServices } from '@/utils/function';
 
 
 const ActiveRequestList: React.FC = () => {
@@ -186,29 +187,41 @@ const ActiveRequestList: React.FC = () => {
     },
 
 
-            {
+    {
       title: (
         <FormattedMessage
           id="pages.searchTable.updateForm.SubServices"
           defaultMessage="Services"
         />
       ),
-      dataIndex: 'requested_sub_services', //remove this and place list of sub services separated by ,
+      dataIndex: 'requested_sub_services',
       valueType: 'text',
       render: (dom, entity) => {
-        const subServices = entity.requested_sub_services.map(subService => subService.name).join(', ');
+        const subServices = combineSubServices(entity);
+        const subServicesNames = subServices.map(subService => {
+          return subService.provider_sub_list?.name || subService.sub_service?.name || subService.provider_sub_service?.name;
+        }).join(', ');
         return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-           {subServices}
-          </a>
+          <span>
+            {subServicesNames}
+          </span>
         );
       },
       search: true,
+    },
+
+    {
+      title: 'Transferred To',
+      dataIndex: 'transfer',
+      valueType: 'text',
+      render: (transfer) => {
+        if (transfer && transfer.length > 0) {
+          return transfer[0].employee?.name || '-';
+        } else {
+          return '-';
+        }
+      },
+      search: false,
     },
 
     {
@@ -275,6 +288,9 @@ const ActiveRequestList: React.FC = () => {
           try {      
             const response = await getActiveRequests(params);
             const requests = response.data.requests;
+
+
+            console.log('requestsss',requests);
             // Filter the data based on the 'name' filter
             const filteredRequests = requests.filter(request =>
               params.name

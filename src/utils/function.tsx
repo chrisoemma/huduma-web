@@ -131,4 +131,21 @@ export function validateTanzanianPhoneNumber(phoneNumber) {
   export const getMonthName = (monthNumber) => {
     return monthNames[parseInt(monthNumber, 10) - 1];
   };
+
+
+  //reqested services
+  export const combineSubServices = (item) => {
+    return (
+      item?.request_sub_services?.map((subService) => {
+        const providerSubListData = item.provider_sub_list.find(
+          (providerSub) => providerSub.sub_service_id === subService.sub_service_id || providerSub.provider_sub_service_id === subService.provider_sub_service_id
+        );
+  
+        return {
+          ...subService,
+          provider_sub_list: providerSubListData,
+        };
+      }) || []
+    );
+  };
   
