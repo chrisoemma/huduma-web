@@ -144,7 +144,7 @@ type ClientListItem ={
   };
 
   type LoginParams = {
-    phone?: string;
+    email?: string;
     password?: string;
     autoLogin?: boolean;
     type?: string;

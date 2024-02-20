@@ -9,6 +9,7 @@ import { errorConfig } from './requestErrorConfig';
 import React from 'react';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
+import Cookies from 'js-cookie';
 
 
 export async function getInitialState(): Promise<{
@@ -26,8 +27,8 @@ export async function getInitialState(): Promise<{
   }
 
   // If the user is not on the login page, assume that they are logged in
-  const storedUser = localStorage.getItem('currentUser');
-  const storedToken = localStorage.getItem('token');
+  const storedUser = Cookies.get('currentUser');
+ // const storedToken = Cookies.get('token');
   const currentUser = storedUser ? JSON.parse(storedUser) : null;
 
   return {

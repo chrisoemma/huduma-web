@@ -2,8 +2,8 @@
 import { API_URL } from '@/utils/config';
 import { request } from '@umijs/max';
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import Cookies from 'js-cookie';
 
-// Create an async thunk for userLogin
 export const userLogin = createAsyncThunk(
   'users/userLogin',
   async (data) => {
@@ -18,22 +18,16 @@ export const userLogin = createAsyncThunk(
         body: JSON.stringify(data),
       });
 
-      // Check if the request was successful
       if (response.status) {
-        // Update the state with user data
         const user = response.user;
-        const token = response.token;
-
-        // Save the token to localStorage
-        localStorage.setItem('token', token);
+        const token = Cookies.get('token');
 
         return { user, token, status: 'success' };
       } else {
-        // If the request was not successful, return the error status
+
         return { status: 'error', error: response.error };
       }
     } catch (error) {
-      // If there was an error in the API request, return the error status
       return { status: 'error', error: 'Something went wrong, please try again later' };
     }
   }
@@ -44,10 +38,11 @@ export const userLogin = createAsyncThunk(
 function logout(state: any) {
   console.log('::: USER LOGOUT CALLED :::');
   state.user = {};
+  Cookies.remove('currentUser');
+  Cookies.remove('token');
+  state.token = '';
 }
 
-
-// Create the user slice
 const userSlice = createSlice({
   name: 'user',
   initialState: {
@@ -58,6 +53,7 @@ const userSlice = createSlice({
   },
   reducers: {
     userLogout(state: any) {
+      console.log('execurung this')
       logout(state);
     },
     clearMessage(state: any) {
@@ -84,5 +80,5 @@ const userSlice = createSlice({
 });
 
 // Export the reducer and actions
-export const { clearMessage } = userSlice.actions;
+export const { clearMessage,userLogout } = userSlice.actions;
 export default userSlice.reducer;

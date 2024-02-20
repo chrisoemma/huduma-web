@@ -22,7 +22,7 @@ import React, { useEffect, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { login} from '../AuthSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
-
+import Cookies from 'js-cookie';
 
 
 const LoginMessage: React.FC<{
@@ -61,21 +61,17 @@ const Login: React.FC = () => {
 
 
 
+
   const handleSubmit = async (values: API.LoginParams) => {
     try {
       const loginData = {
-        phone: validateTanzanianPhoneNumber(values.phone),
+        email: values.email,
         password: values.password,
       };
-      console.log('Starting handleSubmit');
-
-  
+      
       const response = await login(loginData);
   
       if (response.status) {
-
-        console.log('Successful login');
-
         const defaultLoginSuccessMessage = intl.formatMessage({
           id: 'pages.login.success',
           defaultMessage: 'Successfully login！',
@@ -83,19 +79,22 @@ const Login: React.FC = () => {
   
         message.success(defaultLoginSuccessMessage);
   
-        // Set user data and token in local storage
-        localStorage.setItem('currentUser', JSON.stringify(response.userData));
-        localStorage.setItem('token', response.token);
-  
-        // Update the user data and token in the initial state
+        // Set user data and token in cookies
+
+        var currentTime = new Date();
+
+        var expirationDate = new Date(currentTime.getTime() + (2 * 60 * 60 * 1000));
+
+        Cookies.set('currentUser', JSON.stringify(response.userData), { path: '/', expires: expirationDate });
+    //    Cookies.set('token', response.token, { path: '/', expires: expirationDate });
         setInitialState((prevState) => ({
           ...prevState,
           currentUser: response.userData,
           token: response.token,
         }));
+  
         // Redirect to the dashboard
         const urlParams = new URL(window.location.href).searchParams;
-      
         history.push(urlParams.get('redirect') || '/dashboard');
       } else {
         console.log('Login failed');
@@ -143,14 +142,17 @@ const Login: React.FC = () => {
           padding: '32px 0',
         }}
       >
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+    <img alt="logo" src="/espe.png" style={{ width: '200px', height: 'auto' }} />
+  </div>
         <LoginForm
           contentStyle={{
+          
             minWidth: 280,
             maxWidth: '75vw',
+          
           }}
-          logo={<img alt="logo" src="/espe.png" />}
-          title="Huduma Yoyote"
-      
+         
           submitter={{ searchConfig: { submitText: "Login" },
            
         }}
@@ -188,22 +190,23 @@ const Login: React.FC = () => {
           {type === 'account' && (
             <>
               <ProFormText
-                name="phone"
+                name="email"
                 fieldProps={{
                   size: 'large',
                   prefix: <UserOutlined />,
+                  type: 'email',
                 }}
                 placeholder={intl.formatMessage({
-                  id: 'pages.login.phoneNumber',
-                  defaultMessage: 'Phone number',
+                  id: 'pages.login.email',
+                  defaultMessage: 'Email',
                 })}
                 rules={[
                   {
                     required: true,
                     message: (
                       <FormattedMessage
-                        id="pages.login.phoneNumberRequired"
-                        defaultMessage="Please input your phone number"
+                        id="pages.login.emailRequired"
+                        defaultMessage="Please input your email"
                       />
                     ),
                   },
@@ -245,7 +248,7 @@ const Login: React.FC = () => {
                 float: 'right',
               }}
             >
-              <FormattedMessage id="pages.login.forgotPassword" defaultMessage="Forgot Password" />
+              {/* <FormattedMessage id="pages.login.forgotPassword" defaultMessage="Forgot Password" /> */}
             </a>
           </div>
 

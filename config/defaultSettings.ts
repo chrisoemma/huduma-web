@@ -10,7 +10,7 @@ const Settings: ProLayoutProps & {
   fixedHeader: false,
   fixSiderbar: true,
   colorWeak: false,
-  title: 'Huduma Yoyote',
+  title: 'Espe services',
   pwa: true,
   logo:'https://i.ibb.co/YPNpYWw/espe2.png',
   iconfontUrl: 'https://i.ibb.co/ZYxHy9K/espe-logo-luciana-k3.png',
