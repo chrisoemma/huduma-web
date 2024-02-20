@@ -239,6 +239,12 @@ const UserLogList: React.FC = () => {
         <PageContainer>
             <ProTable
                 //key={categories.length}
+                pagination={{
+                  pageSizeOptions: ['15', '30', '60', '100'],
+                  defaultPageSize: 15, 
+                  showSizeChanger: true, 
+                  locale: {items_per_page: ""}
+                }}
                 headerTitle={intl.formatMessage({
                     id: 'pages.searchTable.title1',
                     defaultMessage: 'Approval List',

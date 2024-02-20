@@ -572,7 +572,12 @@ const ProviderList: React.FC = () => {
             <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
                 <ProTable
                     //key={categories.length}
-
+                    pagination={{
+                        pageSizeOptions: ['15', '30', '60', '100'],
+                        defaultPageSize: 15, 
+                        showSizeChanger: true, 
+                        locale: {items_per_page: ""}
+                      }}
                     actionRef={actionRef}
                     rowKey="id"
                     toolBarRender={() => [
