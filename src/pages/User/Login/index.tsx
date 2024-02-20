@@ -78,15 +78,12 @@ const Login: React.FC = () => {
         });
   
         message.success(defaultLoginSuccessMessage);
-  
-        // Set user data and token in cookies
-
         var currentTime = new Date();
 
         var expirationDate = new Date(currentTime.getTime() + (2 * 60 * 60 * 1000));
 
         Cookies.set('currentUser', JSON.stringify(response.userData), { path: '/', expires: expirationDate });
-    //    Cookies.set('token', response.token, { path: '/', expires: expirationDate });
+      //   Cookies.set('token', response.token, { path: '/', expires: expirationDate });
         setInitialState((prevState) => ({
           ...prevState,
           currentUser: response.userData,
