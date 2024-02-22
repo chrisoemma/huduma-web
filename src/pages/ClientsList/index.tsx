@@ -301,19 +301,25 @@ const ClientList: React.FC = () => {
                     defaultMessage="Phone"
                 />
             ),
-            dataIndex: ['user', 'phone'],
+            dataIndex: 'phone',
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
+                // Check if phone_verified_at is null or not
+                    console.log('entitiees',entity);
+                const verifiedTag = entity.user.phone_verified_at ? (
+                     <Tag color="green"> Verified</Tag>
+                ) : (
+                     <Tag color="red">Not Verified</Tag>
+                );
+        
                 return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
+                    <>
                         {dom}
-                    </a>
+                        {' '}
+                         {verifiedTag}
+                    
+                    </>
                 );
             },
             search: true,

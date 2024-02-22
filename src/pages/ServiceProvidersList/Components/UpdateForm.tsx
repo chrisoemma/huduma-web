@@ -7,7 +7,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FormattedMessage, useIntl,useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateProvider } from '../ServiceProviderSlice';
-import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
+import { formatErrorMessages, getStatus, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { history } from 'umi';
 
 export type UpdateFormProps = {
@@ -34,7 +34,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       form.setFieldsValue({
         first_name: props.values.first_name,
         last_name: props.values.last_name,
-        status: props.values.user?.status == 'Active' ? 'Active' : 'In Active',
+        status: getStatus(props.values.user?.status),
         nida: props.values.nida,
         email: props.values.user?.email,
         phone: props.values.phone
@@ -226,7 +226,7 @@ const calculateAverage = (arr) => {
         initialValues={{
           first_name: props.values.first_name,
           last_name: props.values.last_name,
-          status: props.values.user?.status === 'Active' ? 'Active' : 'In Active',
+          status: getStatus(props.values.user?.status),
           nida: props.values.nida,
           email: props.values.user?.email,
           phone: props.values.phone
@@ -301,24 +301,21 @@ const calculateAverage = (arr) => {
         />
 
 
-        <ProFormText
-          name="email"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.email',
-            defaultMessage: 'Email',
-          })}
-          width="md"
-          rules={[
-            {
-              required: true,
-              message: 'Please enter the Email!',
-            },
-            {
-              type: 'email',
-              message: 'Please enter a valid email address!',
-            },
-          ]}
-        />
+<ProFormText
+                        name="email"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.email',
+                            defaultMessage: 'Email',
+                        })}
+                        width="md"
+                        rules={[
+
+                            {
+                                type: 'email',
+                                message: 'Please enter a valid email address!',
+                            },
+                        ]}
+                    />
 
       </StepsForm.StepForm>
 
@@ -326,7 +323,7 @@ const calculateAverage = (arr) => {
       <StepsForm.StepForm
 
         initialValues={{
-          status: props.values.user?.status === 'Active' ? 'Active' : 'In Active',
+          status: getStatus(props.values.user?.status),
           nida: props.values.nida,
         }}
         title={intl.formatMessage({
@@ -382,12 +379,17 @@ const calculateAverage = (arr) => {
           })}
           options={[
             {
+              value: 'Pending',
+              label: 'Pending',
+            },
+         
+            {
               value: 'Active',
               label: 'Active',
             },
             {
               value: 'In Active',
-              label: 'In active',
+              label: 'Deactivate',
             },
           ]}
           disabled={workingDocumentPercentage !== null && workingDocumentPercentage < 70}

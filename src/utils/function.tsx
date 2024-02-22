@@ -148,4 +148,16 @@ export function validateTanzanianPhoneNumber(phoneNumber) {
       }) || []
     );
   };
+
+
+  export function getStatus(status) {
+    switch (status) {
+      case 'Pending':
+      case 'Active':
+      case 'In Active': // Consider changing to 'Inactive' for consistency
+        return status;
+      default:
+        return 'Unknown'; // or any default status you prefer
+    }
+  }
   

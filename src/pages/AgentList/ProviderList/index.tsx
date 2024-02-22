@@ -350,7 +350,7 @@ const ProviderList: React.FC = () => {
             },
             search: true,
         },
-        {
+      {
             title: (
                 <FormattedMessage
                     id="pages.searchTable.updateForm.phone"
@@ -361,15 +361,21 @@ const ProviderList: React.FC = () => {
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
+                // Check if phone_verified_at is null or not
+                    console.log('entitiees',entity);
+                const verifiedTag = entity?.user?.phone_verified_at ? (
+                     <Tag color="green"> Verified</Tag>
+                ) : (
+                     <Tag color="red">Not Verified</Tag>
+                );
+        
                 return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
+                    <>
                         {dom}
-                    </a>
+                        {' '}
+                         {verifiedTag}
+                    
+                    </>
                 );
             },
             search: true,
@@ -543,16 +549,16 @@ const ProviderList: React.FC = () => {
             dataIndex: 'option',
             valueType: 'option',
             render: (_, record) => [
-                <a
-                    key="config"
-                    onClick={() => {
+                // <a
+                //     key="config"
+                //     onClick={() => {
 
-                        handleUpdateModalOpen(true);
-                        setCurrentRow(record); //here pass the props to UpdateForm
-                    }}
-                >
-                    <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
-                </a>,
+                //         handleUpdateModalOpen(true);
+                //         setCurrentRow(record); //here pass the props to UpdateForm
+                //     }}
+                // >
+                //     <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
+                // </a>,
                 <a
                     key="businesses-link"
                     onClick={() => {
@@ -580,17 +586,17 @@ const ProviderList: React.FC = () => {
                       }}
                     actionRef={actionRef}
                     rowKey="id"
-                    toolBarRender={() => [
-                        <Button
-                            type="primary"
-                            key="primary"
-                            onClick={() => {
-                                handleModalOpen(true);
-                            }}
-                        >
-                            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
-                        </Button>,
-                    ]}
+                    // toolBarRender={() => [
+                    //     <Button
+                    //         type="primary"
+                    //         key="primary"
+                    //         onClick={() => {
+                    //             handleModalOpen(true);
+                    //         }}
+                    //     >
+                    //         <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+                    //     </Button>,
+                    // ]}
                     search={{
                         labelWidth: 120,
                         filterType: 'light', // Use a light filter form for better layout

@@ -355,15 +355,21 @@ const ProviderList: React.FC = () => {
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
+                // Check if phone_verified_at is null or not
+                    console.log('entitiees',entity);
+                const verifiedTag = entity.user.phone_verified_at ? (
+                     <Tag color="green"> Verified</Tag>
+                ) : (
+                     <Tag color="red">Not Verified</Tag>
+                );
+        
                 return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
+                    <>
                         {dom}
-                    </a>
+                        {' '}
+                         {verifiedTag}
+                    
+                    </>
                 );
             },
             search: true,
@@ -499,7 +505,7 @@ const ProviderList: React.FC = () => {
             dataIndex: ['user', 'profile_img'],
             hideInSearch: true,
             render: (_, record) => {
-                const profileImage = record.user.profile_img;
+                const profileImage = record?.user?.profile_img;
                 return (
                     <Image
                         src={profileImage ? profileImage : ''}
@@ -748,7 +754,7 @@ const ProviderList: React.FC = () => {
                             label="Phone"
                         />
 
-                        <ProFormText
+                        {/* <ProFormText
                             name="email"
                             label={intl.formatMessage({
                                 id: 'pages.searchTable.updateForm.email',
@@ -765,7 +771,23 @@ const ProviderList: React.FC = () => {
                                     message: 'Please enter a valid email address!',
                                 },
                             ]}
-                        />
+                        /> */}
+
+<ProFormText
+                        name="email"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.email',
+                            defaultMessage: 'Email',
+                        })}
+                        width="md"
+                        rules={[
+
+                            {
+                                type: 'email',
+                                message: 'Please enter a valid email address!',
+                            },
+                        ]}
+                    />
 
                         <ProFormText
                             rules={[

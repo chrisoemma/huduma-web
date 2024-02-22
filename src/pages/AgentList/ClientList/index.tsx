@@ -456,24 +456,24 @@ const ClientList: React.FC = () => {
                 );
             },
         },
-        {
-            title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
-            dataIndex: 'option',
-            valueType: 'option',
-            render: (_, record) => [
-                <a
-                    key="config"
-                    onClick={() => {
-                        handleUpdateModalOpen(true);
-                        setCurrentRow(record);
-                    }}
-                >
-                    <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
-                </a>
+        // {
+        //     title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
+        //     dataIndex: 'option',
+        //     valueType: 'option',
+        //     render: (_, record) => [
+        //         <a
+        //             key="config"
+        //             onClick={() => {
+        //                 handleUpdateModalOpen(true);
+        //                 setCurrentRow(record);
+        //             }}
+        //         >
+        //             <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
+        //         </a>
 
 
-            ],
-        },
+        //     ],
+        // },
     ];
 
     return (
@@ -492,17 +492,17 @@ const ClientList: React.FC = () => {
                 })}
                 actionRef={actionRef}
                 rowKey="id"
-                toolBarRender={() => [
-                    <Button
-                        type="primary"
-                        key="primary"
-                        onClick={() => {
-                            handleModalOpen(true);
-                        }}
-                    >
-                        <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
-                    </Button>,
-                ]}
+                // toolBarRender={() => [
+                //     <Button
+                //         type="primary"
+                //         key="primary"
+                //         onClick={() => {
+                //             handleModalOpen(true);
+                //         }}
+                //     >
+                //         <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+                //     </Button>,
+                // ]}
                 search={{
                     labelWidth: 120,
                     filterType: 'light', // Use a light filter form for better layout

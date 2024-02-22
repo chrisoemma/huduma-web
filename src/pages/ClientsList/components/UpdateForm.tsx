@@ -7,7 +7,7 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateClient } from '../ClientsSlice';
-import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
+import { formatErrorMessages, getStatus, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 
 
 export type UpdateFormProps = {
@@ -32,7 +32,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       form.setFieldsValue({
         name: props.values.name,
         // last_name: props.values.last_name,
-        status: props.values.user?.status == 'Active' ? 'Active' : 'In Active',
+        status:  getStatus(props.values.user?.status),
         nida: props.values.nida,
         email: props.values.user?.email,
         phone: props.values.phone
@@ -164,7 +164,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         initialValues={{
           name: props.values.name,
           //  last_name: props.values.last_name,
-          status: props.values.user?.status === 'Active' ? 'Active' : 'In Active',
+          status: getStatus(props.values.user?.status),
           nida: props.values.nida,
           email: props.values.user?.email,
           phone: props.values.user?.phone
@@ -259,7 +259,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       <StepsForm.StepForm
 
         initialValues={{
-          status: props.values.user?.status === 'Active' ? 'Active' : 'In Active',
+          status:  getStatus(props.values.user?.status),
           nida: props.values.nida,
         }}
         title={intl.formatMessage({
@@ -305,12 +305,17 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           })}
           options={[
             {
+              value: 'Pending',
+              label: 'Pending',
+            },
+         
+            {
               value: 'Active',
               label: 'Active',
             },
             {
               value: 'In Active',
-              label: 'In active',
+              label: 'Deactivate',
             },
           ]}
 

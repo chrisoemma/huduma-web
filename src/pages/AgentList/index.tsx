@@ -13,7 +13,7 @@ import {
     PageLoading,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message,Form } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message, Form } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './Components/UpdateForm';
@@ -44,35 +44,35 @@ const AgentList: React.FC = () => {
     const [validationResult, setValidationResult] = useState(null);
     const { Item } = Form;
     const { initialState } = useModel('@@initialState');
-   
 
-  //  console.log('business data',currentBusinessesData);
-      const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
+
+    //  console.log('business data',currentBusinessesData);
+    const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
 
         const hide = message.loading('Loading....');
         if (!selectedRows) return true;
         try {
-          // console.log('in try and catch');
-          const currentUser = initialState?.currentUser;
-                const  action_by=currentUser?.id;
-        const response=  await removeAgent({
-            key: selectedRows.map((row) => row.id),
-            action_by: action_by,
-          });
+            // console.log('in try and catch');
+            const currentUser = initialState?.currentUser;
+            const action_by = currentUser?.id;
+            const response = await removeAgent({
+                key: selectedRows.map((row) => row.id),
+                action_by: action_by,
+            });
 
-          hide();
-          message.success('Deleted successfully');
-          if (actionRef.current) {
-            console.log('invoking this which is null')
-            actionRef.current.reloadAndRest();
-          }
-          return true;
+            hide();
+            message.success('Deleted successfully');
+            if (actionRef.current) {
+                console.log('invoking this which is null')
+                actionRef.current.reloadAndRest();
+            }
+            return true;
         } catch (error) {
-          hide();
-          message.error('Delete failed, please try again');
-          return false;
+            hide();
+            message.error('Delete failed, please try again');
+            return false;
         }
-      };
+    };
 
 
     const handleNidaValidationDrawerOpen = () => {
@@ -86,47 +86,48 @@ const AgentList: React.FC = () => {
     };
 
     const handleNidaChecking = async (nida) => {
+
+         
         try {
-          setLoading(true); // Set loading to true when starting the operation
-    
-          const nidaValidationData = {
-            status: '',
-            user_type: 'Agent',
-          };
-    
-          const response = await getNida(nida);
-    
-          if (response.error) {
-            // Case 1: Validation error
-            setValidationResult({ error: response.obj.error });
-          } else if (response.obj.error) {
-            // Case 2: NIDA number does not exist
-            nidaValidationData.status = 'A.Invalid';
-    
-            const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
-            actionRef.current?.reloadAndRest();
-          
-            setValidationResult({ error: 'NIDA Number does not exist' });
-          } else if (response.obj.result) {
-            // Case 3: Successful NIDA number validation
-            const { FIRSTNAME, MIDDLENAME, SURNAME, SEX, DateofBirth } = response.obj.result;
-    
-            // Update state with successful result
-            nidaValidationData.status = 'A.Valid';
-            const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
-            actionRef.current?.reloadAndRest();
-            setValidationResult({ result: response.obj.result });
-          }
-    
-          return response;
+            setLoading(true); 
+
+            const nidaValidationData = {
+                status: '',
+                user_type: 'Agent',
+            };
+
+            const response = await getNida(nida);
+            if (response.error) {
+                // Case 1: Validation error
+                setValidationResult({ error: response.obj.error });
+            } else if (response.obj.error) {
+                // Case 2: NIDA number does not exist
+                nidaValidationData.status = 'A.Invalid';
+
+                const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+                actionRef.current?.reloadAndRest();
+
+                setValidationResult({ error: 'NIDA Number does not exist' });
+            } else if (response.obj.result) {
+                // Case 3: Successful NIDA number validation
+                const { FIRSTNAME, MIDDLENAME, SURNAME, SEX, DateofBirth } = response.obj.result;
+
+                // Update state with successful result
+                nidaValidationData.status = 'A.Valid';
+                const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+                actionRef.current?.reloadAndRest();
+                setValidationResult({ result: response.obj.result });
+            }
+
+            return response;
         } catch (error) {
-          console.error(error);
-          setValidationResult({ error: 'Failed to perform NIDA checking' });
-          return { error: 'Failed to perform NIDA checking' };
+            console.error(error);
+            setValidationResult({ error: 'Failed to perform NIDA checking' });
+            return { error: 'Failed to perform NIDA checking' };
         } finally {
-          setLoading(false); // Set loading to false when the operation is done (whether success or error)
+            setLoading(false); // Set loading to false when the operation is done (whether success or error)
         }
-      };
+    };
 
 
     const getStatusColor = (status) => {
@@ -150,13 +151,13 @@ const AgentList: React.FC = () => {
         const first_name = formData.get('first_name') as string;
         const last_name = formData.get('last_name') as string;
         const phone = formData.get('phone') as string;
-        const  newphone =validateTanzanianPhoneNumber(phone);
+        const newphone = validateTanzanianPhoneNumber(phone);
         const email = formData.get('email') as string;
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
 
         const currentUser = initialState?.currentUser;
-      
+
 
         let agentData: API.AgentListItem = {
             id: 0, // Set the appropriate ID
@@ -166,7 +167,7 @@ const AgentList: React.FC = () => {
             email: email,
             phone: newphone,
             profile_img: '',
-            action_by:currentUser?.id
+            action_by: currentUser?.id
         };
 
         const uploadImage = async () => {
@@ -274,7 +275,7 @@ const AgentList: React.FC = () => {
             history.push({
                 pathname: route,
                 state: { agentName: currentRow?.name }, // Pass your values here
-              });
+            });
         }
     }
 
@@ -285,8 +286,8 @@ const AgentList: React.FC = () => {
             const route = `/user-management/agents/clients/${currentRow?.id}`;
             history.push({
                 pathname: route,
-               // state: { agentName: currentRow?.name }, // Pass your values here
-              });
+                // state: { agentName: currentRow?.name }, // Pass your values here
+            });
         }
     }
 
@@ -297,8 +298,8 @@ const AgentList: React.FC = () => {
             const route = `/user-management/agents/providers/${currentRow?.id}`;
             history.push({
                 pathname: route,
-               // state: { agentName: currentRow?.name }, // Pass your values here
-              });
+                // state: { agentName: currentRow?.name }, // Pass your values here
+            });
         }
     }
 
@@ -328,6 +329,7 @@ const AgentList: React.FC = () => {
             },
             search: true,
         },
+       
 
         {
             title: (
@@ -340,19 +342,26 @@ const AgentList: React.FC = () => {
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
+                // Check if phone_verified_at is null or not
+                    console.log('entitiees',entity);
+                const verifiedTag = entity.user.phone_verified_at ? (
+                     <Tag color="green"> Verified</Tag>
+                ) : (
+                     <Tag color="red">Not Verified</Tag>
+                );
+        
                 return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
+                    <>
                         {dom}
-                    </a>
+                        {' '}
+                         {verifiedTag}
+                    
+                    </>
                 );
             },
             search: true,
         },
+    
         {
             title: (
                 <FormattedMessage
@@ -457,7 +466,7 @@ const AgentList: React.FC = () => {
             dataIndex: ['user', 'profile_img'],
             hideInSearch: true,
             render: (_, record) => {
-                const profileImage = record.user.profile_img;
+                const profileImage = record?.user?.profile_img;
                 return (
                     <Image
                         src={profileImage ? profileImage : ''}
@@ -515,10 +524,10 @@ const AgentList: React.FC = () => {
                 //key={categories.length}
                 pagination={{
                     pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize: 15, 
-                    showSizeChanger: true, 
-                    locale: {items_per_page: ""}
-                  }}
+                    defaultPageSize: 15,
+                    showSizeChanger: true,
+                    locale: { items_per_page: "" }
+                }}
                 headerTitle={intl.formatMessage({
                     id: 'pages.searchTable.title',
                     defaultMessage: 'Enquiry form',
@@ -591,8 +600,8 @@ const AgentList: React.FC = () => {
                 >
                     <Button
                         onClick={async () => {
-                             
-                             await handleRemove(selectedRowsState);
+
+                            await handleRemove(selectedRowsState);
                             setSelectedRows([]);
                             actionRef.current?.reload();
                         }}
@@ -668,57 +677,54 @@ const AgentList: React.FC = () => {
                         label="Last Name"
                     />
 
-       <ProFormText
-          rules={[
-            {
-              required: true,
-              message: 'Phone number is required',
-            },
-            ({ getFieldValue }) => ({
-              validator(_, value) {
-                const phoneNumber = value.replace(/\D/g, ''); // Remove non-numeric characters
-                const validCountryCodes = ['255', '254', '256', '250', '257']; // Add more as needed
+                    <ProFormText
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Phone number is required',
+                            },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    const phoneNumber = value.replace(/\D/g, ''); // Remove non-numeric characters
+                                    const validCountryCodes = ['255', '254', '256', '250', '257']; // Add more as needed
 
-                // Check if the phone number has a valid length and starts with either a leading zero or a valid country code
-                const isValid = validCountryCodes.some(code => {
-                  const countryCodeLength = code.length;
-                  return (
-                    (phoneNumber.length === 10 && phoneNumber.startsWith('0')) ||
-                    (phoneNumber.length === 12 && phoneNumber.startsWith(code))
-                  );
-                });
+                                    // Check if the phone number has a valid length and starts with either a leading zero or a valid country code
+                                    const isValid = validCountryCodes.some(code => {
+                                        const countryCodeLength = code.length;
+                                        return (
+                                            (phoneNumber.length === 10 && phoneNumber.startsWith('0')) ||
+                                            (phoneNumber.length === 12 && phoneNumber.startsWith(code))
+                                        );
+                                    });
 
-                if (!isValid) {
-                  return Promise.reject('Invalid phone number format');
-                }
+                                    if (!isValid) {
+                                        return Promise.reject('Invalid phone number format');
+                                    }
 
-                return Promise.resolve();
-              },
-            }),
-          ]}
-          width="md"
-          name="phone"
-          label="Phone"
-        />
+                                    return Promise.resolve();
+                                },
+                            }),
+                        ]}
+                        width="md"
+                        name="phone"
+                        label="Phone"
+                    />
 
-<ProFormText
-    name="email"
-    label={intl.formatMessage({
-        id: 'pages.searchTable.updateForm.email',
-        defaultMessage: 'Email',
-    })}
-    width="md"
-    rules={[
-        {
-            required: true,
-            message: 'Please enter the Email!',
-        },
-        {
-            type: 'email',
-            message: 'Please enter a valid email address!',
-        },
-    ]}
-/>
+                    <ProFormText
+                        name="email"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.email',
+                            defaultMessage: 'Email',
+                        })}
+                        width="md"
+                        rules={[
+
+                            {
+                                type: 'email',
+                                message: 'Please enter a valid email address!',
+                            },
+                        ]}
+                    />
 
                     <ProFormText
                         rules={[
@@ -810,78 +816,78 @@ const AgentList: React.FC = () => {
                     />
                 )}
 
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
-                        Validate NIDA
-                    </Button>
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewCommissions}>
-                        Commisions History
-                    </Button>
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewProviders}>
-                       Providers
-                    </Button>
-                    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewClients}>
-                        Clients
-                    </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                    Validate NIDA
+                </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewCommissions}>
+                    Commisions History
+                </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewProviders}>
+                    Providers
+                </Button>
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewClients}>
+                    Clients
+                </Button>
             </Drawer>
             <Drawer
-                    width={400}
-                    title="Validate NIDA Number"
-                    placement="right"
-                    onClose={handleNidaValidationDrawerClose}
-                    visible={showNidaValidationDrawer}
-                    destroyOnClose
-                >
-                    <Form>
-                        {validationResult && (
-                            <div style={{ marginTop: 20 }}>
-                                {validationResult.error ? (
-                                    <Tag color="red">Error: {validationResult.error}</Tag>
-                                ) : (
-                                    <div>
-                                        <Tag color="green" style={{ fontWeight: 'bold' }}>
-                                            NIDA Validation Successful!
-                                        </Tag>
-                                        <p>First Name: {validationResult.result.FIRSTNAME}</p>
-                                        <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
-                                        <p> Last Name: {validationResult.result.SURNAME}</p>
-                                        {/* Add more fields as needed */}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                        <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
-                        <Item
-                            label="NIDA Number"
-                            name="nidaNumber"
-                            initialValue={currentRow?.nida || ''}
-                            rules={[
-                                {
-                                    required: true,
-                                    message: 'Please enter NIDA Number',
-                                },
-                            ]}
-                        >
-                            <Input
-                                value={currentRow?.nida || ''}
-                                disabled
-
-                            /> 
-                        </Item>
-                        <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loading}>
-        {loading ? 'Validating...' : 'Validate NIDA'}
-      </Button>
-      {loading && <PageLoading />}
+                width={400}
+                title="Validate NIDA Number"
+                placement="right"
+                onClose={handleNidaValidationDrawerClose}
+                visible={showNidaValidationDrawer}
+                destroyOnClose
+            >
+                <Form>
+                    {validationResult && (
                         <div style={{ marginTop: 20 }}>
-                            <p>This NIDA has passed through the following statuses:</p>
-                            {currentRow?.nida_statuses?.map((status, index) => (
-                                <Tag key={index} color={getStatusColor(status.status)}>
-                                    {status.status}
-                                </Tag>
-                            ))}
+                            {validationResult.error ? (
+                                <Tag color="red">Error: {validationResult.error}</Tag>
+                            ) : (
+                                <div>
+                                    <Tag color="green" style={{ fontWeight: 'bold' }}>
+                                        NIDA Validation Successful!
+                                    </Tag>
+                                    <p>First Name: {validationResult.result.FIRSTNAME}</p>
+                                    <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
+                                    <p> Last Name: {validationResult.result.SURNAME}</p>
+                                    {/* Add more fields as needed */}
+                                </div>
+                            )}
                         </div>
-                    </Form>
+                    )}
+                    <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
+                    <Item
+                        label="NIDA Number"
+                        name="nidaNumber"
+                        initialValue={currentRow?.nida || ''}
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please enter NIDA Number',
+                            },
+                        ]}
+                    >
+                        <Input
+                            value={currentRow?.nida || ''}
+                            disabled
 
-                </Drawer>
+                        />
+                    </Item>
+                    <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loading}>
+                        {loading ? 'Validating...' : 'Validate NIDA'}
+                    </Button>
+                    {loading && <PageLoading />}
+                    <div style={{ marginTop: 20 }}>
+                        <p>This NIDA has passed through the following statuses:</p>
+                        {currentRow?.nida_statuses?.map((status, index) => (
+                            <Tag key={index} color={getStatusColor(status.status)}>
+                                {status.status}
+                            </Tag>
+                        ))}
+                    </div>
+                </Form>
+
+            </Drawer>
         </PageContainer>
     );
 };

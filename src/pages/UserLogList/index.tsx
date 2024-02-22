@@ -247,7 +247,7 @@ const UserLogList: React.FC = () => {
                 }}
                 headerTitle={intl.formatMessage({
                     id: 'pages.searchTable.title1',
-                    defaultMessage: 'Approval List',
+                    defaultMessage: 'Logs',
                 })}
                 actionRef={actionRef}
                 rowKey="id"
