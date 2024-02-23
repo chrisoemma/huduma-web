@@ -447,7 +447,7 @@ const ClientList: React.FC = () => {
                 let color = '';
                 if (text == 'Active' || text == 'Approved') {
                     color = 'green';
-                } else if (text == 'In Active') {
+                } else if (text == 'In Active' || text=='Pending approval') {
                     text = 'Waiting Verification';
                     color = 'yellow'
                 } else if (text == 'Deactivated' || text == 'Suspended') {
