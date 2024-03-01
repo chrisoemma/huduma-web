@@ -153,7 +153,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       bodyStyle={{ padding: '32px 40px 48px' }}
       destroyOnClose
       title={intl.formatMessage({
-        id: 'pages.searchTable.updateForm.editCategory',
+        id: 'pages.searchTable.updateForm.editRole',
         defaultMessage: 'Edit Role',
       })}
       visible={props.updateModalOpen}

@@ -200,6 +200,11 @@ export default [
         name: 'Registration docs',
         component: './RegistrationDocList',
       },
+      {
+        path: '/settings/designations',
+        name: 'Designations',
+        component: './DesignationList',
+      },
 
     ],
   },

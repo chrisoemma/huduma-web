@@ -599,6 +599,8 @@ const AgentList: React.FC = () => {
                     }
                 >
                     <Button
+                    type="primary"
+                    danger
                         onClick={async () => {
 
                             await handleRemove(selectedRowsState);
@@ -608,7 +610,7 @@ const AgentList: React.FC = () => {
                     >
                         <FormattedMessage
                             id="pages.searchTable.batchDeletion"
-                            defaultMessage="Batch deletion"
+                            defaultMessage="Batch Deletion"
                         />
                     </Button>
                     {/* <Button type="primary">

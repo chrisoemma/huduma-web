@@ -2,7 +2,7 @@ export default {
   'pages.layouts.userLayout.title':
     'Ant Design is the most influential web design specification in Xihu district',
   'pages.login.accountLogin.tab': 'Account Login',
-  'pages.login.accountLogin.errorMessage': 'Incorrect username/password(admin/ant.design)',
+  'pages.login.accountLogin.errorMessage': 'Please check your network connection.',
   'pages.login.failure': 'Login failed, please try again!',
   'pages.login.success': 'Login successful!',
   'pages.login.username.placeholder': 'Username: admin or user',
@@ -79,6 +79,6 @@ export default {
   'pages.searchTable.item': 'item',
   'pages.searchTable.totalServiceCalls': 'Selected',//Total Number of Service Calls
   'pages.searchTable.tenThousand': '0000',
-  'pages.searchTable.batchDeletion': 'Batch deletion',
+  'pages.searchTable.batchDeletion': 'Batch Deletion',
   'pages.searchTable.batchApproval': 'batch approval',
 };

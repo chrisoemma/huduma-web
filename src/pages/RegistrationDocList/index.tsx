@@ -281,6 +281,7 @@ const RegistrationDocList: React.FC = () => {
                         actionRef.current?.reload();
                     }}
                     type="primary"
+                    danger
                 >
                     <FormattedMessage
                         id="pages.searchTable.batchDeletion"
@@ -288,6 +289,7 @@ const RegistrationDocList: React.FC = () => {
                     />
                 </Button>
                 <Button type="primary"
+                style={{ background: "orange", borderColor: "yellow" }}
                       onClick={async () => {
                         await handleStatus(selectedRowsState,'In Active');
                         setSelectedRows([]);
@@ -296,10 +298,11 @@ const RegistrationDocList: React.FC = () => {
                 >
                     <FormattedMessage
                         id="pages.searchTable.batchDeactivate"
-                        defaultMessage="Batch deactivate"
+                        defaultMessage="Batch Deactivate"
                     />
                 </Button>
                 <Button type="primary"
+                style={{ background: "green", borderColor: "green" }}
                     onClick={async () => {
                         await handleStatus(selectedRowsState,'Active');
                         setSelectedRows([]);
@@ -308,7 +311,7 @@ const RegistrationDocList: React.FC = () => {
                 >
                     <FormattedMessage
                         id="pages.searchTable.batchActivate"
-                        defaultMessage="Batch activate"
+                        defaultMessage="Batch Activate"
                     />
                 </Button>
             </FooterToolbar>
