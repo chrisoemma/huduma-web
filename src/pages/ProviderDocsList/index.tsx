@@ -20,7 +20,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addProviderDoc, getProviderBusiness, getProviderDocs, updateDocStatus } from './ProviderDocsSlice';
+import { addProviderDoc, getProviderBusiness, getProviderDocs, removeDocs, updateDocStatus } from './ProviderDocsSlice';
 import { useParams } from 'react-router-dom';
 
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
@@ -351,12 +351,11 @@ const ProviderDocsList: React.FC = () => {
 
   const handleRemove = async (selectedRows: API.ProviderDocsListItem[]) => {
 
-
     const hide = message.loading('Loading....');
     if (!selectedRows) return true;
     try {
       // console.log('in try and catch');
-      await removeCategory({
+      await removeDocs({
         key: selectedRows.map((row) => row.id),
       });
       hide();
@@ -641,6 +640,16 @@ const ProviderDocsList: React.FC = () => {
         actionRef={actionRef}
         rowKey="id"
         toolBarRender={() => [
+          <Button
+            type="primary"
+            key="primary"
+            style={{backgroundColor:'orange'}}
+            onClick={() => {
+              handleModalOpen(true);
+            }}
+          >
+             <FormattedMessage id="pages.searchTable.requiredDoc" defaultMessage="Required Docs" />
+          </Button>,
           <Button
             type="primary"
             key="primary"

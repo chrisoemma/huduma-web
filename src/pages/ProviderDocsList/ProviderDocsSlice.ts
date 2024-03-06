@@ -60,3 +60,18 @@ import { request } from '@umijs/max';
       });
   }
 
+
+  export async function removeDocs(options?: { [key: string]: any }) {
+    //console.log('keyyyyeyye',options)
+    const { action_by, ...otherOptions } = options || {};
+
+return request(`${API_URL}/admin/delete_bunch_docs`, {
+  method: 'DELETE',
+  data:{
+    method: 'delete',
+    action_by: action_by,
+    ...(otherOptions || {}),
+  }
+});
+}
+

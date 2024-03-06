@@ -24,7 +24,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     if (props.updateModalOpen) {
       form.setFieldsValue({
         doc_name: props.values.doc_name,
-        percentage: props.values.percentage,
+    //    percentage: props.values.percentage,
       });
 
     }
@@ -87,7 +87,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         form={form}
         initialValues={{
           doc_name: props.values.doc_name,
-          percentage: props.values.percentage,
+         // percentage: props.values.percentage,
         }}
       >
         <ProFormText
@@ -106,7 +106,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           ]}
         />
 
-        <ProFormText
+        {/* <ProFormText
           name="percentage"
           label={intl.formatMessage({
             id: 'pages.searchTable.updateForm.percentage',
@@ -120,7 +120,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
               message: 'Please enter the Percentage!',
             },
           ]}
-        />
+        /> */}
       </Form>
     </Modal>
   );

@@ -280,10 +280,7 @@ const ActiveRequestList: React.FC = () => {
           showSizeChanger: true, 
           locale: {items_per_page: ""}
         }}
-        headerTitle={intl.formatMessage({
-          id: 'pages.searchTable.title',
-          defaultMessage: 'Enquiry form',
-        })}
+    
         actionRef={actionRef}
         rowKey="id"
         search={{

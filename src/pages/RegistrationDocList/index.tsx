@@ -66,12 +66,12 @@ const RegistrationDocList: React.FC = () => {
     const handleAdd = async (formData: FormData) => {
 
         const doc_name = formData.get('doc_name') as string;
-        const percentage = formData.get('percentage');
+       /// const percentage = formData.get('percentage');
         try {
 
             const RegistrationDoc: API.RegistrationDocListItem = {
                 doc_name: doc_name,
-                percentage: percentage,
+              //  percentage: percentage,
                 created_by: 1
 
             };
@@ -131,31 +131,6 @@ const RegistrationDocList: React.FC = () => {
         },
 
         {
-            title: (
-                <FormattedMessage
-                    id="pages.searchTable.updateForm.percentage"
-                    defaultMessage="Percentage %"
-                />
-            ),
-            dataIndex: 'percentage',
-            valueType: 'text',
-            search: false,
-            tip: 'Percentage contribution',
-            render: (dom, entity) => {
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
-            },
-        },
-
-        {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
             dataIndex: 'status',
             hideInForm: true,
@@ -206,10 +181,7 @@ const RegistrationDocList: React.FC = () => {
                     showSizeChanger: true, 
                     locale: {items_per_page: ""}
                   }}
-                headerTitle={intl.formatMessage({
-                    id: 'pages.searchTable.title',
-                    defaultMessage: 'Enquiry form',
-                })}
+            
                 actionRef={actionRef}
                 rowKey="id"
                 toolBarRender={() => [
@@ -327,7 +299,7 @@ const RegistrationDocList: React.FC = () => {
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('doc_name', value.doc_name);
-                    formData.append('percentage', value.percentage);
+                  //  formData.append('percentage', value.percentage);
 
                     const success = await handleAdd(formData);
 
@@ -352,12 +324,12 @@ const RegistrationDocList: React.FC = () => {
                         label="Doc name"
                     />
 
-                    <ProFormText
+                    {/* <ProFormText
 
                         width="md"
                         name="percentage"
                         label="Percentage"
-                    />
+                    /> */}
 
                 </ProForm.Group>
             </ModalForm>

@@ -140,7 +140,7 @@ const DesignationList: React.FC = () => {
     const columns: ProColumns<API.DesignationListItem>[] = [
         {
             title: (
-                <FormattedMessage id="pages.searchTable.titleDesignation" defaultMessage="Designation" />
+                <FormattedMessage id="pages.searchTable.titleDesignation" defaultMessage="Professionals" />
             ),
             dataIndex: 'name',
             render: (text, record) => {
@@ -237,10 +237,7 @@ const DesignationList: React.FC = () => {
                     showSizeChanger: true,
                     locale: { items_per_page: "" }
                 }}
-                headerTitle={intl.formatMessage({
-                    id: 'pages.searchTable.title',
-                    defaultMessage: 'Enquiry form',
-                })}
+         
                 actionRef={actionRef}
                 rowKey="id"
                 toolBarRender={() => [

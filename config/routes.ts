@@ -158,8 +158,8 @@ export default [
     icon: 'holder',
     routes: [
       {
-        path: '/administrations/system-admins',
-        name: 'System admins',
+        path: '/administrations/internal-users',
+        name: 'Internal users',
         component: './AdminList',
       },
       {
@@ -196,13 +196,13 @@ export default [
         component: './SubServicesList',
       },
       {
-        path: '/settings/registration-docs',
-        name: 'Registration docs',
+        path: '/settings/documents',
+        name: 'Documents',
         component: './RegistrationDocList',
       },
       {
-        path: '/settings/designations',
-        name: 'Designations',
+        path: '/settings/professionals',
+        name: 'Professionals',
         component: './DesignationList',
       },
 
