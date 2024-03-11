@@ -305,7 +305,8 @@ const ProviderList: React.FC = () => {
             try {
                 const response = await getProviders();
                 const providers = response.data.providers;
-
+                  
+                console.log('providerss',providers);
                 setProvider(providers);
                 actionRef.current?.reloadAndRest(); // Reload and reset the table state
             } catch (error) {
@@ -356,7 +357,7 @@ const ProviderList: React.FC = () => {
             tip: 'The phone number is unique',
             render: (dom, entity) => {
                 // Check if phone_verified_at is null or not
-                    console.log('entitiees',entity);
+                 
                 const verifiedTag = entity.user.phone_verified_at ? (
                      <Tag color="green"> Verified</Tag>
                 ) : (
@@ -424,6 +425,25 @@ const ProviderList: React.FC = () => {
                 );
             },
             search: true,
+        },
+
+        {
+            title: "Profession",
+            dataIndex: 'designation',
+            valueType: 'text',
+            render: (_, entity) => {
+                const englishDesignation = entity?.designation?.name?.en;
+                const swahiliDesignation = entity?.designation?.name?.sw;
+        
+                return (
+                    <div>
+                        <div>{englishDesignation}</div>
+                        <div style={{ whiteSpace: 'nowrap' }}>{' | '}</div>
+                        <div>{swahiliDesignation}</div>
+                    </div>
+                );
+            },
+         
         },
 
 
@@ -599,7 +619,7 @@ const ProviderList: React.FC = () => {
                         try {
                             const response = await getProviders();
                             const providers = response.data.providers;
-
+                          
                             // Filter the data based on the search parameters
                             const filteredProviders = providers.filter(provider => {
                                 return (

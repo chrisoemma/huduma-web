@@ -16,6 +16,7 @@ import { Button, Drawer, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { addRegistrationDoc, getRegistrationDoc, updateRegistrationDoc, updateRegistrationDocStatus } from './RegistrationDocSlice';
+import { providerDesignationDoc } from '../ProviderDocsList/ProviderDocsSlice';
 
 
 const RegistrationDocList: React.FC = () => {
@@ -29,13 +30,16 @@ const RegistrationDocList: React.FC = () => {
     const actionRef = useRef<ActionType>();
     const [currentRow, setCurrentRow] = useState<API.RegistrationDocListItem>();
     const [selectedRowsState, setSelectedRows] = useState<API.RegistrationDocListItem[]>([]);
-    const [categories, setCategories] = useState([]);
 
     const intl = useIntl();
 
 
-    const handleStatus = async (selectedRows: API.RegistrationDocListItem[],status) => {
 
+
+
+
+
+    const handleStatus = async (selectedRows: API.RegistrationDocListItem[],status) => {
 
         const hide = message.loading('Loading....');
         if (!selectedRows) return true;

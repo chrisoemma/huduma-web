@@ -1,6 +1,6 @@
 // import {
 import React, { useEffect, useState, useRef } from 'react';
-import { Modal, Upload, Image, Form, Button, message, } from 'antd';
+import { Modal, Upload, Image, Form, Button, message, Tag, } from 'antd';
 import { ProFormText, StepsForm, ProFormSelect, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -9,6 +9,7 @@ import { storage } from '@/firebase/firebase';
 import { updateProvider } from '../ServiceProviderSlice';
 import { formatErrorMessages, getStatus, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { history } from 'umi';
+import { providerDesignationDoc } from '@/pages/ProviderDocsList/ProviderDocsSlice';
 
 export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
@@ -27,6 +28,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [workingDocumentPercentage, setWorkingDocumentPercentage] = useState<number>(0);
 
   const { initialState } = useModel('@@initialState');
+  const [designationDocs, setDesignationDocs] = useState([]);
   
   useEffect(() => {
     if (props.updateModalOpen) {
@@ -43,55 +45,67 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     }
   }, [props.updateModalOpen, props.values, form]);
 
+
   useEffect(() => {
-    if (props.values.documents && props.values.documents.length > 0) {
-      const percentage = calculateWorkingDocumentPercentage(props.values.documents);
-      setWorkingDocumentPercentage(percentage);
-    }
-  }, [props.values.documents]);
+    async function fetchData() {
+        try {
+            const response = await providerDesignationDoc(props.values.id);
+            const designationDocs = response.data.documents;
 
-
-  const calculateWorkingDocumentPercentage = (documents) => {
-    if (!documents || documents.length === 0) {
-        return 0; // Return 0 when there are no working documents
-    }
-
-    const workingDocumentMap = new Map();
-
-    documents.forEach((document) => {
-        if (document.working_document_id && document.percentage) {
-            const workingDocumentId = document.working_document_id;
-
-            if (!workingDocumentMap.has(workingDocumentId)) {
-                // If working document ID is not in the map, add it with an array of percentages
-                workingDocumentMap.set(workingDocumentId, [parseFloat(document.percentage)]);
-            } else {
-                // If working document ID is in the map, append the percentage to the array
-                const currentPercentages = workingDocumentMap.get(workingDocumentId);
-                currentPercentages.push(parseFloat(document.percentage));
-                workingDocumentMap.set(workingDocumentId, currentPercentages);
-            }
+            console.log('designationssss',designationDocs);
+            setDesignationDocs(designationDocs);
+           
+        } catch (error) {
+            console.error('Error fetching Roles data:', error);
         }
-    });
+    }
 
-    // Calculate the total percentage by averaging all unique working documents
-    let totalPercentage = 0;
+    fetchData();
+}, []);
 
-    workingDocumentMap.forEach((percentages) => {
-        const averagePercentage = calculateAverage(percentages);
-        totalPercentage += averagePercentage;
-    });
 
-    return totalPercentage;
+const areRequiredDocumentsUploaded = () => {
+  // Check if all designation documents have corresponding uploaded documents
+  return designationDocs?.every(designationDoc =>
+      props?.values?.documents.some(uploadDoc => uploadDoc.working_document_id === designationDoc.id)
+  );
 };
 
-// Helper function to calculate the average of an array of numbers
-const calculateAverage = (arr) => {
-    if (arr.length === 0) {
-        return 0;
-    }
-    const sum = arr.reduce((acc, val) => acc + val, 0);
-    return sum / arr.length;
+// Function to calculate the total percentage of uploaded documents
+const calculateTotalPercentage = () => {
+  let totalPercentage = 0;
+  props?.values?.documents?.forEach(uploadDoc => {
+      if (uploadDoc.percentage) {
+          totalPercentage += parseFloat(uploadDoc.percentage);
+      }
+  });
+  return totalPercentage;
+};
+
+// Determine if status editing should be enabled
+const isStatusEditingEnabled = () => {
+  const totalPercentage = calculateTotalPercentage();
+  return totalPercentage > 0 && totalPercentage >= 70;
+};
+
+
+const listMissingDocuments = () => {
+  // Extract the IDs of all required documents
+  const requiredDocumentIds = designationDocs?.map(doc => doc.id);
+  
+  // Extract the working document IDs of all uploaded documents
+  const uploadedWorkingDocumentIds = props?.values?.documents?.map(doc => doc?.working_document_id);
+
+  // Find the IDs of missing documents
+  const missingDocumentIds = requiredDocumentIds?.filter(id => !uploadedWorkingDocumentIds.includes(id));
+
+  // Filter out the missing documents from the designationDocs
+  const missingDocuments = designationDocs?.filter(doc => missingDocumentIds.includes(doc.id));
+
+  // Extract the names of missing documents
+  const missingDocumentNames = missingDocuments?.map(doc => doc.doc_name);
+
+  return missingDocumentNames;
 };
 
   
@@ -113,9 +127,6 @@ const calculateAverage = (arr) => {
 
     const storageRef = ref(storage, `profile/${file.name}`);
     const uploadTask = uploadBytesResumable(storageRef, file);
-
-
-
 
 
     return new Promise<string | undefined>((resolve, reject) => {
@@ -353,23 +364,29 @@ const calculateAverage = (arr) => {
           label="NIDA"
         />
       
-      {workingDocumentPercentage !== null && (
-  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-    <div>
-      <label>Working Document Percentage: {workingDocumentPercentage.toFixed(2)}%</label>
-      {workingDocumentPercentage === 0 ? (
-        <p style={{ color: 'red' }}>No Approved documents</p>
-      ) : workingDocumentPercentage < 70 ? (
-        <p style={{ color: 'red' }}>Total percentage is below 70%</p>
-      ) : (
-        <p style={{ color: 'green' }}>Total percentage is above 70%</p>
-      )}
-    </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+    {/* Display a message indicating the completion status of the required documents */}
+    {areRequiredDocumentsUploaded() ? (
+      <p style={{ color: 'green' }}>All required documents are uploaded</p>
+    ) : (
+      <div>
+        <p style={{ color: 'red' }}>Some required documents are missing:</p>
+        {/* List the missing documents */}
+        <ul>
+          {listMissingDocuments()?.map((document, index) => (
+            <li key={index}><Tag>{document}</Tag></li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+
     <Button type="primary" onClick={handleViewDocs}>
       View Docs
     </Button>
-  </div>
-)}
+ 
+</div>
    
         <ProFormRadio.Group
           name="status"
@@ -392,7 +409,7 @@ const calculateAverage = (arr) => {
               label: 'Deactivate',
             },
           ]}
-          disabled={workingDocumentPercentage !== null && workingDocumentPercentage < 70}
+          disabled={!isStatusEditingEnabled()}
           
         />
 

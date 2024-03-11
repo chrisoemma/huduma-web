@@ -14,13 +14,13 @@ import {
   PageLoading,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl, useRequest } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message, Form } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message, Form, Modal, List } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addProviderDoc, getProviderBusiness, getProviderDocs, removeDocs, updateDocStatus } from './ProviderDocsSlice';
+import { addProviderDoc, getProviderBusiness, getProviderDocs, providerDesignationDoc, removeDocs, updateDocStatus } from './ProviderDocsSlice';
 import { useParams } from 'react-router-dom';
 
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
@@ -82,6 +82,36 @@ const ProviderDocsList: React.FC = () => {
     setNida(nida)
     setDocumentDrawerVisible(true);
   };
+
+
+  const [designationDocs, setDesignationDocs] = useState([]);
+  const [designationModalVisible, setDesignationModalVisible] = useState(false);
+
+  const handleDesignationModalOpen = () => {
+    setDesignationModalVisible(true);
+  };
+
+  const handleDesignationModalClose = () => {
+    setDesignationModalVisible(false);
+  };
+
+
+  useEffect(() => {
+      async function fetchData() {
+          try {
+              const response = await providerDesignationDoc(id);
+              const designationDocs = response.data.documents;
+
+              console.log('designationssss',designationDocs);
+              setDesignationDocs(designationDocs);
+             
+          } catch (error) {
+              console.error('Error fetching Roles data:', error);
+          }
+      }
+
+      fetchData();
+  }, []);
 
 
   useEffect(() => {
@@ -605,22 +635,22 @@ const ProviderDocsList: React.FC = () => {
       },
     },
 
-    {
-      title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
-      dataIndex: 'option',
-      valueType: 'option',
-      render: (_, record) => [
-        <a
-          key="config"
-          onClick={() => {
-            handleUpdateModalOpen(true);
-            setCurrentRow(record);
-          }}
-        >
-          <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
-        </a>,
-      ],
-    },
+    // {
+    //   title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
+    //   dataIndex: 'option',
+    //   valueType: 'option',
+    //   render: (_, record) => [
+    //     <a
+    //       key="config"
+    //       onClick={() => {
+    //         handleUpdateModalOpen(true);
+    //         setCurrentRow(record);
+    //       }}
+    //     >
+    //       <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
+    //     </a>,
+    //   ],
+    // },
   ];
 
   return (
@@ -644,9 +674,7 @@ const ProviderDocsList: React.FC = () => {
             type="primary"
             key="primary"
             style={{backgroundColor:'orange'}}
-            onClick={() => {
-              handleModalOpen(true);
-            }}
+            onClick={handleDesignationModalOpen}
           >
              <FormattedMessage id="pages.searchTable.requiredDoc" defaultMessage="Required Docs" />
           </Button>,
@@ -918,6 +946,23 @@ const ProviderDocsList: React.FC = () => {
       {DocumentDrawer}
 
       {NidaValidationDrawer}
+
+
+      <Modal
+        visible={designationModalVisible}
+        title="Required  Documents"
+        onCancel={handleDesignationModalClose}
+        footer={null}
+      >
+        <List
+          dataSource={designationDocs}
+          renderItem={(item) => (
+            <List.Item>
+             <Tag>{item?.doc_name}</Tag> 
+            </List.Item>
+          )}
+        />
+      </Modal>
 
     </PageContainer>
   );
