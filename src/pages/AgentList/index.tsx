@@ -46,6 +46,15 @@ const AgentList: React.FC = () => {
     const { initialState } = useModel('@@initialState');
 
 
+    const handleViewDocs = () => {
+
+        if (history) {
+            const route = `/user-management/agents/documents/agent/${currentRow?.id}`;
+            history.push(route);
+        }
+    };
+
+
     //  console.log('business data',currentBusinessesData);
     const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
 
@@ -814,17 +823,20 @@ const AgentList: React.FC = () => {
                         columns={columns as ProDescriptionsItemProps<API.AgentListItem>[]}
                     />
                 )}
+                  <Button type="primary" onClick={handleViewDocs}>
+                        View Docs
+                </Button>
 
-                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                <Button style={{margin:20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
                     Validate NIDA
                 </Button>
-                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewCommissions}>
+                <Button style={{margin:20, }} type="primary" onClick={handleViewCommissions}>
                     Commisions History
                 </Button>
-                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewProviders}>
+                <Button style={{margin:20, }} type="primary" onClick={handleViewProviders}>
                     Providers
                 </Button>
-                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleViewClients}>
+                <Button style={{margin:20, }} type="primary" onClick={handleViewClients}>
                     Clients
                 </Button>
             </Drawer>

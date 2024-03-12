@@ -25,6 +25,16 @@ export default [
     path: '/user-management',
     routes: [
       {
+        name: 'Agents-docs',
+        path: 'agents/documents/agent/:id',
+        component: './AgentDocsList/',
+      },
+    ],
+  },
+  {
+    path: '/user-management',
+    routes: [
+      {
         name: 'Employees',
         path: 'service-providers/employees/provider/:id',
         component: './EmployeeList/',
@@ -73,7 +83,6 @@ export default [
     name: 'user-management',
     icon: 'gold',
     routes: [
-
       {
         path: '/user-management/agents',
         name: 'Agents',

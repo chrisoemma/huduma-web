@@ -1,6 +1,6 @@
 // import {
 import React, { useEffect, useState, useRef } from 'react';
-import { Modal, Upload, Image, Form, Button, message, } from 'antd';
+import { Modal, Upload, Image, Form, Button, message, Tag, } from 'antd';
 import { ProFormText, StepsForm, ProFormSelect, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -8,6 +8,8 @@ import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateAgent } from '../AgentSlice';
 import { formatErrorMessages, getStatus, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
+import { agentDesignationDoc } from '@/pages/AgentDocsList/AgentDocsSlice';
+import { history } from 'umi';
 
 
 export type UpdateFormProps = {
@@ -26,7 +28,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const { initialState } = useModel('@@initialState');
 
   const stepsFormRef = useRef();
-
+  const [designationDocs, setDesignationDocs] = useState([]);
 
 
   useEffect(() => {
@@ -38,13 +40,90 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         status: getStatus(props.values.user?.status),
         nida: props.values.nida,
         email: props.values.user?.email,
-        phone: props.values.phone
-      });
-      
-  
+        phone: props.values.phone,
 
+      });
     }
   }, [props.updateModalOpen, props.values, form]);
+
+
+  useEffect(() => {
+    async function fetchData() {
+
+        try {
+
+          console.log('props.values.id',props.values.id);
+
+            const response = await agentDesignationDoc(props.values.id);
+            const designationDocs = response.data.documents;``
+
+            console.log('designationssss1234',designationDocs);
+            setDesignationDocs(designationDocs);
+           
+        } catch (error) {
+            console.error('Error fetching Roles data:', error);
+        }
+    }
+
+    fetchData();
+}, [props.values]);
+
+
+const areRequiredDocumentsUploaded = () => {
+  // Check if all designation documents have corresponding uploaded documents
+  return designationDocs?.every(designationDoc =>
+      props?.values?.documents?.some(uploadDoc => uploadDoc.working_document_id === designationDoc.id)
+  );
+};
+
+
+const checkAllRequiredDocumentsApproved = () => {
+  let allApproved = true;
+  props?.values?.documents?.forEach(uploadDoc => {
+    if (uploadDoc.status !== "Approved") {
+      // Set allApproved to false if any document is not "Approved"
+      allApproved = false;
+    }
+  });
+  return allApproved;
+};
+
+
+// Determine if status editing should be enabled
+const isStatusEditingEnabled = () => {
+  const allRequiredDocumentsApproved = checkAllRequiredDocumentsApproved();
+  return allRequiredDocumentsApproved;
+};
+
+
+const listMissingDocuments = () => {
+  // Extract the IDs of all required documents
+  const requiredDocumentIds = designationDocs?.map(doc => doc.id);
+  
+  // Extract the working document IDs of all uploaded documents
+  const uploadedWorkingDocumentIds = props?.values?.documents?.map(doc => doc?.working_document_id);
+
+  // Find the IDs of missing documents
+  const missingDocumentIds = requiredDocumentIds?.filter(id => !uploadedWorkingDocumentIds?.includes(id));
+
+  // Filter out the missing documents from the designationDocs
+  const missingDocuments = designationDocs?.filter(doc => missingDocumentIds?.includes(doc.id));
+
+  // Extract the names of missing documents
+  const missingDocumentNames = missingDocuments?.map(doc => doc.doc_name);
+
+  return missingDocumentNames;
+};
+
+  
+const handleViewDocs = () => {
+  const route = `/user-management/agents/documents/agent/${props.values.id}`;
+
+  history.push(route);
+};
+
+
+
 
   const { Dragger } = Upload;
 
@@ -292,6 +371,31 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           label="NIDA"
         />
 
+            
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div>
+    {/* Display a message indicating the completion status of the required documents */}
+    {areRequiredDocumentsUploaded() ? (
+      <p style={{ color: 'green' }}>All required documents are uploaded</p>
+    ) : (
+      <div>
+        <p style={{ color: 'red' }}>Some required documents are missing:</p>
+        {/* List the missing documents */}
+        <ul>
+          {listMissingDocuments()?.map((document, index) => (
+            <li key={index}><Tag>{document}</Tag></li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+
+    <Button type="primary" onClick={handleViewDocs}>
+      View Docs
+    </Button>
+ 
+</div>
+
         <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({
@@ -314,6 +418,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
             },
           
           ]}
+
+          disabled={!isStatusEditingEnabled()}
 
         />
         <Form.Item

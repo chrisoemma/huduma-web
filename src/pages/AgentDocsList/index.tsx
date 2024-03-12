@@ -17,10 +17,10 @@ import { FormattedMessage, useIntl, useRequest } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message, Form, Modal, List } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
-import UpdateForm from './components/UpdateForm';
+// import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addProviderDoc, getProviderBusiness, getProviderDocs, providerDesignationDoc, removeDocs, updateDocStatus } from './ProviderDocsSlice';
+import { addAgentDoc, getAgentDocs, agentDesignationDoc, removeDocs, updateDocStatus } from './AgentDocsSlice';
 import { useParams } from 'react-router-dom';
 
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
@@ -31,7 +31,7 @@ import { Document, Page,pdfjs } from 'react-pdf';
 
 
 
-const ProviderDocsList: React.FC = () => {
+const AgentDocsList: React.FC = () => {
 
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
@@ -40,12 +40,12 @@ const ProviderDocsList: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
-  const [currentRow, setCurrentRow] = useState<API.ProviderDocsListItem>();
-  const [selectedRowsState, setSelectedRows] = useState<API.ProviderDocsListItem[]>([]);
+  const [currentRow, setCurrentRow] = useState<API.AgentDocsListItem>();
+  const [selectedRowsState, setSelectedRows] = useState<API.AgentDocsListItem[]>([]);
   const [categories, setCategories] = useState([]);
   const { id } = useParams();
-  const { data, error, loading } = useRequest(() => getProviderDocs(Number(id)));
-  const [tableData, setTableData] = useState<API.ProviderDocsListItem[]>([]);
+  const { data, error, loading } = useRequest(() => getAgentDocs(Number(id)));
+  const [tableData, setTableData] = useState<API.AgentDocsListItem[]>([]);
 
   const intl = useIntl();
   const [regDocs, setRegDocs] = useState([]);
@@ -54,7 +54,7 @@ const ProviderDocsList: React.FC = () => {
   const { Item } = Form;
 
   const [documentDrawerVisible, setDocumentDrawerVisible] = useState<boolean>(false);
-  const [currentDocument, setCurrentDocument] = useState<API.ProviderDocsListItem | undefined>(undefined);
+  const [currentDocument, setCurrentDocument] = useState<API.AgentDocsListItem | undefined>(undefined);
   const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
   const [validationResult, setValidationResult] = useState(null);
   const [providerData, setProviderData] = useState(null);
@@ -70,14 +70,9 @@ const ProviderDocsList: React.FC = () => {
   }
 
 
-
-  // pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  //   'pdfjs-dist/build/pdf.worker.min.js',
-  //   import.meta.url,
-  // ).toString();
   pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
 
-  const handleOpenDocumentDrawer = (document: API.ProviderDocsListItem, nida) => {
+  const handleOpenDocumentDrawer = (document: API.AgentDocsListItem, nida) => {
     setCurrentDocument(document);
     setNida(nida)
     setDocumentDrawerVisible(true);
@@ -99,7 +94,7 @@ const ProviderDocsList: React.FC = () => {
   useEffect(() => {
       async function fetchData() {
           try {
-              const response = await providerDesignationDoc(id);
+              const response = await agentDesignationDoc(id);
               const designationDocs = response.data.documents;
 
               console.log('designationssss',designationDocs);
@@ -130,21 +125,6 @@ const ProviderDocsList: React.FC = () => {
   }, []);
 
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const response = await getProviderBusiness(id);
-        const businesses = response.data.businesses;
-        // console.log('businesses',businesses);
-        setBusinesses(businesses);
-        actionRef.current?.reloadAndRest();
-      } catch (error) {
-        console.error('Error fetching Businesses data:', error);
-      }
-    }
-    fetchData();
-  }, []);
-
   const handleNidaValidationDrawerOpen = () => {
     setShowNidaValidationDrawer(true);
   };
@@ -161,7 +141,7 @@ const ProviderDocsList: React.FC = () => {
 
       const nidaValidationData = {
         status: '',
-        user_type: 'Provider',
+        user_type: 'Agent',
       };
 
       const response = await getNida(nida);
@@ -379,7 +359,7 @@ const ProviderDocsList: React.FC = () => {
   );
 
 
-  const handleRemove = async (selectedRows: API.ProviderDocsListItem[]) => {
+  const handleRemove = async (selectedRows: API.AgentDocsListItem[]) => {
 
     const hide = message.loading('Loading....');
     if (!selectedRows) return true;
@@ -461,7 +441,7 @@ const ProviderDocsList: React.FC = () => {
               // Save the data to the database
               const hide = message.loading('Loading...');
               try {
-                const response = await addProviderDoc(id, providerDocData);
+                const response = await addAgentDoc(id, providerDocData);
                 if (response.status) {
                   hide();
                   message.success(response.message);
@@ -501,7 +481,7 @@ const ProviderDocsList: React.FC = () => {
 
 
 
-  const columns: ProColumns<API.ProviderDocsListItem>[] = [
+  const columns: ProColumns<API.AgentDocsListItem>[] = [
     {
       title: (
         <FormattedMessage
@@ -695,7 +675,7 @@ const ProviderDocsList: React.FC = () => {
 
         request={async (params, sorter, filter) => {
           try {
-            const response = await getProviderDocs(id, params);
+            const response = await getAgentDocs(id, params);
             const docs = response.data.documents;
             const provider = response.data
 
@@ -892,7 +872,7 @@ const ProviderDocsList: React.FC = () => {
           />
         </ProForm.Group>
       </ModalForm>
-      <UpdateForm
+      {/* <UpdateForm
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
           if (success) {
@@ -918,7 +898,7 @@ const ProviderDocsList: React.FC = () => {
             actionRef.current.reload();
           }
         }}
-      />
+      /> */}
 
       <Drawer
         width={600}
@@ -930,7 +910,7 @@ const ProviderDocsList: React.FC = () => {
         closable={false}
       >
         {currentRow?.name && (
-          <ProDescriptions<API.ProviderDocsListItem>
+          <ProDescriptions<API.AgentDocsListItem>
             column={2}
             title={currentRow?.name}
             request={async () => ({
@@ -939,7 +919,7 @@ const ProviderDocsList: React.FC = () => {
             params={{
               id: currentRow?.name,
             }}
-            columns={columns as ProDescriptionsItemProps<API.ProviderDocsListItem>[]}
+            columns={columns as ProDescriptionsItemProps<API.AgentDocsListItem>[]}
           />
         )}
       </Drawer>
@@ -968,4 +948,4 @@ const ProviderDocsList: React.FC = () => {
   );
 };
 
-export default ProviderDocsList;
+export default AgentDocsList;

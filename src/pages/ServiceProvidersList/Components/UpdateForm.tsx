@@ -12,6 +12,7 @@ import { history } from 'umi';
 import { providerDesignationDoc } from '@/pages/ProviderDocsList/ProviderDocsSlice';
 
 export type UpdateFormProps = {
+
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
   onSubmit: (values: FormValueType) => Promise<void>;
   updateModalOpen: boolean;
@@ -67,26 +68,29 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 const areRequiredDocumentsUploaded = () => {
   // Check if all designation documents have corresponding uploaded documents
   return designationDocs?.every(designationDoc =>
-      props?.values?.documents.some(uploadDoc => uploadDoc.working_document_id === designationDoc.id)
+      props?.values?.documents?.some(uploadDoc => uploadDoc.working_document_id === designationDoc.id)
   );
 };
 
 // Function to calculate the total percentage of uploaded documents
-const calculateTotalPercentage = () => {
-  let totalPercentage = 0;
+const checkAllRequiredDocumentsApproved = () => {
+  let allApproved = true;
   props?.values?.documents?.forEach(uploadDoc => {
-      if (uploadDoc.percentage) {
-          totalPercentage += parseFloat(uploadDoc.percentage);
-      }
+    if (uploadDoc.status !== "Approved") {
+      // Set allApproved to false if any document is not "Approved"
+      allApproved = false;
+    }
   });
-  return totalPercentage;
+  return allApproved;
 };
+
 
 // Determine if status editing should be enabled
 const isStatusEditingEnabled = () => {
-  const totalPercentage = calculateTotalPercentage();
-  return totalPercentage > 0 && totalPercentage >= 70;
+  const allRequiredDocumentsApproved = checkAllRequiredDocumentsApproved();
+  return allRequiredDocumentsApproved;
 };
+
 
 
 const listMissingDocuments = () => {
@@ -109,6 +113,12 @@ const listMissingDocuments = () => {
 };
 
   
+const handleViewDocs = () => {
+  // Assuming you have a route named '/documents/:providerId'
+  const route = `/user-management/service-providers/documents/provider/${props.values.id}`;
+  // Redirect to the documents route
+  history.push(route);
+};
   
   
 
@@ -161,12 +171,7 @@ const listMissingDocuments = () => {
     }
   };
 
-  const handleViewDocs = () => {
-    // Assuming you have a route named '/documents/:providerId'
-    const route = `/user-management/service-providers/documents/provider/${props.values.id}`;
-    // Redirect to the documents route
-    history.push(route);
-  };
+
 
   const handleUpdate = async (values) => {
 

@@ -793,7 +793,7 @@ const ProviderList: React.FC = () => {
                             ]}
                         /> */}
 
-<ProFormText
+                      <ProFormText
                         name="email"
                         label={intl.formatMessage({
                             id: 'pages.searchTable.updateForm.email',
