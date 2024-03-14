@@ -79,12 +79,18 @@ const areRequiredDocumentsUploaded = () => {
 
 const checkAllRequiredDocumentsApproved = () => {
   let allApproved = true;
-  props?.values?.documents?.forEach(uploadDoc => {
-    if (uploadDoc.status !== "Approved") {
-      // Set allApproved to false if any document is not "Approved"
-      allApproved = false;
-    }
-  });
+
+  if (!props?.values?.documents || props?.values?.documents?.length < 1) {
+    // If no documents are uploaded, set allApproved to false
+    allApproved = false;
+  } else {
+    props?.values?.documents?.forEach(uploadDoc => {
+      if (uploadDoc.status !== "Approved") {
+        // Set allApproved to false if any document is not "Approved"
+        allApproved = false;
+      }
+    });
+  }
   return allApproved;
 };
 

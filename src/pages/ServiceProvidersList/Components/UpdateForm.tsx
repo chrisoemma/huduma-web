@@ -72,17 +72,23 @@ const areRequiredDocumentsUploaded = () => {
   );
 };
 
-// Function to calculate the total percentage of uploaded documents
+
 const checkAllRequiredDocumentsApproved = () => {
   let allApproved = true;
-  props?.values?.documents?.forEach(uploadDoc => {
-    if (uploadDoc.status !== "Approved") {
-      // Set allApproved to false if any document is not "Approved"
-      allApproved = false;
-    }
-  });
+
+  if (!props?.values?.documents || props?.values?.documents?.length < 1) {
+    allApproved = false;
+  } else {
+    props?.values?.documents?.forEach(uploadDoc => {
+      if (uploadDoc.status !== "Approved") {
+        allApproved = false;
+      }
+    });
+  }
   return allApproved;
 };
+
+
 
 
 // Determine if status editing should be enabled
