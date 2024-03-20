@@ -108,7 +108,8 @@ type RegistrationDocListItem = {
      deleted_by:integer,
      deleted_at:string,
      updated_at:string,
-     created_at:string
+     created_at:string,
+     type:string
 }
 type EmployeeListItem = {
     id:number,

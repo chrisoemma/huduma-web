@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Upload, Image, Form, Button, message } from 'antd';
-import { ProFormText, ProFormRadio } from '@ant-design/pro-form';
+import { ProFormText, ProFormRadio,ProFormSelect } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { updateRegistrationDoc } from '../RegistrationDocSlice';
@@ -24,7 +24,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     if (props.updateModalOpen) {
       form.setFieldsValue({
         doc_name: props.values.doc_name,
-    //    percentage: props.values.percentage,
+        type: props.values.type,
       });
 
     }
@@ -87,7 +87,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         form={form}
         initialValues={{
           doc_name: props.values.doc_name,
-         // percentage: props.values.percentage,
+          type: props.values.type,
         }}
       >
         <ProFormText
@@ -106,21 +106,24 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           ]}
         />
 
-        {/* <ProFormText
-          name="percentage"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.percentage',
-            defaultMessage: 'Percentage',
-          })}
-          width="md"
-          rules={[
-
-            {
-              required: true,
-              message: 'Please enter the Percentage!',
-            },
-          ]}
-        /> */}
+           <ProFormSelect
+                        name="type"
+                        width="md"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.type',
+                            defaultMessage: 'Choose document Type',
+                        })}
+                        valueEnum={{
+                            'Registration': 'Registration',
+                            'Bussiness': 'Bussiness',
+                        }}
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please select doc type!',
+                            },
+                        ]}
+                    />
       </Form>
     </Modal>
   );

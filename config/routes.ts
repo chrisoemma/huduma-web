@@ -214,6 +214,21 @@ export default [
         name: 'Professionals',
         component: './DesignationList',
       },
+      {
+        path: '/settings/subscriptions-packages',
+        name: 'Subscriptions Packages',
+        component: './SubscriptionPackageList',
+      },
+      {
+        path: '/settings/discounts',
+        name: 'Packages Discounts',
+        component: './DiscountList',
+      },
+      {
+        path: '/settings/set-commission-amount',
+        name: 'Set Commission Amount',
+        component: './setCommissionAmountList',
+      },
 
     ],
   },

@@ -10,17 +10,19 @@ import {
     ProFormTextArea,
     ProFormUploadButton,
     ProTable,
+    ProFormCheckbox,
     ProFormSelect,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
+
 import UpdateForm from './components/UpdateForm';
-import { addRegistrationDoc, getRegistrationDoc, updateRegistrationDoc, updateRegistrationDocStatus } from './RegistrationDocSlice';
-import { providerDesignationDoc } from '../ProviderDocsList/ProviderDocsSlice';
+import { addCommissionAmount,getCommissionAmount,  removeCommissionAmount } from './commissionAmountSlice.ts';
 
 
-const RegistrationDocList: React.FC = () => {
+
+const DiscountList: React.FC = () => {
 
     const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
@@ -29,40 +31,15 @@ const RegistrationDocList: React.FC = () => {
     const [showDetail, setShowDetail] = useState<boolean>(false);
 
     const actionRef = useRef<ActionType>();
-    const [currentRow, setCurrentRow] = useState<API.RegistrationDocListItem>();
-    const [selectedRowsState, setSelectedRows] = useState<API.RegistrationDocListItem[]>([]);
+    const [currentRow, setCurrentRow] = useState<API.DiscountListItem>();
+    const [selectedRowsState, setSelectedRows] = useState<API.DiscountListItem[]>([]);
+    const [subPackages, setSubPackages] = useState([]);
+    const [selectedPackage, setSelectedPackage] = useState(null);
+    const [packageAmount, setPackageAmount] = useState(null)
 
     const intl = useIntl();
+    const { initialState } = useModel('@@initialState');
 
-
-
-
-
-
-
-    const handleStatus = async (selectedRows: API.RegistrationDocListItem[],status) => {
-
-        const hide = message.loading('Loading....');
-        if (!selectedRows) return true;
-        try {
-            // console.log('in try and catch');
-          const response=  await updateRegistrationDocStatus({
-               document_ids: selectedRows.map((row) => row.id),
-                status:status
-            });
-            hide();
-            message.success(response.message);
-            // if (actionRef.current) {
-            //     console.log('invoking this which is null')
-            //     actionRef.current.reloadAndRest();
-            // }
-         //   return true;
-        } catch (error) {
-            hide();
-            message.error('Delete failed, please try again');
-            return false;
-        }
-    };
 
 
 
@@ -70,21 +47,23 @@ const RegistrationDocList: React.FC = () => {
 
     const handleAdd = async (formData: FormData) => {
 
-        const doc_name = formData.get('doc_name') as string;
-       const type = formData.get('type');
+        const payment_for = formData.get('payment_for') as string;
+        const amount = formData.get('amount') as string;
+        const user_type = formData.get('user_type') as string;
+
         try {
 
-            const RegistrationDoc: API.RegistrationDocListItem = {
-                doc_name: doc_name,
-                type:type,
+            const commissionAmount: API.DiscountListItem = {
+                payment_for: payment_for,
+                amount: parseFloat(amount),
+                user_type: user_type,
                 created_by: 1
 
             };
 
-            // Save the data to the database
             const hide = message.loading('Loading...');
             try {
-                const response = await addRegistrationDoc(RegistrationDoc);
+                const response = await addCommissionAmount(commissionAmount);
 
                 if (response.status) {
                     hide();
@@ -109,42 +88,57 @@ const RegistrationDocList: React.FC = () => {
 
 
 
-    const columns: ProColumns<API.RegistrationDocListItem>[] = [
-        {
-            title: (
-                <FormattedMessage
-                    id="pages.searchTable.updateForm.docName"
-                    defaultMessage="Document Name"
-                />
-            ),
-            dataIndex: 'doc_name',
-            valueType: 'text',
-            tip: 'The Doc Name is the unique key',
-            render: (dom, entity) => {
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
-            },
-            search: true,
-        },
+    const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
 
+
+        const hide = message.loading('Loading....');
+        if (!selectedRows) return true;
+        try {
+            // console.log('in try and catch');
+            const currentUser = initialState?.currentUser;
+            const action_by = currentUser?.id;
+
+            const response = await removeCommissionAmount({
+                key: selectedRows.map((row) => row.id),
+                action_by: action_by,
+            });
+
+            hide();
+            message.success('Deleted successfully');
+            if (actionRef.current) {
+                console.log('invoking this which is null')
+                actionRef.current.reloadAndRest();
+            }
+            return true;
+        } catch (error) {
+            hide();
+            message.error('Delete failed, please try again');
+            return false;
+        }
+    };
+
+
+
+    const columns: ProColumns<API.DiscountListItem>[] = [
+        {
+            title: (
+                <FormattedMessage id="pages.searchTable.titleDesignation" defaultMessage="Amount" />
+            ),
+            dataIndex: 'amount', // Access nested property
+            valueType: 'text',
+            render: (dom) => parseFloat(dom).toFixed(2),
+            tip: 'Amount',
+            search: false,
+        },
         {
             title: (
                 <FormattedMessage
-                    id="pages.searchTable.updateForm.docType"
-                    defaultMessage="Document Type"
+                    id="pages.searchTable.updateForm.user_type"
+                    defaultMessage="To"
                 />
             ),
-            dataIndex: 'type',
+            dataIndex: 'user_type', // Access nested property
             valueType: 'text',
-            tip: 'The Doc Type',
             render: (dom, entity) => {
                 return (
                     <a
@@ -159,6 +153,30 @@ const RegistrationDocList: React.FC = () => {
             },
             search: false,
         },
+        {
+            title: (
+                <FormattedMessage
+                    id="pages.searchTable.updateForm.payment_for"
+                    defaultMessage="Payment for"
+                />
+            ),
+            dataIndex: 'payment_for',
+            valueType: 'text',
+            render: (dom, entity) => {
+                return (
+                    <a
+                        onClick={() => {
+                            setCurrentRow(entity);
+                            setShowDetail(true);
+                        }}
+                    >
+                        {dom}
+                    </a>
+                );
+            },
+            search: false,
+        },
+
 
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
@@ -169,10 +187,8 @@ const RegistrationDocList: React.FC = () => {
                 let color = '';
                 if (text == 'Active') {
                     color = 'green';
-                } else if (text == 'In Active') {
-                    color = 'orange'
-                } else if (text == 'Deleted') {
-                    color = 'red';
+                } else if (text == 'In-active') {
+                    color = 'red'
                 }
 
                 return (
@@ -181,6 +197,30 @@ const RegistrationDocList: React.FC = () => {
                     </span>
                 );
             },
+        },
+
+        {
+            title: (
+                <FormattedMessage
+                    id="pages.searchTable.updateForm.amountTobePaid"
+                    defaultMessage="Active at"
+                />
+            ),
+            dataIndex: 'active_at', // Set correct dataIndex
+            valueType: 'text',
+            search: false,
+        },
+
+        {
+            title: (
+                <FormattedMessage
+                    id="pages.searchTable.updateForm.activeAt"
+                    defaultMessage="Inactive at"
+                />
+            ),
+            dataIndex: 'in-active_at', // Set correct dataIndex
+            valueType: 'text',
+            search: false,
         },
         {
             title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
@@ -196,10 +236,10 @@ const RegistrationDocList: React.FC = () => {
                 >
                     <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
                 </a>,
-
             ],
         },
     ];
+
 
     return (
         <PageContainer>
@@ -207,11 +247,11 @@ const RegistrationDocList: React.FC = () => {
                 //key={categories.length}
                 pagination={{
                     pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize: 15, 
-                    showSizeChanger: true, 
-                    locale: {items_per_page: ""}
-                  }}
-            
+                    defaultPageSize: 15,
+                    showSizeChanger: true,
+                    locale: { items_per_page: "" }
+                }}
+
                 actionRef={actionRef}
                 rowKey="id"
                 toolBarRender={() => [
@@ -231,32 +271,31 @@ const RegistrationDocList: React.FC = () => {
                 }}
                 request={async (params, sorter, filter) => {
                     try {
-                        const response = await getRegistrationDoc(params);
-                        const docs = response.data.docs;
+                        const response = await getCommissionAmount(params);
+                        const commissions = response.data.commissions;
 
-                        console.log('docsss1234', docs)
                         // Filter the data based on the 'name' filter
-                        const filteredDocs = docs.filter(doc =>
-                            params.name
-                                ? doc.doc_name
+                        const filteredCommissions = commissions.filter(commission =>
+                            params.user_type
+                                ? commission.user_type
                                     .toLowerCase()
-                                    .split(' ')
-                                    .some(word => word.startsWith(params.doc_name.toLowerCase()))
+                                    .includes(params.user_type.toLowerCase())
                                 : true
                         );
 
                         return {
-                            data: filteredDocs,
+                            data: filteredCommissions,
                             success: true,
                         };
                     } catch (error) {
-                        console.error('Error fetching category data:', error);
+                        console.error('Error fetching Discounts data:', error);
                         return {
                             data: [],
                             success: false,
                         };
                     }
                 }}
+
 
                 columns={columns}
                 rowSelection={{
@@ -267,69 +306,44 @@ const RegistrationDocList: React.FC = () => {
             />
             {selectedRowsState?.length > 0 && (
                 <FooterToolbar
-                extra={
-                    <div>
-                        <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
-                        <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
-                        <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
-                        &nbsp;&nbsp;
-                    </div>
-                }
-            >
-                <Button
-                    onClick={async () => {
-                        await handleStatus(selectedRowsState,'Deleted');
-                        setSelectedRows([]);
-                        actionRef.current?.reload();
-                    }}
-                    type="primary"
-                    danger
+                    extra={
+                        <div>
+                            <FormattedMessage id="pages.searchTable.chosen" defaultMessage="Chosen" />{' '}
+                            <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
+                            <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
+                            &nbsp;&nbsp;
+                        </div>
+                    }
                 >
-                    <FormattedMessage
-                        id="pages.searchTable.batchDeletion"
-                        defaultMessage="Batch deletion"
-                    />
-                </Button>
-                <Button type="primary"
-                style={{ background: "orange", borderColor: "yellow" }}
-                      onClick={async () => {
-                        await handleStatus(selectedRowsState,'In Active');
-                        setSelectedRows([]);
-                        actionRef.current?.reload();
-                    }}
-                >
-                    <FormattedMessage
-                        id="pages.searchTable.batchDeactivate"
-                        defaultMessage="Batch Deactivate"
-                    />
-                </Button>
-                <Button type="primary"
-                style={{ background: "green", borderColor: "green" }}
-                    onClick={async () => {
-                        await handleStatus(selectedRowsState,'Active');
-                        setSelectedRows([]);
-                        actionRef.current?.reload();
-                    }}
-                >
-                    <FormattedMessage
-                        id="pages.searchTable.batchActivate"
-                        defaultMessage="Batch Activate"
-                    />
-                </Button>
-            </FooterToolbar>
+                    <Button
+                        onClick={async () => {
+                            await handleRemove(selectedRowsState);
+                            setSelectedRows([]);
+                            actionRef.current?.reload();
+                        }}
+                        type="primary"
+                        danger
+                    >
+                        <FormattedMessage
+                            id="pages.searchTable.batchDeletion"
+                            defaultMessage="Batch Deletion"
+                        />
+                    </Button>
+                </FooterToolbar>
             )}
             <ModalForm
                 title={intl.formatMessage({
-                    id: 'pages.searchTable.createForm.docName',
-                    defaultMessage: 'Add Document',
+                    id: 'pages.searchTable.createForm.subscriptionPackage',
+                    defaultMessage: 'Setup Commission Amount',
                 })}
                 width="400px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
                 onFinish={async (value) => {
                     const formData = new FormData();
-                    formData.append('doc_name', value.doc_name);
-                    formData.append('type', value.type);
+                    formData.append('user_type', value.user_type);
+                    formData.append('amount', value.amount);
+                    formData.append('payment_for', value.payment_for);
 
                     const success = await handleAdd(formData);
 
@@ -341,40 +355,71 @@ const RegistrationDocList: React.FC = () => {
                     }
                 }}
             >
+
+
+
                 <ProForm.Group>
+
                     <ProFormText
                         rules={[
                             {
                                 required: true,
-                                message: 'Doc Name is required',
+                                pattern: /^[0-9]+$/,
+                                message: 'Please enter a valid number',
                             },
+
                         ]}
                         width="md"
-                        name="doc_name"
-                        label="Doc name"
+                        name="amount"
+                        label="Amount"
+
                     />
 
                     <ProFormSelect
-                        name="type"
+                        name="user_type"
                         width="md"
                         label={intl.formatMessage({
-                            id: 'pages.searchTable.updateForm.type',
-                            defaultMessage: 'Choose document Type',
+                            id: 'pages.searchTable.updateForm.user_type',
+                            defaultMessage: 'User type',
                         })}
                         valueEnum={{
-                            'Registration': 'Registration',
-                            'Bussiness': 'Bussiness',
+                            'Client': 'Client',
+                            'Provider': 'Provider',
                         }}
                         rules={[
                             {
                                 required: true,
-                                message: 'Please select doc type!',
+                                message: 'Please select User!',
                             },
                         ]}
                     />
 
+
+
+                    <ProFormSelect
+                        name="payment_for"
+                        width="md"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.user_type',
+                            defaultMessage: 'Payment for',
+                        })}
+                        valueEnum={{
+                            'Registration': 'Registration',
+                            'Requests': 'Requests',
+                            'Subscription': 'Subscription',
+                        }}
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please select User!',
+                            },
+                        ]}
+                    />
+
+
                 </ProForm.Group>
             </ModalForm>
+
             <UpdateForm
                 onSubmit={async (value) => {
                     const success = await handleUpdate(value);
@@ -413,7 +458,7 @@ const RegistrationDocList: React.FC = () => {
                 closable={false}
             >
                 {currentRow?.doc_name && (
-                    <ProDescriptions<API.RegistrationDocListItem>
+                    <ProDescriptions<API.DiscountListItem>
                         column={2}
                         title={currentRow?.doc_name}
                         request={async () => ({
@@ -422,7 +467,7 @@ const RegistrationDocList: React.FC = () => {
                         params={{
                             id: currentRow?.doc_name,
                         }}
-                        columns={columns as ProDescriptionsItemProps<API.RegistrationDocListItem>[]}
+                        columns={columns as ProDescriptionsItemProps<API.DiscountListItem>[]}
                     />
                 )}
             </Drawer>
@@ -430,4 +475,4 @@ const RegistrationDocList: React.FC = () => {
     );
 };
 
-export default RegistrationDocList;
+export default DiscountList;
