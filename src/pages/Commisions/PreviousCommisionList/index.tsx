@@ -15,8 +15,8 @@ import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message,  Dropdown, Menu} from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
-import html2pdf from 'html2pdf.js';
-import * as XLSX from 'xlsx';
+// import html2pdf from 'html2pdf.js';
+// import * as XLSX from 'xlsx';
 
 
 
@@ -54,23 +54,23 @@ const PreviousCommisionList: React.FC = () => {
 
 
 
-  const handleDownloadPDF = () => {
-    const element = document.getElementById('table-container');
-    if (element) {
-      html2pdf(element);
-    }
-  };
+  // const handleDownloadPDF = () => {
+  //   const element = document.getElementById('table-container');
+  //   if (element) {
+  //     html2pdf(element);
+  //   }
+  // };
 
-  // Function to download as Excel
-  const handleDownloadExcel = () => {
-    const table = document.getElementById('table-container');
-    if (table) {
-      const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table);
-      const wb: XLSX.WorkBook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-      XLSX.writeFile(wb, 'table_data.xlsx');
-    }
-  };
+  // // Function to download as Excel
+  // const handleDownloadExcel = () => {
+  //   const table = document.getElementById('table-container');
+  //   if (table) {
+  //     const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table);
+  //     const wb: XLSX.WorkBook = XLSX.utils.book_new();
+  //     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+  //     XLSX.writeFile(wb, 'table_data.xlsx');
+  //   }
+  // };
 
 
 
@@ -424,7 +424,7 @@ const PreviousCommisionList: React.FC = () => {
         )}
       </Drawer>
 
-      <FooterToolbar>
+      {/* <FooterToolbar>
         <Button
           icon={<ExportOutlined />}
           onClick={handleDownloadPDF}
@@ -453,7 +453,7 @@ const PreviousCommisionList: React.FC = () => {
             <DownloadOutlined /> Export
           </Button>
         </Dropdown>
-      </FooterToolbar>
+      </FooterToolbar> */}
     </PageContainer>
   );
 };
