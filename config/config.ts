@@ -27,7 +27,7 @@ export default defineConfig({
 
   initialState: {},
 
-  title: 'Huduma Yoyote',
+  title: 'Espe services',
   layout: {
     ...defaultSettings,
     theme: 'custom-theme.less'

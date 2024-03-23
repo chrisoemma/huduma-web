@@ -9,7 +9,7 @@ export async function getActiveCommisions(
     },
     options?: { [key: string]: any },
   ) {
-    return request(`${API_URL}/admin/commisions/active`, {
+    return request(`${API_URL}/admin/commisions/outstanding_payments`, {
       method: 'GET',
       params: {
         ...params,
@@ -26,7 +26,7 @@ export async function getActiveCommisions(
     },
     options?: { [key: string]: any },
   ) {
-    return request(`${API_URL}/admin/commisions/previous`, {
+    return request(`${API_URL}/admin/commisions/completed_payments`, {
       method: 'GET',
       params: {
         ...params,

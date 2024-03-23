@@ -115,7 +115,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
                         })}
                         valueEnum={{
                             'Registration': 'Registration',
-                            'Bussiness': 'Bussiness',
+                            'Bussiness': 'Business',
                         }}
                         rules={[
                             {

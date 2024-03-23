@@ -143,13 +143,13 @@ export default [
     icon: 'alert',
     routes: [
       {
-        path: '/commissions/active-commisions',
-        name: 'Active',
+        path: '/commissions/outstanding-payments',
+        name: 'Outstanding Payments',
         component: './Commisions/ActiveCommisionList',
       },
       {
-        path: '/commissions/previous-commissions',
-        name: 'Previous',
+        path: '/commissions/completed-payments',
+        name: 'Completed Payments',
         component: './Commisions/PreviousCommisionList',
       },
      

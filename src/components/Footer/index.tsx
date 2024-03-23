@@ -6,8 +6,7 @@ import React from 'react';
 const Footer: React.FC = () => {
   const intl = useIntl();
   const defaultMessage = intl.formatMessage({
-    id: 'Huduma Yoyote',
-  
+    id: 'Espe services',
   });
 
   const currentYear = new Date().getFullYear();

@@ -363,7 +363,7 @@ const RegistrationDocList: React.FC = () => {
                         })}
                         valueEnum={{
                             'Registration': 'Registration',
-                            'Bussiness': 'Bussiness',
+                            'Bussiness': 'Business',
                         }}
                         rules={[
                             {

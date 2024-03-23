@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, ExportOutlined, DownloadOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
   FooterToolbar,
@@ -12,9 +12,12 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message,  Dropdown, Menu} from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
+import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx';
+
 
 
 
@@ -42,16 +45,38 @@ const ActiveCommisionList: React.FC = () => {
 
   const handlePaymentHistoryClick = () => {
     // Extract payment history from the selected row
-    const paymentHistory = currentRow?.commissionPayments || [];
-    setPaymentHistory(paymentHistory)
+    setPaymentHistory([]);
+
+    const paymentHistory = currentRow?.payments || [];
+    setPaymentHistory(paymentHistory);
     setPaymentHistoryVisible(true);
-    
+  };
+
+
+
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('table-container');
+    if (element) {
+      html2pdf(element);
+    }
+  };
+
+  // Function to download as Excel
+  const handleDownloadExcel = () => {
+    const table = document.getElementById('table-container');
+    if (table) {
+      const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table);
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      XLSX.writeFile(wb, 'table_data.xlsx');
+    }
   };
 
 
 
   const handlePayment = async (formData: FormData) => {
 
+      return 
     try {
 
       const currentUser = initialState?.currentUser;
@@ -95,7 +120,11 @@ const ActiveCommisionList: React.FC = () => {
   };
 
 
-  const PaymentHistoryDrawer: React.FC<{ visible: boolean; onClose: () => void; paymentHistory: API.CommissionPayment[] }> = ({ visible, onClose, paymentHistory }) => {
+  const PaymentHistoryDrawer: React.FC<{
+    visible: boolean;
+    onClose: () => void;
+    paymentHistory: API.CommissionPayment[];
+  }> = ({ visible, onClose, paymentHistory }) => {
     return (
       <Drawer
         width={600}
@@ -124,7 +153,7 @@ const ActiveCommisionList: React.FC = () => {
                 },
                 {
                   title: 'Date',
-                  dataIndex: 'paid_date',
+                  dataIndex: 'payment_date',
                   valueType: 'text',
                   render: (text) => `${text}`,
                 },
@@ -142,17 +171,17 @@ const ActiveCommisionList: React.FC = () => {
       </Drawer>
     );
   };
-
+  
 
   const columns: ProColumns<API.ActiveCommisionListItem>[] = [
     {
       title: (
         <FormattedMessage
-          id="pages.searchTable.updateForm.providerName"
-          defaultMessage="Agent name"
+          id="pages.searchTable.updateForm.agentName"
+          defaultMessage="Agent"
         />
       ),
-      dataIndex: 'agent_name',
+      dataIndex: ['agent','name'],
       valueType: 'text',
       render: (dom, entity) => {
         return (
@@ -168,15 +197,37 @@ const ActiveCommisionList: React.FC = () => {
       },
       search: true,
     },
+    {
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.updateForm.Month"
+          defaultMessage="Client/Provider"
+        />
+      ),
+      dataIndex: 'user_type', // Assuming 'user_type' holds either 'Client' or 'Provider'
+      valueType: 'text',
+      render: (_, record) => {
+        const userType = record.user_type;
+        const name = userType === 'Client' ? record.client.name : record.provider.name;
+        const tagColor = userType === 'Client' ? 'blue' : 'green';
+        const tagText = userType === 'Client' ? 'Client' : 'Provider';
+        return (
+          <span>
+            {name} <Tag color={tagColor}>{tagText}</Tag>
+          </span>
+        );
+      },
+      search: true,
+    },
 
     {
       title: (
         <FormattedMessage
-          id="pages.searchTable.amountPaid"
-          defaultMessage="Amount Paid"
+          id="pages.searchTable.amount"
+          defaultMessage="Amount"
         />
       ),
-      dataIndex: 'total_paid_so_far',
+      dataIndex: 'amount',
       valueType: 'text',
       render: (dom, entity) => {
         return (
@@ -193,44 +244,43 @@ const ActiveCommisionList: React.FC = () => {
       search: false,
     },
 
-    {
-      title: (
-        <FormattedMessage
-          id="pages.searchTable.updateForm.amountTobePaid"
-          defaultMessage="Amount Remaining"
-        />
-      ),
-      dataIndex: 'amount_remaining', // Use a custom dataIndex for the calculated value
-      valueType: 'text',
-      render: (_, entity) => {
-        const amountRemaining = (parseFloat(entity.total_commission) - parseFloat(entity.total_paid_so_far)).toFixed(2);
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {amountRemaining}
-          </a>
-        );
-      },
-      search: false,
-    },
+{
+  title: (
+    <FormattedMessage
+      id="pages.searchTable.updateForm.amountTobePaid"
+      defaultMessage="A.Remaining"
+    />
+  ),
+  dataIndex: 'amount_remaining',
+  valueType: 'text',
+  render: (_, entity) => {
+    const totalAmount = parseFloat(entity.amount);
+    const totalPaid = entity.payments.reduce((acc, payment) => acc + parseFloat(payment.amount), 0);
+    const amountRemaining = (totalAmount - totalPaid).toFixed(2);
+    return (
+      <a
+        onClick={() => {
+          setCurrentRow(entity);
+          setShowDetail(true);
+        }}
+      >
+        {amountRemaining}
+      </a>
+    );
+  },
+  search: false,
+},
 
     {
       title: (
         <FormattedMessage
           id="pages.searchTable.updateForm.Month"
-          defaultMessage="Month"
+          defaultMessage="Payment for"
         />
       ),
-      dataIndex: 'month',
+      dataIndex: 'payment_for',
       valueType: 'text',
       render: (dom, entity) => {
-        const monthName = getMonthName(entity.month);
-        const year = entity.year;
-        const displayText = `${monthName} ${year}`;
         return (
           <a
             onClick={() => {
@@ -238,7 +288,7 @@ const ActiveCommisionList: React.FC = () => {
               setShowDetail(true);
             }}
           >
-            {displayText}
+            {dom}
           </a>
         );
       },
@@ -248,21 +298,52 @@ const ActiveCommisionList: React.FC = () => {
       title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
       dataIndex: 'status',
       hideInForm: true,
-      render: (text, record) => {
+      render: (_, record) => {
+        const lastPayment = record.payments[record.payments.length - 1];
+        const lastStatus = lastPayment ? lastPayment.status : record.status;
         let color = '';
-        if (text == 'Paid') {
+        if (lastStatus === 'Paid') {
           color = 'green';
-        } else if (text == 'Unpaid') {
+        } else if (lastStatus === 'Unpaid') {
           color = 'red';
         } else {
           color = 'yellow';
         }
         return (
           <span>
-            <Tag color={color}>{text}</Tag>
+            <Tag color={color}>{lastStatus}</Tag>
           </span>
         );
       },
+    },
+    {
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.paymentDate"
+          defaultMessage="Payment Date"
+        />
+      ),
+      dataIndex: 'payment_date',
+      valueType: 'dateTime',
+      hideInSearch: true,
+      render: (_, record) => {
+        const lastPayment = record.payments[record.payments.length - 1];
+        const lastPaymentDate = lastPayment ? lastPayment.payment_date : record.payment_date;
+        return <span>{lastPaymentDate}</span>;
+      },
+    },
+  
+    // Created At column
+    {
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.createdAt"
+          defaultMessage="Created At"
+        />
+      ),
+      dataIndex: 'created_at',
+      valueType: 'dateTime',
+      hideInSearch: true,
     },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
@@ -296,18 +377,6 @@ const ActiveCommisionList: React.FC = () => {
       {/* Payment History Drawer */}
       <PaymentHistoryDrawer visible={paymentHistoryVisible} onClose={() => setPaymentHistoryVisible(false)} paymentHistory={paymentHistory} />
          
-
-      <div key="request" style={{ marginTop: 10 }}>
-        <a onClick={
-           ()=>{
-            setCurrentRow(record);
-          //handlePaymentHistoryClick()
-           }
-          }>
-          <FormattedMessage id="pages.searchTable.requests" defaultMessage="Request" />
-        </a>
-      </div>
-
         </>
       ),
     },
@@ -334,19 +403,37 @@ const ActiveCommisionList: React.FC = () => {
         request={async (params, sorter, filter) => {
           try {
             const response = await getActiveCommisions(params);
-            const commisions = response.data.commissions;
-            // Filter the data based on the 'name' filter
-            const activeCommisions = commisions.filter(commision =>
-              params.name
-                ? commision.provider.name
-                  .toLowerCase()
-                  .split(' ')
-                  .some(word => word.startsWith(params.name.toLowerCase()))
-                : true
-            );
-
+            const commissions = response.data.commissions;
+            let activeCommissions = commissions;
+          
+            // Filter the data based on the search filter parameters
+            if (filter) {
+              activeCommissions = activeCommissions.filter(commission => {
+                // Check each key in the filter object
+                for (const key in filter) {
+                  const filterValue = filter[key]?.toLowerCase(); // Convert filter value to lowercase for case-insensitive comparison
+                  let commissionValue = ''; // Variable to store the commission value
+          
+                  if (key.includes('.')) { // Handle nested properties
+                    const nestedKeys = key.split('.'); // Split the nested key
+                    // Navigate through the nested structure to access the nested property
+                    commissionValue = nestedKeys.reduce((obj, prop) => obj[prop], commission)?.toString().toLowerCase();
+                  } else { // Handle non-nested properties
+                    commissionValue = commission[key]?.toString().toLowerCase();
+                  }
+          
+                  // If the commission value doesn't contain the filter value, return false to exclude the commission
+                  if (filterValue && !commissionValue.includes(filterValue)) {
+                    return false;
+                  }
+                }
+                // If the commission passes all filter checks, return true to include it
+                return true;
+              });
+            }
+          
             return {
-              data: activeCommisions,
+              data: activeCommissions,
               success: true,
             };
           } catch (error) {
@@ -357,6 +444,8 @@ const ActiveCommisionList: React.FC = () => {
             };
           }
         }}
+        
+
 
         columns={columns}
         rowSelection={{
@@ -436,6 +525,37 @@ const ActiveCommisionList: React.FC = () => {
           />
         )}
       </Drawer>
+
+      <FooterToolbar>
+        <Button
+          icon={<ExportOutlined />}
+          onClick={handleDownloadPDF}
+        >
+          Print
+        </Button>
+        <Dropdown
+          overlay={
+            <Menu onClick={({ key }) => {
+              if (key === 'pdf') {
+                handleDownloadPDF();
+              } else if (key === 'excel') {
+                handleDownloadExcel();
+              }
+            }}>
+              <Menu.Item key="pdf">
+                <DownloadOutlined /> PDF
+              </Menu.Item>
+              <Menu.Item key="excel">
+                <DownloadOutlined /> Excel
+              </Menu.Item>
+            </Menu>
+          }
+        >
+          <Button>
+            <DownloadOutlined /> Export
+          </Button>
+        </Dropdown>
+      </FooterToolbar>
     </PageContainer>
   );
 };
