@@ -93,6 +93,8 @@ export default [
         name: 'Service providers', 
         component: './ServiceProvidersList',
       },
+
+  
       {
         path: '/user-management/clients',
         name: 'Clients',
@@ -155,6 +157,26 @@ export default [
      
     ],
   },
+
+  {
+    path: '/provider-subscriptions',
+    name: 'Provider-subscriptions',
+    icon: 'alert',
+    routes: [
+      {
+        path: '/provider-subscriptions/active-list',
+        name: 'Active subscriptions',
+        component: './ProviderSubscriptionList/ActiveSubscriptionsList',
+      },
+      {
+        path: '/provider-subscriptions/expired-list',
+        name: 'Expired subscriptions',
+        component: './ProviderSubscriptionList/ExpiredSubscriptionsList',
+      },
+     
+    ],
+  },
+  
    {
     name: 'Banners',
     icon: 'table',

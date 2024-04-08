@@ -57,6 +57,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
         duration: props.values.duration || '',
         amount: parseFloat(props.values.amount) || '',
+        name:props.values.name || '',
         target: subPackage
       })
     }
@@ -81,10 +82,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       values.updated_by = 1;
       const discountId = props.values.id;
       const selectedPackageData =
-      subPackages.find((subPackage) => subPackage.id == values.package) ||
-      subPackages.find((subPackage) => subPackage.name === values.package);
-     
-      values.package=selectedPackageData?.id;
+        subPackages.find((subPackage) => subPackage.id == values.package) ||
+        subPackages.find((subPackage) => subPackage.name === values.package);
+
+      values.package = selectedPackageData?.id;
 
       // console.log('valuessss',values)
       // return 
@@ -142,6 +143,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           package: subPackages.find((subpackage) => subpackage.id == props.values.package_id)?.name,
           duration: props.values.duration || '',
           amount: parseFloat(props.values.amount) || '',
+          name:props.values.name || '',
         }}
       >
 
@@ -172,6 +174,19 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           </div>
         )}
 
+
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: 'Package Name is required',
+            },
+          ]}
+          width="md"
+          name="name"
+          label="Package name"
+        />
+
         <ProFormText
           rules={[
             {
@@ -194,9 +209,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           width="md"
           name="amount"
           label="Discount"
-
-
         />
+
+
         <ProFormText
           rules={[
             {

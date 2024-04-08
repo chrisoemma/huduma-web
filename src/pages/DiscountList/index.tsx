@@ -74,6 +74,7 @@ const DiscountList: React.FC = () => {
         const subpackage = formData.get('package') as string;
         const amount = formData.get('amount') as string;
         const duration = formData.get('duration') as string;
+        const name = formData.get('name') as string;
 
         try {
 
@@ -81,6 +82,7 @@ const DiscountList: React.FC = () => {
                 package: subpackage,
                 amount: parseFloat(amount),
                 duration: duration,
+                name:name,
                 created_by: 1
 
             };
@@ -151,7 +153,7 @@ const DiscountList: React.FC = () => {
             title: (
                 <FormattedMessage id="pages.searchTable.titleDesignation" defaultMessage="Package name" />
             ),
-            dataIndex: ['package', 'name'], // Access nested property
+            dataIndex:  'name', // Access nested property
             valueType: 'text',
             tip: 'Package Name',
             render: (dom, entity) => {
@@ -343,6 +345,7 @@ const DiscountList: React.FC = () => {
                     formData.append('package', value.package);
                     formData.append('amount', value.amount);
                     formData.append('duration', value.duration);
+                    formData.append('name', value.name);
 
                     const success = await handleAdd(formData);
 
@@ -381,6 +384,19 @@ const DiscountList: React.FC = () => {
                             <span style={{ fontWeight: 'bold' }}>{selectedPackage?.amount}</span>
                         </div>
                     )}
+
+
+                      <ProFormText
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Package Name is required',
+                            },
+                        ]}
+                        width="md"
+                        name="name"
+                        label="Package name"
+                    />
 
                     <ProFormText
                         rules={[

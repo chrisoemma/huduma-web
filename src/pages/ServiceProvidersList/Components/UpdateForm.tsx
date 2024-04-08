@@ -1,15 +1,17 @@
 // import {
 import React, { useEffect, useState, useRef } from 'react';
-import { Modal, Upload, Image, Form, Button, message, Tag, } from 'antd';
+import { Modal, Upload, Image, Form, Button, message, Tag, Card, } from 'antd';
 import { ProFormText, StepsForm, ProFormSelect, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-import { FormattedMessage, useIntl,useModel } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateProvider } from '../ServiceProviderSlice';
 import { formatErrorMessages, getStatus, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { history } from 'umi';
 import { providerDesignationDoc } from '@/pages/ProviderDocsList/ProviderDocsSlice';
+import { getPackages } from '@/pages/SubscriptionPackageList/SubscriptionPackageSlice';
+import { CheckOutlined } from '@ant-design/icons';
 
 export type UpdateFormProps = {
 
@@ -24,13 +26,16 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.user?.profile_img);
-
+  const [selectedRadioValue, setSelectedRadioValue] = useState("");
   const stepsFormRef = useRef();
-  const [workingDocumentPercentage, setWorkingDocumentPercentage] = useState<number>(0);
+
 
   const { initialState } = useModel('@@initialState');
   const [designationDocs, setDesignationDocs] = useState([]);
-  
+  const [packages,setSubPackages]=useState([]);
+
+  const [selectedCard, setSelectedCard] = useState(null);
+
   useEffect(() => {
     if (props.updateModalOpen) {
       // console.log('props.value', props.values);
@@ -47,86 +52,102 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   }, [props.updateModalOpen, props.values, form]);
 
 
+
   useEffect(() => {
     async function fetchData() {
         try {
-            const response = await providerDesignationDoc(props.values.id);
-            const designationDocs = response.data.documents;
-
-            console.log('designationssss',designationDocs);
-            setDesignationDocs(designationDocs);
-           
+            const response = await getPackages();
+            const packages = response.data.packages;
+            console.log('packages', response)
+            setSubPackages(packages);
         } catch (error) {
-            console.error('Error fetching Roles data:', error);
+            console.error('Error fetching permissions data:', error);
         }
     }
 
     fetchData();
 }, []);
 
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await providerDesignationDoc(props.values.id);
+        const designationDocs = response.data.documents;
 
-const areRequiredDocumentsUploaded = () => {
-  // Check if all designation documents have corresponding uploaded documents
-  return designationDocs?.every(designationDoc =>
-      props?.values?.documents?.some(uploadDoc => uploadDoc.working_document_id === designationDoc.id)
-  );
-};
+        console.log('designationssss', designationDocs);
+        setDesignationDocs(designationDocs);
 
-
-const checkAllRequiredDocumentsApproved = () => {
-  let allApproved = true;
-
-  if (!props?.values?.documents || props?.values?.documents?.length < 1) {
-    allApproved = false;
-  } else {
-    props?.values?.documents?.forEach(uploadDoc => {
-      if (uploadDoc.status !== "Approved") {
-        allApproved = false;
+      } catch (error) {
+        console.error('Error fetching Roles data:', error);
       }
-    });
-  }
-  return allApproved;
-};
+    }
+
+    fetchData();
+  }, []);
+
+
+  const areRequiredDocumentsUploaded = () => {
+    // Check if all designation documents have corresponding uploaded documents
+    return designationDocs?.every(designationDoc =>
+      props?.values?.documents?.some(uploadDoc => uploadDoc.working_document_id === designationDoc.id)
+    );
+  };
+
+
+  const checkAllRequiredDocumentsApproved = () => {
+    let allApproved = true;
+
+    if (!props?.values?.documents || props?.values?.documents?.length < 1) {
+      allApproved = false;
+    } else {
+      props?.values?.documents?.forEach(uploadDoc => {
+        if (uploadDoc.status !== "Approved") {
+          allApproved = false;
+        }
+      });
+    }
+    return allApproved;
+  };
 
 
 
 
-// Determine if status editing should be enabled
-const isStatusEditingEnabled = () => {
-  const allRequiredDocumentsApproved = checkAllRequiredDocumentsApproved();
-  return allRequiredDocumentsApproved;
-};
+  // Determine if status editing should be enabled
+  const isStatusEditingEnabled = () => {
+    const allRequiredDocumentsApproved = checkAllRequiredDocumentsApproved();
+    return allRequiredDocumentsApproved;
+  };
 
 
 
-const listMissingDocuments = () => {
-  // Extract the IDs of all required documents
-  const requiredDocumentIds = designationDocs?.map(doc => doc.id);
-  
-  // Extract the working document IDs of all uploaded documents
-  const uploadedWorkingDocumentIds = props?.values?.documents?.map(doc => doc?.working_document_id);
+  const listMissingDocuments = () => {
+    // Extract the IDs of all required documents
+    const requiredDocumentIds = designationDocs?.map(doc => doc.id);
 
-  // Find the IDs of missing documents
-  const missingDocumentIds = requiredDocumentIds?.filter(id => !uploadedWorkingDocumentIds.includes(id));
+    // Extract the working document IDs of all uploaded documents
+    const uploadedWorkingDocumentIds = props?.values?.documents?.map(doc => doc?.working_document_id);
 
-  // Filter out the missing documents from the designationDocs
-  const missingDocuments = designationDocs?.filter(doc => missingDocumentIds.includes(doc.id));
+    // Find the IDs of missing documents
+    const missingDocumentIds = requiredDocumentIds?.filter(id => !uploadedWorkingDocumentIds.includes(id));
 
-  // Extract the names of missing documents
-  const missingDocumentNames = missingDocuments?.map(doc => doc.doc_name);
+    // Filter out the missing documents from the designationDocs
+    const missingDocuments = designationDocs?.filter(doc => missingDocumentIds.includes(doc.id));
 
-  return missingDocumentNames;
-};
+    // Extract the names of missing documents
+    const missingDocumentNames = missingDocuments?.map(doc => doc.doc_name);
 
-  
-const handleViewDocs = () => {
-  // Assuming you have a route named '/documents/:providerId'
-  const route = `/user-management/service-providers/documents/provider/${props.values.id}`;
-  // Redirect to the documents route
-  history.push(route);
-};
-  
-  
+    return missingDocumentNames;
+  };
+
+
+  const handleViewDocs = () => {
+    // Assuming you have a route named '/documents/:providerId'
+    const route = `/user-management/service-providers/documents/provider/${props.values.id}`;
+    // Redirect to the documents route
+    history.push(route);
+  };
+
+
 
   const { Dragger } = Upload;
 
@@ -187,10 +208,18 @@ const handleViewDocs = () => {
       const profile_img = imageUrl || props.values.user?.profile_img;
       values.profile_img = profile_img;
 
+     if(props?.values?.active_subscription==null){
+      if (!selectedCard) {
+        message.error('Please select a subscription package');
+        return;
+      }
+    }
       values.phone = validateTanzanianPhoneNumber(values.phone);
       const currentUser = initialState?.currentUser;
       values.action_by = currentUser?.id;
+      values.package=selectedCard;
 
+   
       const response = await updateProvider(providerId, { ...values, profile_img });
       if (response.status) {
         setImageUrl(undefined);
@@ -323,21 +352,21 @@ const handleViewDocs = () => {
         />
 
 
-<ProFormText
-                        name="email"
-                        label={intl.formatMessage({
-                            id: 'pages.searchTable.updateForm.email',
-                            defaultMessage: 'Email',
-                        })}
-                        width="md"
-                        rules={[
+        <ProFormText
+          name="email"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.email',
+            defaultMessage: 'Email',
+          })}
+          width="md"
+          rules={[
 
-                            {
-                                type: 'email',
-                                message: 'Please enter a valid email address!',
-                            },
-                        ]}
-                    />
+            {
+              type: 'email',
+              message: 'Please enter a valid email address!',
+            },
+          ]}
+        />
 
       </StepsForm.StepForm>
 
@@ -374,58 +403,8 @@ const handleViewDocs = () => {
           name="nida"
           label="NIDA"
         />
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-      <div>
-    {/* Display a message indicating the completion status of the required documents */}
-    {areRequiredDocumentsUploaded() ? (
-      <p style={{ color: 'green' }}>All required documents are uploaded</p>
-    ) : (
-      <div>
-        <p style={{ color: 'red' }}>Some required documents are missing:</p>
-        {/* List the missing documents */}
-        <ul>
-          {listMissingDocuments()?.map((document, index) => (
-            <li key={index}><Tag>{document}</Tag></li>
-          ))}
-        </ul>
-      </div>
-    )}
-  </div>
 
-    <Button type="primary" onClick={handleViewDocs}>
-      View Docs
-    </Button>
- 
-</div>
-   
-        <ProFormRadio.Group
-          name="status"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.ruleProps.typeLabelStatus',
-            defaultMessage: 'Status',
-          })}
-          options={[
-            {
-              value: 'Pending',
-              label: 'Pending',
-            },
-         
-            {
-              value: 'Active',
-              label: 'Active',
-            },
-            {
-              value: 'In Active',
-              label: 'Deactivate',
-            },
-          ]}
-          disabled={!isStatusEditingEnabled()}
-          
-        />
-
-
-        <Form.Item
+             <Form.Item
           name="image"
           label="Image"
           valuePropName="fileList"
@@ -452,6 +431,118 @@ const handleViewDocs = () => {
         <Form.Item label="Current Image">
           {props.values.user?.profile_img && <Image src={props.values.user?.profile_img} width={200} />}
         </Form.Item>
+
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            {/* Display a message indicating the completion status of the required documents */}
+            {areRequiredDocumentsUploaded() ? (
+              <p style={{ color: 'green' }}>All required documents are uploaded</p>
+            ) : (
+              <div>
+                <p style={{ color: 'red' }}>Some required documents are missing:</p>
+                {/* List the missing documents */}
+                <ul>
+                  {listMissingDocuments()?.map((document, index) => (
+                    <li key={index}><Tag>{document}</Tag></li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <Button type="primary" onClick={handleViewDocs}>
+            View Docs
+          </Button>
+
+        </div>
+
+        <ProFormRadio.Group
+          name="status"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.ruleProps.typeLabelStatus',
+            defaultMessage: 'Status',
+          })}
+          options={[
+            {
+              value: 'Pending',
+              label: 'Pending',
+            },
+
+            {
+              value: 'Active',
+              label: 'Active',
+            },
+            {
+              value: 'In Active',
+              label: 'Deactivate',
+            },
+          ]}
+          disabled={!isStatusEditingEnabled()}
+          onChange={(e) => setSelectedRadioValue(e.target.value)}
+        />
+
+  
+<div>
+    <h3>{props?.values?.status=='Pending approval' && selectedRadioValue === 'Active' ?'Subscription Packages':''}{props?.values?.active_subscription?'Subscribed package': ''}</h3>
+       {props?.values?.status=='Pending approval' && selectedRadioValue === 'Active' ?(
+    <div style={{ display: 'flex', gap: '16px' }}>
+      {packages?.map(subPackage => (
+         <Card
+         key={subPackage?.id}
+         title={subPackage?.name}
+         style={{ width: 300, position: 'relative',boxShadow: selectedCard === subPackage?.id ? '0 0 10px rgba(0, 0, 0, 0.3)' : 'none'  }}
+      
+         onClick={() => setSelectedCard(subPackage?.id)}
+       >
+         <p style={{ textDecoration: 'line-through' }}>Price: {subPackage?.amount}</p>
+         <p>Trial: Free</p>
+       
+         {selectedCard === subPackage?.id && (
+           <div style={{ position: 'absolute', top: 10, right: 10 }}>
+             <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
+           </div>
+         )}
+       </Card>
+
+      ))}
+    </div>
+    ):(<div />)}
+
+    {props?.values?.active_subscription?(<Card
+         key={props?.values?.active_subscription?.package.id}
+         title={props?.values?.active_subscription?.package.name}
+         style={{ width: 300, position: 'relative' }}
+       >
+         {props.values.active_subscription.is_trial ? (
+  <div>
+    <p style={{ textDecoration: 'line-through' }}>Price: {props?.values?.active_subscription?.package?.amount}</p>
+    <p>Trial: Free</p>
+  </div>
+) : (
+  <div>
+    {props?.values?.active_subscription?.discount ? (
+      <div>
+        <p>Price: {props?.values?.active_subscription?.amount-props?.values?.active_subscription?.discount?.amount}</p>
+        <p>Duration: {props?.values?.active_subscription?.discount?.duration}</p>
+      </div>
+    ) : (
+      <div>
+        <p>Price: {props?.values?.active_subscription?.package?.amount}</p>
+        <p>Duration: 1</p>
+      </div>
+    )}
+  </div>
+)}
+
+         <p>Starts: {props?.values?.active_subscription.start_date}</p>
+         <p>Ends: {props?.values?.active_subscription.end_date}</p>
+           <div style={{ position: 'absolute', top: 10, right: 10 }}>
+             <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
+           </div>
+       
+       </Card>):(<div />)}
+  </div>
+   
 
       </StepsForm.StepForm>
 
