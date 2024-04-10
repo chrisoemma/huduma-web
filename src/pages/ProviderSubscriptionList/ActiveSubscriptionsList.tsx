@@ -12,13 +12,13 @@ import {
     ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Card, Drawer,Form, Image, Input, Tag, message } from 'antd';
+import { Button, Card, Drawer,Form, Image, Input, Modal, Tag, message } from 'antd';
 
 import React, { useRef, useState, useEffect } from 'react';
 
 //import UpdateForm from './components/UpdateForm';
 
-import { getProvidersSubscriptions } from './ProviderSubscriptionSlice';
+import { cancelSubscription, getProvidersSubscriptions, upgradeSubscription } from './ProviderSubscriptionSlice';
 import moment from 'moment';
 import { getDiscounts } from '../DiscountList/DiscountSlice';
 
@@ -40,6 +40,7 @@ const ActiveSubscriptionsList: React.FC = () => {
 
     const [form] = ProForm.useForm();
     const [selectedCard, setSelectedCard] = useState(null);
+    const [cancelConfirmationVisible, setCancelConfirmationVisible] = useState(false);
 
 
       useEffect(() => {
@@ -56,6 +57,69 @@ const ActiveSubscriptionsList: React.FC = () => {
   
     fetchData();
   }, []);
+
+
+  const handleCancel = () => {
+    setCancelConfirmationVisible(true);
+};
+
+const handleOkCancel =async()=>{
+      
+    const hide = message.loading('Loading...');
+    try {
+      const response = await cancelSubscription(currentRow.id);
+            message.success('successfully Cancelled');
+     } catch (error) {
+      hide();
+      message.error('Cancelled failed, please try again!');
+      return false
+    } finally {
+        setCancelConfirmationVisible(false); 
+      handleModalOpen(false);
+      actionRef.current.reload();
+    }
+}
+
+
+  const handleAdd = async (formData: FormData) => {
+     
+       console.log('selected row',currentRow)
+       console.log('selected card',selectedCard);
+
+       let data= {
+        provider_id:currentRow.provider.id,
+        free_trial:currentRow.is_trial,
+        subscription_id:currentRow.id,
+        user_id:currentRow.provider.user_id
+    };
+
+      if(!selectedCard){
+        message.error('Please select package!');
+        return 
+      }
+
+
+    //   console.log('data',data)
+    //   console.log('selected card',selectedCard)
+
+    //   return 
+
+      const hide = message.loading('Loading...');
+      try {
+        const response = await upgradeSubscription(selectedCard, { ...data });
+              message.success('successfully Upgraded');
+       } catch (error) {
+        hide();
+        message.error('Upgrade failed, please try again!');
+        return false
+      } finally {
+        handleModalOpen(false);
+        actionRef.current.reload();
+      }
+
+
+  }
+
 
 
     const columns: ProColumns<API.ActiveSubscriptionsListItem>[] = [
@@ -120,7 +184,7 @@ const ActiveSubscriptionsList: React.FC = () => {
                 } else {
                     const discountAmount = parseFloat(entity.discount.amount);
                     const discountDuration = parseFloat(entity.discount.duration);
-                    amountPaid = (discountAmount * discountDuration) - (discountAmount * discountDuration);
+                    amountPaid = (entity.package.amount * discountDuration) - (discountAmount * discountDuration);
                 }
                 return (
                     <a
@@ -244,8 +308,10 @@ const ActiveSubscriptionsList: React.FC = () => {
             title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
             dataIndex: 'option',
             valueType: 'option',
-            render: (_, record) => [
-              <a
+            render: (_, record) => (
+                <>
+                 <div style={{marginBottom:10}}>
+                        <a
                 key="config"
                 onClick={() => {
                   handleModalOpen(true);
@@ -253,9 +319,20 @@ const ActiveSubscriptionsList: React.FC = () => {
                 }}
               >
                 <FormattedMessage id="pages.searchTable.upgrade" defaultMessage="Upgrade" />
-              </a>,
+              </a>
+                 </div>
+                 <a
+                 key="config"
+                 onClick={() => {
+                    handleCancel();
+                   setCurrentRow(record);
+                 }}
+               >
+                 <FormattedMessage id="pages.searchTable.end" defaultMessage="Cancel" />
+               </a>
+                   </>
              
-            ],
+                ),
           },
     ];
     
@@ -358,6 +435,15 @@ const ActiveSubscriptionsList: React.FC = () => {
             </Drawer>
 
 
+            <Modal
+    title="Cancel Subscription"
+    visible={cancelConfirmationVisible}
+     onOk={handleOkCancel}
+     onCancel={() => setCancelConfirmationVisible(false)}
+      >
+    <p>Are you sure you want to cancel this subscription?</p>
+</Modal>
+
             <ModalForm
     form={form}
     title={intl.formatMessage({
@@ -370,58 +456,91 @@ const ActiveSubscriptionsList: React.FC = () => {
     onFinish={async value => {
         const formData = new FormData();
         // Handle form submission here
+        const success = await handleAdd(formData);
+        if (success) {
+            handleModalOpen(false);
+            if (actionRef.current) {
+                actionRef.current.reload();
+            }
+        }
     }}
 >
     <ProForm.Group>
-    <div
+        <div
             style={{
                 display: 'flex',
                 flexWrap: 'wrap', // Allow flex items to wrap to the next line
                 gap: '16px',
             }}
         >
-        {Object.values(packages.reduce((acc, subPackage) => {
-            if (!selectedRowsState.some(subscription => subscription.discount_id === subPackage.id)) {
-                const packageName = subPackage.package.name;
-                if (!acc[packageName]) {
-                    acc[packageName] = [];
+            {Object.values(packages.reduce((acc, subPackage) => {
+                if (!selectedRowsState.some(subscription => subscription.discount_id === subPackage.id)) {
+                    const packageId = subPackage.package.id;
+                    const packageName = subPackage.package.name;
+                    if (!acc[packageId]) {
+                        acc[packageId] = {
+                            name: packageName,
+                            packages: [],
+                        };
+                    }
+                    acc[packageId].packages.push(subPackage);
                 }
-                acc[packageName].push(subPackage);
-            }
-            return acc;
-        }, {})).map(packagesByName => (
-            packagesByName
-                .sort((a, b) => a.duration - b.duration) // Sort packages by duration within each group
-                .map(subPackage => (
-                    <Card
-                        key={subPackage.id}
-                        title={subPackage.name}
+                return acc;
+            }, {})).map(({ name, packages }) => (
+                <div key={name}>
+                    <h3>{name}</h3>
+                    <div
                         style={{
-                            flexBasis: 'calc(33.33% - 16px)',
-                            marginBottom: '16px',
-                            position: 'relative',
-                            boxShadow:
-                                selectedCard === subPackage.id
-                                    ? '0 0 10px rgba(0, 0, 0, 0.3)'
-                                    : 'none',
+                            display: 'flex',
+                            flexWrap: 'wrap', // Allow flex items to wrap to the next line
+                            gap: '16px',
                         }}
-                        onClick={() => setSelectedCard(subPackage.id)}
                     >
-                        <p style={{ textDecoration: 'line-through' }}>Price: {subPackage.package.amount * subPackage.duration}</p>
-                        <p>Price: {(subPackage.package.amount * subPackage.duration) - (subPackage.amount * subPackage.duration)}</p>
-                        <p>Duration: {subPackage.duration}</p>
+                        {packages
+                            .sort((a, b) => a.duration - b.duration) // Sort packages by duration within each group
+                            .map(subPackage => (
+                                <Card
+                                    key={subPackage.id}
+                                    title={subPackage.name}
+                                    style={{
+                                        flexBasis: 'calc(33.33% - 16px)',
+                                        marginBottom: '16px',
+                                        position: 'relative',
+                                        boxShadow:
+                                            selectedCard === subPackage.id
+                                                ? '0 0 10px rgba(0, 0, 0, 0.3)'
+                                                : 'none',
+                                        opacity:
+                                         currentRow?.package_id !==subPackage?.package_id  ||    (currentRow?.package_id==subPackage?.package_id  &&  currentRow?.discount?.duration >= subPackage.duration)
+                                                ? 0.5
+                                                : 1,
+                                        pointerEvents:
+                                        currentRow?.package_id !==subPackage?.package_id  ||  (currentRow?.package_id==subPackage?.package_id  &&  currentRow?.discount?.duration >= subPackage.duration)
+                                                ? 'none'
+                                                : 'auto',
+                                    }}
+                                    onClick={() => setSelectedCard(subPackage.id)}
+                                >
+                            
+                                    <p style={{ textDecoration: 'line-through' }}>Price: {subPackage.package.amount * subPackage.duration}</p>
+                                    <p>Price: {(subPackage.package.amount * subPackage.duration) - (subPackage.amount * subPackage.duration)}</p>
+                                    <p>Duration: {subPackage.duration}</p>
 
-                        {selectedCard === subPackage.id && (
-                            <div style={{ position: 'absolute', top: 10, right: 10 }}>
-                                <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
-                            </div>
-                        )}
-                    </Card>
-                ))
-        ))}
+                                    {selectedCard === subPackage.id && (
+                                        <div style={{ position: 'absolute', top: 10, right: 10 }}>
+                                            <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
+                                        </div>
+                                    )}
+                                </Card>
+                            ))}
+                    </div>
+                </div>
+            ))}
         </div>
     </ProForm.Group>
 </ModalForm>
+
+
 
 
         </PageContainer>

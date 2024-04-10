@@ -36,17 +36,59 @@ export async function getExpiredSubscriptions(
     });
   }
 
-  export async function upgradePackage(options?: { [key: string]: any }) {
+  // export async function upgradeSubscription(options?: { [key: string]: any }) {
 
-    return request(`${API_URL}/discounts`, {
+  //   return request(`${API_URL}/providers/upgrade_subscription/${newPlanId}`, {
+  //     method: 'POST',
+  //     data:{
+  //       method: 'post',
+  //       ...(options || {}),
+  //     }
+  //   });
+  // }
+
+
+  export async function upgradeSubscription(newPlanId: number, options?: { [key: string]: any }) {
+    return request(`${API_URL}/subscriptions/upgrade_subscription/${newPlanId}`, {
       method: 'POST',
-      data:{
+      data: {
         method: 'post',
         ...(options || {}),
-      }
+      },
     });
-  }
+   }
 
+
+   export async function renewSubscription(newPlanId: number, options?: { [key: string]: any }) {
+    return request(`${API_URL}/subscriptions/renew/${newPlanId}`, {
+      method: 'POST',
+      data: {
+        method: 'post',
+        ...(options || {}),
+      },
+    });
+   }
+
+   export async function newSubscription(newPlanId: number, options?: { [key: string]: any }) {
+    return request(`${API_URL}/subscriptions/new_subscription/${newPlanId}`, {
+      method: 'POST',
+      data: {
+        method: 'post',
+        ...(options || {}),
+      },
+    });
+   }
+
+
+   export async function cancelSubscription(subscriptionId: number, options?: { [key: string]: any }) {
+    return request(`${API_URL}/subscriptions/cancel_subscription/${subscriptionId}`, {
+      method: 'PUT',
+      data: {
+        method: 'put',
+        ...(options || {}),
+      },
+    });
+   }
 
 
   export async function getAllPackages(
@@ -75,6 +117,8 @@ export async function getExpiredSubscriptions(
    },
  });
 }
+
+
 
 
 export async function removeDiscount(options?: { [key: string]: any }) {

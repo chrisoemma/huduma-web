@@ -483,9 +483,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   
 <div>
-    <h3>{props?.values?.status=='Pending approval' && selectedRadioValue === 'Active' ?'Subscription Packages':''}{props?.values?.active_subscription?'Subscribed package': ''}</h3>
+       <h3>{props?.values?.status=='Pending approval' && selectedRadioValue === 'Active' ?'Subscription Packages':''}{props?.values?.active_subscription?'Subscribed package': ''}</h3>
        {props?.values?.status=='Pending approval' && selectedRadioValue === 'Active' ?(
-    <div style={{ display: 'flex', gap: '16px' }}>
+      <div style={{ display: 'flex', gap: '16px' }}>
       {packages?.map(subPackage => (
          <Card
          key={subPackage?.id}

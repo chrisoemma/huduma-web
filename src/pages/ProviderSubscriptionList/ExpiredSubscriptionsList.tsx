@@ -1,4 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
+import { CheckOutlined, PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
 import {
     FooterToolbar,
@@ -12,16 +12,18 @@ import {
     ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message } from 'antd';
+import { Button, Card, Drawer,Form, Image, Input, Tag, message } from 'antd';
+
 import React, { useRef, useState, useEffect } from 'react';
 
 //import UpdateForm from './components/UpdateForm';
 
-import { getExpiredSubscriptions} from './ProviderSubscriptionSlice';
+import { getExpiredSubscriptions,renewSubscription,upgradeSubscription } from './ProviderSubscriptionSlice';
 import moment from 'moment';
+import { getDiscounts } from '../DiscountList/DiscountSlice';
 
 
-const ActiveSubscriptionsList: React.FC = () => {
+const ExpiredSubscriptionsList: React.FC = () => {
 
     const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
@@ -30,12 +32,73 @@ const ActiveSubscriptionsList: React.FC = () => {
     const [showDetail, setShowDetail] = useState<boolean>(false);
 
     const actionRef = useRef<ActionType>();
-    const [currentRow, setCurrentRow] = useState<API.ActiveSubscriptionsListItem>();
-    const [selectedRowsState, setSelectedRows] = useState<API.ActiveSubscriptionsListItem[]>([]);
-
+    const [currentRow, setCurrentRow] = useState<API.ExpiredSubscriptionsListItem>();
+    const [selectedRowsState, setSelectedRows] = useState<API.ExpiredSubscriptionsListItem[]>([]);
+ 
+    const [packages,setPackages]=useState([]);
     const intl = useIntl();
 
-    const columns: ProColumns<API.ActiveSubscriptionsListItem>[] = [
+    const [form] = ProForm.useForm();
+    const [selectedCard, setSelectedCard] = useState(null);
+
+
+      useEffect(() => {
+    async function fetchData() {
+      try {
+        const response = await getDiscounts();
+        const packages = response.data.discounts;
+      
+        setPackages(packages);
+      } catch (error) {
+        console.error('Error fetching packages data:', error);
+      }
+    }
+  
+    fetchData();
+  }, []);
+
+
+  const handleAdd = async (formData: FormData) => {
+     
+      
+
+       let data= {
+        provider_id:currentRow.provider.id,
+        free_trial:currentRow.is_trial,
+        subscription_id:currentRow.id,
+        user_id:currentRow.provider.user_id
+    };
+
+      if(!selectedCard){
+        message.error('Please select package!');
+        return 
+      }
+
+
+    //   console.log('data',data)
+    //   console.log('selected card',selectedCard)
+
+    //   return 
+
+      const hide = message.loading('Loading...');
+      try {
+        const response = await renewSubscription(selectedCard, { ...data });
+              message.success('successfully Renewed');
+       } catch (error) {
+        hide();
+        message.error('Renew failed, please try again!');
+        return false
+      } finally {
+        handleModalOpen(false);
+        actionRef.current.reload();
+      }
+
+
+  }
+
+
+
+    const columns: ProColumns<API.ExpiredSubscriptionsListItem>[] = [
         {
             title: (
                 <FormattedMessage
@@ -97,7 +160,7 @@ const ActiveSubscriptionsList: React.FC = () => {
                 } else {
                     const discountAmount = parseFloat(entity.discount.amount);
                     const discountDuration = parseFloat(entity.discount.duration);
-                    amountPaid = (discountAmount * discountDuration) - (discountAmount * discountDuration);
+                    amountPaid = (entity.package.amount * discountDuration) - (discountAmount * discountDuration);
                 }
                 return (
                     <a
@@ -225,11 +288,11 @@ const ActiveSubscriptionsList: React.FC = () => {
               <a
                 key="config"
                 onClick={() => {
-                  handleUpdateModalOpen(true);
+                  handleModalOpen(true);
                   setCurrentRow(record);
                 }}
               >
-                <FormattedMessage id="pages.searchTable.upgrade" defaultMessage="Upgrade" />
+                <FormattedMessage id="pages.searchTable.renew" defaultMessage="Renew" />
               </a>,
              
             ],
@@ -320,7 +383,7 @@ const ActiveSubscriptionsList: React.FC = () => {
                 closable={false}
             >
                 {currentRow?.name && (
-                    <ProDescriptions<API.ActiveSubscriptionsListItem>
+                    <ProDescriptions<API.ExpiredSubscriptionsListItem>
                         column={2}
                         title={currentRow?.name}
                         request={async () => ({
@@ -329,12 +392,106 @@ const ActiveSubscriptionsList: React.FC = () => {
                         params={{
                             id: currentRow?.name,
                         }}
-                        columns={columns as ProDescriptionsItemProps<API.ActiveSubscriptionsListItem>[]}
+                        columns={columns as ProDescriptionsItemProps<API.ExpiredSubscriptionsListItem>[]}
                     />
                 )}
             </Drawer>
+
+
+            <ModalForm
+    form={form}
+    title={intl.formatMessage({
+        id: 'pages.searchTable.createForm.newPackage',
+        defaultMessage: 'Renew Package',
+    })}
+    width="800px"
+    open={createModalOpen}
+    onOpenChange={handleModalOpen}
+    onFinish={async value => {
+        const formData = new FormData();
+        // Handle form submission here
+        const success = await handleAdd(formData);
+        if (success) {
+            handleModalOpen(false);
+            if (actionRef.current) {
+                actionRef.current.reload();
+            }
+        }
+    }}
+>
+    <ProForm.Group>
+        <div
+            style={{
+                display: 'flex',
+                flexWrap: 'wrap', // Allow flex items to wrap to the next line
+                gap: '16px',
+            }}
+        >
+            {Object.values(packages.reduce((acc, subPackage) => {
+                if (!selectedRowsState.some(subscription => subscription.discount_id === subPackage.id)) {
+                    const packageId = subPackage.package.id;
+                    const packageName = subPackage.package.name;
+                    if (!acc[packageId]) {
+                        acc[packageId] = {
+                            name: packageName,
+                            packages: [],
+                        };
+                    }
+                    acc[packageId].packages.push(subPackage);
+                }
+                return acc;
+            }, {})).map(({ name, packages }) => (
+                <div key={name}>
+                    <h3>{name}</h3>
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexWrap: 'wrap', // Allow flex items to wrap to the next line
+                            gap: '16px',
+                        }}
+                    >
+                        {packages
+                            .sort((a, b) => a.duration - b.duration) // Sort packages by duration within each group
+                            .map(subPackage => (
+                                <Card
+                                    key={subPackage.id}
+                                    title={subPackage.name}
+                                    style={{
+                                        flexBasis: 'calc(33.33% - 16px)',
+                                        marginBottom: '16px',
+                                        position: 'relative',
+                                        boxShadow:
+                                            selectedCard === subPackage.id
+                                                ? '0 0 10px rgba(0, 0, 0, 0.3)'
+                                                : 'none',
+                                   
+                                    }}
+                                    onClick={() => setSelectedCard(subPackage.id)}
+                                >
+                            
+                                    <p style={{ textDecoration: 'line-through' }}>Price: {subPackage.package.amount * subPackage.duration}</p>
+                                    <p>Price: {(subPackage.package.amount * subPackage.duration) - (subPackage.amount * subPackage.duration)}</p>
+                                    <p>Duration: {subPackage.duration}</p>
+
+                                    {selectedCard === subPackage.id && (
+                                        <div style={{ position: 'absolute', top: 10, right: 10 }}>
+                                            <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
+                                        </div>
+                                    )}
+                                </Card>
+                            ))}
+                    </div>
+                </div>
+            ))}
+        </div>
+    </ProForm.Group>
+</ModalForm>
+
+
+
+
         </PageContainer>
     );
 };
 
-export default ActiveSubscriptionsList;
+export default ExpiredSubscriptionsList;
