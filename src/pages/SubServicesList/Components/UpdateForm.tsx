@@ -49,10 +49,12 @@ import { updateSubService } from '../SubServiceSlice';
   
         
       if (props.updateModalOpen && services.length > 0) {
-        const servicesName = services.find((service) => service.id === props.values.service_id)?.name || '';
+        const servicesName = services.find((service) => service.id === props.values.service_id)?.name?.en || '';
         form.setFieldsValue({
-          name: props.values.name,
-          description:props.values.description,
+          name_en: props.values.name?.en || '', 
+          name_sw: props.values.name?.sw || '', 
+          description_en: props.values.description?.en || '', 
+          description_sw: props.values.description?.sw || '', 
           target: servicesName,
         });
         const initialImageUrl = props.values.default_images?.[0]?.img_url;
@@ -112,10 +114,10 @@ import { updateSubService } from '../SubServiceSlice';
       try {
       
         const subServiceId = props.values.id;
-         // return console.log('values',values.service);
+      
        const selectedService =
       services.find((cat) => cat.id == values.service) ||
-     services.find((cat) => cat.name === values.service);
+     services.find((cat) => cat.name?.en === values.service);
   
       if (!selectedService) {
         console.error('Selected category not found');
@@ -125,12 +127,14 @@ import { updateSubService } from '../SubServiceSlice';
       const usedValues = await form.validateFields();
   
       const service_id = selectedService.id;
-      const description = values.description;
+      //const description = values.description;
       const img_url = imageUrl || props.values.default_images?.[0]?.img_url;
        
       usedValues.service_id=selectedService.id;
-      usedValues.description = values.description;
-      usedValues.name = values.name;
+      usedValues.description_en = values.description_en;
+      usedValues.name_en = values.name_en;
+      usedValues.description_sw = values.description_sw;
+      usedValues.name_sw = values.name_sw;
       usedValues.img_url = imageUrl || props.values.default_images?.[0]?.img_url;
   
         await updateSubService(subServiceId, { ...usedValues, img_url });
@@ -180,28 +184,39 @@ import { updateSubService } from '../SubServiceSlice';
         {/* Step 1 */}
         <StepsForm.StepForm
           initialValues={{
-            name: props.values.name,
-            description: props.values.description,
-            service: services.find((service) => service.id === props.values.service_id)?.name,
+            name_en: props.values.name?.en || '', 
+            name_sw: props.values.name?.sw || '', 
+            description_en: props.values.description?.en || '', 
+            description_sw: props.values.description?.sw || '', 
+            service: services.find((service) => service.id === props.values.service_id)?.name?.en,
           }}
           title={intl.formatMessage({
             id: 'pages.searchTable.updateForm.step1',
             defaultMessage: 'Sub Service info',
           })}
         >
-          <ProFormText
-            name="name"
-            label={intl.formatMessage({
-              id: 'pages.searchTable.updateForm.subserviceName',
-              defaultMessage: 'Sub Service Name',
-            })}
-            width="md"
+        <ProFormText
             rules={[
               {
                 required: true,
-                message: 'Please enter the service name!',
+                message: 'English Name is required',
               },
             ]}
+            width="md"
+            name="name_en"
+            label="English name"
+          />
+
+          <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'Kiswahili Name is required',
+              },
+            ]}
+            width="md"
+            name="name_sw"
+            label="Kiswahili name"
           />
           <ProFormSelect
             name="service"
@@ -211,7 +226,7 @@ import { updateSubService } from '../SubServiceSlice';
               defaultMessage: 'Service',
             })}
             valueEnum={services.reduce((enumObj, service) => {
-              enumObj[service.id] = service.name;
+              enumObj[service.id] = service?.name?.en;
               return enumObj;
             }, {})}
             rules={[
@@ -221,32 +236,50 @@ import { updateSubService } from '../SubServiceSlice';
               },
             ]}
           />
-          <ProFormTextArea
-            name="description"
-            width="md"
-            label={intl.formatMessage({
-              id: 'pages.searchTable.updateForm.description',
-              defaultMessage: 'Description',
-            })}
-            placeholder={intl.formatMessage({
-              id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
-              defaultMessage: 'Description',
-            })}
-            rules={[
-              {
-                required: true,
-                message: 'Please enter the description!',
-                min: 5,
-              },
-            ]}
-          />
+        <ProFormTextArea
+          name="description_en"
+          width="md"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.description_eng',
+            defaultMessage: 'English Description',
+          })}
+          placeholder={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+            defaultMessage: 'Description in English',
+          })}
+          rules={[
+            {
+              required: true,
+              message: 'Please enter the description!',
+              min: 5,
+            },
+          ]}
+        />
+
+        <ProFormTextArea
+          name="description_sw"
+          width="md"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.description_sw',
+            defaultMessage: 'Kiswahili Description',
+          })}
+          placeholder={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+            defaultMessage: 'Description in Kiswahili',
+          })}
+          rules={[
+            {
+              required: true,
+              message: 'Please enter the description!',
+              min: 5,
+            },
+          ]}
+        />
         </StepsForm.StepForm>
   
         {/* Step 2 */}
         <StepsForm.StepForm
-          // initialValues={{
-          //   image: [{ uid: '-1', name: 'image', status: 'done', url: imageUrl }],
-          // }}
+     
           title={intl.formatMessage({
             id: 'pages.searchTable.updateForm.step2',
             defaultMessage: 'Images upload',

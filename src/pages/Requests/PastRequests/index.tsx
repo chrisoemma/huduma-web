@@ -165,25 +165,21 @@ const PastRequestList: React.FC = () => {
       search: true,
     },
 
-        {
+    {
       title: (
         <FormattedMessage
           id="pages.searchTable.updateForm.business"
           defaultMessage="Business"
         />
       ),
-      dataIndex: ['service','name'],  //display list of services separeted by , what we call service in api is business while diplying
+      dataIndex: 'service', // Assuming the service data is directly accessible
       valueType: 'text',
-      render: (dom, entity) => {
+      render: (_, entity) => {
+        const serviceName = entity.service?.name?.en || entity.service?.name?.sw || '-';
         return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
+          <span>
+            {serviceName}
+          </span>
         );
       },
       search: true,
@@ -202,7 +198,7 @@ const PastRequestList: React.FC = () => {
       render: (dom, entity) => {
         const subServices = combineSubServices(entity);
         const subServicesNames = subServices.map(subService => {
-          return subService.provider_sub_list?.name || subService.sub_service?.name || subService.provider_sub_service?.name;
+          return subService.provider_sub_list?.name || subService.sub_service?.name?.en || subService.provider_sub_service?.name;
         }).join(', ');
         return (
           <span>

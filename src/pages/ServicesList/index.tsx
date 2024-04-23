@@ -65,15 +65,19 @@ const ServiceList: React.FC = () => {
 
   const handleAdd = async (formData: FormData) => {
 
-    const name = formData.get('name') as string;
+   
+    const name_en = formData.get('name_en') as string;
+    const name_sw = formData.get('name_sw') as string;
+    const description_en = formData.get('description_en') as string;
+    const description_sw = formData.get('description_sw') as string;
     const imageFile = formData.get('image') as File;
     const categoryId = formData.get('category');
     const description = formData.get('description') as string;
 
     try {
-      const storageRef = ref(storage, `images/${imageFile.name}`);
-
+      
       if (imageFile) {
+        const storageRef = ref(storage, `images/${imageFile.name}`);
         const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
         uploadTask.on(
@@ -91,23 +95,26 @@ const ServiceList: React.FC = () => {
             }
           },
           (error) => {
-            // Handle unsuccessful uploads
             console.error('Upload error:', error);
           },
           async () => {
             try {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               const serviceData: API.ServiceListItem = {
-                id: 0, // Set the appropriate ID
-                name: name,
+                id: 0, 
+                name_en: name_en,
+                name_sw: name_sw,
+                description_en: description_en,
+                description_sw: description_sw,
                 category_id:categoryId,
                 img_url: downloadURL,
                 description:description
-                // Save the download URL to the database
+                
               };
-              // Save the data to the database
-              const hide = message.loading('Loading...');
+             
+              
               try {
+
                 await addService(serviceData);
                 hide();
                 message.success('Added successfully');
@@ -129,26 +136,8 @@ const ServiceList: React.FC = () => {
           }
         );
       } else {
-        // If no image is uploaded, create an object without img_url
-        const serviceData: API.ServiceListItem = {
-            id: 0, // Set the appropriate ID
-            name: name,
-            category_id:categoryId,
-            description:description
-        };
-
-        // Save the data to the database
-        const hide = message.loading('Loading...');
-        try {
-          await addService(serviceData);
-          hide();
-          message.success('Added successfully');
-          return true
-        } catch (error) {
-          hide();
-          message.error('Adding failed, please try again!');
-          return false
-        }
+        message.error('Please upload image, please try again!');
+       
       }
     } catch (error) {
       message.error('Image upload failed, please try again!');
@@ -165,7 +154,7 @@ const ServiceList: React.FC = () => {
         const services = response.data.services;
         console.log('services1112:', services);
         setServices(services);
-        actionRef.current?.reloadAndRest(); // Reload and reset the table state
+        actionRef.current?.reloadAndRest(); 
       } catch (error) {
         console.error('Error fetching service data:', error);
       }
@@ -201,18 +190,22 @@ const ServiceList: React.FC = () => {
       dataIndex: 'name',
       valueType: 'text',
       tip: 'The service Name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
+      render: (text, record) => {
+        const service = record.name; 
+        if (service) {
+            return (
+                <>
+                    <div style={{ marginBottom: 10 }}>
+                        <b>English:</b> {service?.en}
+                    </div>
+                    <div>
+                        <b>Swahili:</b> {service?.sw}
+                    </div>
+                </>
+            );
+        }
+        return '-------';
+    },
       search: true,
     },
     {
@@ -248,7 +241,7 @@ const ServiceList: React.FC = () => {
                 setShowDetail(true);
               }}
             >
-              {dom ? dom.name : 'N/A'}
+              {dom ? dom?.name?.en : 'N/A'}
             </a>
           );
         },
@@ -265,18 +258,22 @@ const ServiceList: React.FC = () => {
         dataIndex: 'description',
         valueType: 'text',
         tip: 'General description ',
-        render: (dom, entity) => {
-          return (
-            <a
-              onClick={() => {
-                setCurrentRow(entity);
-                setShowDetail(true);
-              }}
-            >
-              {dom}
-            </a>
-          );
-        },
+        render: (text, record) => {
+          const description = record?.description; 
+          if (description) {
+              return (
+                  <>
+                      <div style={{ marginBottom: 10 }}>
+                          <b>English:</b> {description?.en}
+                      </div>
+                      <div>
+                          <b>Swahili:</b> {description?.sw}
+                      </div>
+                  </>
+              );
+          }
+          return '-------';
+      },
         search: true,
       },
     {
@@ -404,8 +401,10 @@ const ServiceList: React.FC = () => {
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
-          formData.append('name', value.name);
-          formData.append('description',value.description);
+          formData.append('name_en', value.name_en);
+          formData.append('name_sw', value.name_sw);
+          formData.append('description_en', value.description_en);
+          formData.append('description_sw', value.description_sw);
           formData.append('category',value.category);
           if (value.image) {
             formData.append('image', value.image[0].originFileObj);
@@ -421,48 +420,87 @@ const ServiceList: React.FC = () => {
           }
         }}
       >
+        
         <ProForm.Group>
           <ProFormText
             rules={[
               {
                 required: true,
-                message: 'Name is required',
+                message: 'English Name is required',
               },
             ]}
             width="md"
-            name="name"
-            label="Name"
+            name="name_en"
+            label="English name"
           />
-             <ProFormSelect
-          name="category"
+
+          <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'Kiswahili Name is required',
+              },
+            ]}
+            width="md"
+            name="name_sw"
+            label="Kiswahili name"
+          />
+<ProFormSelect
+  name="category"
+  width="md"
+  label={intl.formatMessage({
+    id: 'pages.searchTable.updateForm.category',
+    defaultMessage: 'Service category',
+  })}
+  valueEnum={categories.reduce((enumObj, category) => {
+    enumObj[category.id] = category?.name?.en;
+    return enumObj;
+  }, {})}
+  rules={[
+    {
+      required: true,
+      message: 'Please select the service category!',
+    },
+  ]}
+  fieldProps={{
+    showSearch: true, 
+    optionFilterProp: "children",
+    filterOption: (input, option) => 
+      option?.children?.toLowerCase().indexOf(input?.toLowerCase()) >= 0,
+  }}
+/>
+
+
+       <ProFormTextArea
+          name="description_en"
           width="md"
           label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.category',
-            defaultMessage: 'Service category',
+            id: 'pages.searchTable.updateForm.description_eng',
+            defaultMessage: 'English Description',
           })}
-          valueEnum={categories.reduce((enumObj, category) => {
-            enumObj[category.id] = category.name;
-            return enumObj;
-          }, {})}
-
+          placeholder={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+            defaultMessage: 'Description in English',
+          })}
           rules={[
             {
               required: true,
-              message: 'Please select the service category!',
+              message: 'Please enter the description!',
+              min: 5,
             },
           ]}
         />
 
-<ProFormTextArea
-          name="description"
+        <ProFormTextArea
+          name="description_sw"
           width="md"
           label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.description',
-            defaultMessage: 'Description',
+            id: 'pages.searchTable.updateForm.description_sw',
+            defaultMessage: 'Kiswahili Description',
           })}
           placeholder={intl.formatMessage({
             id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
-            defaultMessage: 'Description',
+            defaultMessage: 'Description in Kiswahili',
           })}
           rules={[
             {

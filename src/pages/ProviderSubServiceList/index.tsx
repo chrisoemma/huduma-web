@@ -59,39 +59,36 @@ const ProviderSubServiceList: React.FC = () => {
                 );
             },
         },
+
         {
+            title: (
+              <FormattedMessage
+                id="pages.searchTable.updateForm.business"
+                defaultMessage="Business"
+              />
+            ),
+            dataIndex: 'service',
+            valueType: 'text',
+            render: (_, entity) => {
+              const serviceName = entity.service?.name?.en || entity.service?.name?.sw || '-';
+              return (
+                <span>
+                  {serviceName}
+                </span>
+              );
+            },
+            search: true,
+          },
+          {
             title: (
                 <FormattedMessage
                     id="pages.searchTable.updateForm.subService"
-                    defaultMessage="Sub service name"
+                    defaultMessage="Service"
                 />
             ),
             dataIndex: 'name',
             search: false,
             valueType: 'text',
-            render: (dom, entity) => {
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
-            },
-        },
-        {
-            title: (
-                <FormattedMessage
-                    id="pages.searchTable.updateForm.service"
-                    defaultMessage="Service"
-                />
-            ),
-            dataIndex: ['service', 'name'],
-            valueType: 'text',
-            search: false,
             render: (dom, entity) => {
                 return (
                     <a

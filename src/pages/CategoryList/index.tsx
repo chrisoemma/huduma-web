@@ -18,7 +18,7 @@ import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addCategory,getCategories, removeCategory } from './CategorySlice';
+import { addCategory, getCategories, removeCategory } from './CategorySlice';
 
 
 const CategoryList: React.FC = () => {
@@ -26,6 +26,7 @@ const CategoryList: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
+  const [loading, setLoading] = useState(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
@@ -38,8 +39,8 @@ const CategoryList: React.FC = () => {
 
 
   const handleRemove = async (selectedRows: API.CategoryListItem[]) => {
-  
 
+  
     const hide = message.loading('Loading....');
     if (!selectedRows) return true;
     try {
@@ -66,18 +67,19 @@ const CategoryList: React.FC = () => {
 
   const handleAdd = async (formData: FormData) => {
 
-    const name = formData.get('name') as string;
+    const name_en = formData.get('name_en') as string;
+    const name_sw = formData.get('name_sw') as string;
     const imageFile = formData.get('image') as File;
 
-
-     
-
     try {
-      const storageRef = ref(storage, `images/${imageFile.name}`);
-
+   
+     
       if (imageFile) {
+        setLoading(false); 
+        const hide = message.loading('Loading...');
+        const storageRef = ref(storage, `images/${imageFile.name}`);
         const uploadTask = uploadBytesResumable(storageRef, imageFile);
-
+         
         uploadTask.on(
           'state_changed',
           (snapshot) => {
@@ -93,27 +95,30 @@ const CategoryList: React.FC = () => {
             }
           },
           (error) => {
-            // Handle unsuccessful uploads
             console.error('Upload error:', error);
           },
           async () => {
+            
             try {
+           
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               const categoryData: API.CategoryListItem = {
-                id: 0, // Set the appropriate ID
-                name: name,
-                img_url: downloadURL, // Save the download URL to the database
+                id: 0,
+                name_en: name_en,
+                name_sw: name_sw,
+                img_url: downloadURL, 
               };
-
-              // Save the data to the database
-              const hide = message.loading('Loading...');
+            
               try {
+               
                 await addCategory(categoryData);
                 hide();
+                setLoading(false)
                 message.success('Added successfully');
                 return true
               } catch (error) {
                 hide();
+                setLoading(false)
                 message.error('Adding failed, please try again!');
                 return false
               } finally {
@@ -129,25 +134,7 @@ const CategoryList: React.FC = () => {
           }
         );
       } else {
-        // If no image is uploaded, create an object without img_url
-        const categoryData: API.CategoryListItem = {
-          id: 0, // Set the appropriate ID
-          name: name,
-          img_url: '', // No image URL in this case
-        };
-
-        // Save the data to the database
-        const hide = message.loading('Loading...');
-        try {
-          await addCategory(categoryData);
-          hide();
-          message.success('Added successfully');
-          return true
-        } catch (error) {
-          hide();
-          message.error('Adding failed, please try again!');
-          return false
-        }
+        message.error('Please, Upload an image!');
       }
     } catch (error) {
       message.error('Image upload failed, please try again!');
@@ -169,10 +156,10 @@ const CategoryList: React.FC = () => {
         console.error('Error fetching category data:', error);
       }
     }
-  
+
     fetchData();
   }, []);
-  
+
 
 
   const columns: ProColumns<API.CategoryListItem>[] = [
@@ -186,18 +173,22 @@ const CategoryList: React.FC = () => {
       dataIndex: 'name',
       valueType: 'text',
       tip: 'The Category Name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
-      },
+      render: (text, record) => {
+        const category = record.name; 
+        if (category) {
+            return (
+                <>
+                    <div style={{ marginBottom: 10 }}>
+                        <b>English:</b> {category.en}
+                    </div>
+                    <div>
+                        <b>Swahili:</b> {category.sw}
+                    </div>
+                </>
+            );
+        }
+        return '-------';
+    },
       search: true,
     },
     {
@@ -210,7 +201,7 @@ const CategoryList: React.FC = () => {
             key={index}
             src={image.img_url}
             alt={`Image ${index + 1}`}
-            style={{ maxWidth: '100px' }} 
+            style={{ maxWidth: '100px' }}
           />
         ));
       }
@@ -251,7 +242,7 @@ const CategoryList: React.FC = () => {
         >
           <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
         </a>,
-       
+
       ],
     },
   ];
@@ -262,11 +253,11 @@ const CategoryList: React.FC = () => {
         //key={categories.length}
         pagination={{
           pageSizeOptions: ['15', '30', '60', '100'],
-          defaultPageSize: 15, 
-          showSizeChanger: true, 
-          locale: {items_per_page: ""}
+          defaultPageSize: 15,
+          showSizeChanger: true,
+          locale: { items_per_page: "" }
         }}
-    
+
         actionRef={actionRef}
         rowKey="id"
         toolBarRender={() => [
@@ -282,22 +273,22 @@ const CategoryList: React.FC = () => {
         ]}
         search={{
           labelWidth: 120,
-        //  filterType: 'light', // Use a light filter form for better layout
+          //  filterType: 'light', // Use a light filter form for better layout
         }}
         request={async (params, sorter, filter) => {
-          try {      
+          try {
             const response = await getCategories(params);
             const categories = response.data.categories;
             // Filter the data based on the 'name' filter
             const filteredCategories = categories.filter(category =>
               params.name
                 ? category.name
-                    .toLowerCase()
-                    .split(' ')
-                    .some(word => word.startsWith(params.name.toLowerCase()))
+                  .toLowerCase()
+                  .split(' ')
+                  .some(word => word.startsWith(params.name.toLowerCase()))
                 : true
             );
-      
+
             return {
               data: filteredCategories,
               success: true,
@@ -310,7 +301,7 @@ const CategoryList: React.FC = () => {
             };
           }
         }}
-      
+
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -326,15 +317,15 @@ const CategoryList: React.FC = () => {
               <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
               <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
               &nbsp;&nbsp;
-             
+
             </div>
           }
         >
           <Button
             onClick={async () => {
               await handleRemove(selectedRowsState);
-             setSelectedRows([]);
-             actionRef.current?.reload();
+              setSelectedRows([]);
+              actionRef.current?.reload();
             }}
           >
             <FormattedMessage
@@ -360,7 +351,8 @@ const CategoryList: React.FC = () => {
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
-          formData.append('name', value.name);
+          formData.append('name_en', value.name_en);
+          formData.append('name_sw', value.name_sw);
           if (value.image) {
             formData.append('image', value.image[0].originFileObj);
           }
@@ -374,18 +366,31 @@ const CategoryList: React.FC = () => {
             }
           }
         }}
+        loading={loading}
       >
         <ProForm.Group>
           <ProFormText
             rules={[
               {
                 required: true,
-                message: 'Name is required',
+                message: 'English Name is required',
               },
             ]}
             width="md"
-            name="name"
-            label="Name"
+            name="name_en"
+            label="English name"
+          />
+
+          <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'Kiswahili Name is required',
+              },
+            ]}
+            width="md"
+            name="name_sw"
+            label="Kiswahili name"
           />
           <ProFormUploadButton
             name="image"

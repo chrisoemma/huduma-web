@@ -173,11 +173,32 @@ const SubserviceChangeList: React.FC = () => {
                 );
             },
         },
+
         {
+            title: (
+              <FormattedMessage
+                id="pages.searchTable.updateForm.business"
+                defaultMessage="Business"
+              />
+            ),
+            dataIndex: 'service',
+            valueType: 'text',
+            render: (_, entity) => {
+              const serviceName = entity.service?.name?.en || entity.service?.name?.sw || '-';
+              return (
+                <span>
+                  {serviceName}
+                </span>
+              );
+            },
+            search: true,
+          },
+
+          {
             title: (
                 <FormattedMessage
                     id="pages.searchTable.updateForm.subService"
-                    defaultMessage="Sub service name"
+                    defaultMessage="Service"
                 />
             ),
             dataIndex: 'name',
@@ -197,30 +218,7 @@ const SubserviceChangeList: React.FC = () => {
             },
         },
         {
-            title: (
-                <FormattedMessage
-                    id="pages.searchTable.updateForm.service"
-                    defaultMessage="Service"
-                />
-            ),
-            dataIndex: ['service', 'name'],
-            valueType: 'text',
-            search: false,
-            render: (dom, entity) => {
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
-            },
-        },
-        {
-            title: <FormattedMessage id="pages.searchTable.titleImage" defaultMessage="Imagewe" />,
+            title: <FormattedMessage id="pages.searchTable.titleImage" defaultMessage="Image" />,
             dataIndex: 'assets',
             hideInSearch: true,
             render: (_, record) => {
@@ -278,7 +276,7 @@ const SubserviceChangeList: React.FC = () => {
                             <FormattedMessage id="pages.searchTable.reject" defaultMessage="Reject" />
                         </a>
                     </div>
-                    <div>
+                    {/* <div>
                         <a
                             onClick={() => {
                                
@@ -288,7 +286,7 @@ const SubserviceChangeList: React.FC = () => {
                         >
                             <FormattedMessage id="pages.searchTable.reject" defaultMessage="Approve for all" />
                         </a>
-                    </div>
+                    </div> */}
                 </>
             ),
         }
@@ -322,7 +320,7 @@ const SubserviceChangeList: React.FC = () => {
                         const subservices = response.data.sub_services;
                         // Filter the data based on the 'name' filter
                         //console.log('subservices', subservices);
-
+                        console.log('subservices123',subservices);
                         const filteredSubservices = subservices.filter(subservice =>
                             params.name
                                 ? subservice.name
@@ -364,7 +362,7 @@ const SubserviceChangeList: React.FC = () => {
             )}
 
             <ModalForm
-                title={`${approvalAction === 'Approve' ? 'Approve' : 'Reject'} Subservice`}
+                title={`${approvalAction === 'Approve' ? 'Approve' : 'Reject'} Service`}
                 width="400px"
                 visible={approveModalOpen}
                 onVisibleChange={handleApprovalModalOpen}
@@ -379,7 +377,7 @@ const SubserviceChangeList: React.FC = () => {
             </ModalForm>
 
             <ModalForm
-                title="Approve All Subservices"
+                title="Approve All Services"
                 width="600px"
                 visible={approveAllModalOpen}
                 onVisibleChange={handleApproveAllModal}

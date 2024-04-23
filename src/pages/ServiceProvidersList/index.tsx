@@ -358,7 +358,7 @@ const ProviderList: React.FC = () => {
             render: (dom, entity) => {
                 // Check if phone_verified_at is null or not
                  
-                const verifiedTag = entity.user.phone_verified_at ? (
+                const verifiedTag = entity?.user?.phone_verified_at ? (
                      <Tag color="green"> Verified</Tag>
                 ) : (
                      <Tag color="red">Not Verified</Tag>

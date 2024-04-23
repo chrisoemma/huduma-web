@@ -35,12 +35,12 @@ const SubSubServiceList: React.FC = () => {
   const [currentRow, setCurrentRow] = useState<API.SubServiceListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.SubServiceListItem[]>([]);
   const [subServices, setSubServices] = useState([]);
-  const [services,setServices]=useState([]);
+  const [services, setServices] = useState([]);
 
   const intl = useIntl();
 
   const handleRemove = async (selectedRows: API.SubServiceListItem[]) => {
-  
+
 
     const hide = message.loading('Loading....');
     if (!selectedRows) return true;
@@ -65,10 +65,13 @@ const SubSubServiceList: React.FC = () => {
 
   const handleAdd = async (formData: FormData) => {
 
-    const name = formData.get('name') as string;
+   
     const imageFile = formData.get('image') as File;
     const serviceId = formData.get('service');
-    const description = formData.get('description') as string;
+    const name_en = formData.get('name_en') as string;
+    const name_sw = formData.get('name_sw') as string;
+    const description_en = formData.get('description_en') as string;
+    const description_sw = formData.get('description_sw') as string;
 
     try {
       const storageRef = ref(storage, `images/${imageFile.name}`);
@@ -99,10 +102,13 @@ const SubSubServiceList: React.FC = () => {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               const SubServiceData: API.SubServiceListItem = {
                 id: 0, // Set the appropriate ID
-                name: name,
-                service_id:serviceId,
+                name_en: name_en,
+                name_sw: name_sw,
+                description_en: description_en,
+                description_sw: description_sw,
+                service_id: serviceId,
                 img_url: downloadURL,
-                description:description
+              
                 // Save the download URL to the database
               };
               // Save the data to the database
@@ -131,10 +137,13 @@ const SubSubServiceList: React.FC = () => {
       } else {
         // If no image is uploaded, create an object without img_url
         const SubServiceData: API.SubServiceListItem = {
-            id: 0, // Set the appropriate ID
-            name: name,
-            service_id:serviceId,
-            description:description
+          id: 0, // Set the appropriate ID
+          name_en: name_en,
+          name_sw: name_sw,
+          description_en: description_en,
+          description_sw: description_sw,
+          service_id: serviceId,
+        
         };
 
         // Save the data to the database
@@ -170,10 +179,10 @@ const SubSubServiceList: React.FC = () => {
         console.error('Error fetching SubService data:', error);
       }
     }
-  
+
     fetchData();
   }, []);
-  
+
 
   useEffect(() => {
     async function fetchData() {
@@ -201,17 +210,21 @@ const SubSubServiceList: React.FC = () => {
       dataIndex: 'name',
       valueType: 'text',
       tip: 'The SubService Name is the unique key',
-      render: (dom, entity) => {
-        return (
-          <a
-            onClick={() => {
-              setCurrentRow(entity);
-              setShowDetail(true);
-            }}
-          >
-            {dom}
-          </a>
-        );
+      render: (text, record) => {
+        const subservice = record.name;
+        if (subservice) {
+          return (
+            <>
+              <div style={{ marginBottom: 10 }}>
+                <b>English:</b> {subservice?.en}
+              </div>
+              <div>
+                <b>Swahili:</b> {subservice?.sw}
+              </div>
+            </>
+          );
+        }
+        return '-------';
       },
       search: true,
     },
@@ -223,62 +236,66 @@ const SubSubServiceList: React.FC = () => {
         return record.default_images.map((image, index) => (
           <Image
             key={index}
-            src={image.img_url}
+            src={image?.img_url}
             alt={`Image ${index + 1}`}
-            style={{ maxWidth: '100px' }} 
+            style={{ maxWidth: '100px' }}
           />
         ));
       }
     },
     {
-        title: (
-          <FormattedMessage
-            id="pages.searchTable.updateForm.services"
-            defaultMessage="Service"
-          />
-        ),
-        dataIndex: 'service',
-        valueType: 'text',
-        tip: 'Service ',
-        render: (dom, entity) => {
-          return (
-            <a
-              onClick={() => {
-                setCurrentRow(entity);
-                setShowDetail(true);
-              }}
-            >
-              {dom ? dom.name : 'N/A'}
-            </a>
-          );
-        },
-        search: true,
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.updateForm.services"
+          defaultMessage="Service"
+        />
+      ),
+      dataIndex: 'service',
+      valueType: 'text',
+      tip: 'Service ',
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              setCurrentRow(entity);
+              setShowDetail(true);
+            }}
+          >
+            {dom ? dom?.name?.en : 'N/A'}
+          </a>
+        );
       },
+      search: true,
+    },
 
     {
-        title: (
-          <FormattedMessage
-            id="pages.searchTable.updateForm.description"
-            defaultMessage="Description"
-          />
-        ),
-        dataIndex: 'description',
-        valueType: 'text',
-        tip: 'General description ',
-        render: (dom, entity) => {
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.updateForm.description"
+          defaultMessage="Description"
+        />
+      ),
+      dataIndex: 'description',
+      valueType: 'text',
+      tip: 'General description ',
+      render: (text, record) => {
+        const description = record?.description;
+        if (description) {
           return (
-            <a
-              onClick={() => {
-                setCurrentRow(entity);
-                setShowDetail(true);
-              }}
-            >
-              {dom}
-            </a>
+            <>
+              <div style={{ marginBottom: 10 }}>
+                <b>English:</b> {description.en}
+              </div>
+              <div>
+                <b>Swahili:</b> {description.sw}
+              </div>
+            </>
           );
-        },
-        search: true,
+        }
+        return '-------';
       },
+      search: true,
+    },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
       dataIndex: 'option',
@@ -293,7 +310,7 @@ const SubSubServiceList: React.FC = () => {
         >
           <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
         </a>,
-       
+
       ],
     },
   ];
@@ -305,11 +322,11 @@ const SubSubServiceList: React.FC = () => {
         //key={SubServices.length}
         pagination={{
           pageSizeOptions: ['15', '30', '60', '100'],
-          defaultPageSize: 15, 
-          showSizeChanger: true, 
-          locale: {items_per_page: ""}
+          defaultPageSize: 15,
+          showSizeChanger: true,
+          locale: { items_per_page: "" }
         }}
-   
+
         actionRef={actionRef}
         rowKey="id"
         toolBarRender={() => [
@@ -328,7 +345,7 @@ const SubSubServiceList: React.FC = () => {
           filterType: 'light', // Use a light filter form for better layout
         }}
         request={async (params, sorter, filter) => {
-          try {      
+          try {
             const response = await getSubServices(params);
             const subServices = response.data.sub_services;
             // Filter the data based on the 'name' filter
@@ -336,12 +353,12 @@ const SubSubServiceList: React.FC = () => {
             const filteredSubServices = subServices.filter(subService =>
               params.name
                 ? subService.name
-                    .toLowerCase()
-                    .split(' ')
-                    .some(word => word.startsWith(params.name.toLowerCase()))
+                  .toLowerCase()
+                  .split(' ')
+                  .some(word => word.startsWith(params.name.toLowerCase()))
                 : true
             );
-      
+
             return {
               data: filteredSubServices,
               success: true,
@@ -354,7 +371,7 @@ const SubSubServiceList: React.FC = () => {
             };
           }
         }}
-      
+
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -370,15 +387,15 @@ const SubSubServiceList: React.FC = () => {
               <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
               <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
               &nbsp;&nbsp;
-             
+
             </div>
           }
         >
           <Button
             onClick={async () => {
               await handleRemove(selectedRowsState);
-             setSelectedRows([]);
-             actionRef.current?.reload();
+              setSelectedRows([]);
+              actionRef.current?.reload();
             }}
           >
             <FormattedMessage
@@ -405,9 +422,11 @@ const SubSubServiceList: React.FC = () => {
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
-          formData.append('name', value.name);
-          formData.append('description',value.description);
-          formData.append('service',value.service);
+          formData.append('name_en', value.name_en);
+          formData.append('name_sw', value.name_sw);
+          formData.append('description_en', value.description_en);
+          formData.append('description_sw', value.description_sw);
+          formData.append('service', value.service);
           if (value.image) {
             formData.append('image', value.image[0].originFileObj);
           }
@@ -427,52 +446,84 @@ const SubSubServiceList: React.FC = () => {
             rules={[
               {
                 required: true,
-                message: 'Name is required',
+                message: 'English Name is required',
               },
             ]}
             width="md"
-            name="name"
-            label="Name"
+            name="name_en"
+            label="English name"
           />
-             <ProFormSelect
-          name="service"
-          width="md"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.services',
-            defaultMessage: 'SubService category',
-          })}
-          valueEnum={services.reduce((enumObj, service) => {
-            enumObj[service.id] = service.name;
-            return enumObj;
-          }, {})}
 
-          rules={[
-            {
-              required: true,
-              message: 'Please select the Service!',
-            },
-          ]}
-        />
+          <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'Kiswahili Name is required',
+              },
+            ]}
+            width="md"
+            name="name_sw"
+            label="Kiswahili name"
+          />
+          <ProFormSelect
+            name="service"
+            width="md"
+            label={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.services',
+              defaultMessage: 'SubService category',
+            })}
+            valueEnum={services.reduce((enumObj, service) => {
+              enumObj[service.id] = service?.name?.en;
+              return enumObj;
+            }, {})}
 
-<ProFormTextArea
-          name="description"
-          width="md"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.description',
-            defaultMessage: 'Description',
-          })}
-          placeholder={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
-            defaultMessage: 'Description',
-          })}
-          rules={[
-            {
-              required: true,
-              message: 'Please enter the description!',
-              min: 5,
-            },
-          ]}
-        />
+            rules={[
+              {
+                required: true,
+                message: 'Please select the Service!',
+              },
+            ]}
+          />
+
+          <ProFormTextArea
+            name="description_en"
+            width="md"
+            label={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.description_eng',
+              defaultMessage: 'English Description',
+            })}
+            placeholder={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+              defaultMessage: 'Description in English',
+            })}
+            rules={[
+              {
+                required: true,
+                message: 'Please enter the description!',
+                min: 5,
+              },
+            ]}
+          />
+
+          <ProFormTextArea
+            name="description_sw"
+            width="md"
+            label={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.description_sw',
+              defaultMessage: 'Kiswahili Description',
+            })}
+            placeholder={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+              defaultMessage: 'Description in Kiswahili',
+            })}
+            rules={[
+              {
+                required: true,
+                message: 'Please enter the description!',
+                min: 5,
+              },
+            ]}
+          />
           <ProFormUploadButton
             name="image"
             label="Upload Image"

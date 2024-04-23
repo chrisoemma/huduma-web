@@ -144,7 +144,7 @@ const DesignationList: React.FC = () => {
             ),
             dataIndex: 'name',
             render: (text, record) => {
-                const designation = record.name; // Accessing the name field directly
+                const designation = record.name; 
                 if (designation) {
                     return (
                         <>

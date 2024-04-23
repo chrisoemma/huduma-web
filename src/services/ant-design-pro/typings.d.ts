@@ -51,7 +51,8 @@ declare namespace API {
 
   type CategoryListItem = {
      id:number;
-     name:string;
+     name_en: string,
+     name_sw: string,
      img_url:array;
   }
 

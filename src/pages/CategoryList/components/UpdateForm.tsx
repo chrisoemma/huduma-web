@@ -26,7 +26,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   
     if (props.updateModalOpen) {
       form.setFieldsValue({
-        name: props.values.name,
+        name_en: props.values.name?.en || '', 
+        name_sw: props.values.name?.sw || '', 
         status: props.values.status,
       });
 
@@ -79,14 +80,15 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const handleUpdate = async () => {
     try {
       const values = await form.validateFields();
+
+     
       const categoryId = props.values.id;
 
-      // If a new image was uploaded, use the new URL; otherwise, use the existing one
+
       const img_url = imageUrl || props.values.images?.[0]?.img_url;
-      // Update the category
+  
       await updateCategory(categoryId, { ...values, img_url });
 
-      // Reset the form and close the modal
       form.resetFields();
       setImageUrl(undefined);
       props.onCancel(true);
@@ -132,21 +134,37 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       <Form
         form={form}
         initialValues={{
-          name: props.values.name,
+          name_en: props.values.name?.en || '', 
+          name_sw: props.values.name?.sw || '', 
           status: props.values.status,
         }}
       >
-        <ProFormText
-          name="name"
+      <ProFormText
+          name="name_en"
           label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.ruleName.nameLabel',
-            defaultMessage: 'Category Name',
+            id: 'pages.searchTable.updateForm.docName',
+            defaultMessage: 'English Name',
           })}
           width="md"
           rules={[
             {
               required: true,
-              message: 'Please enter the category name!',
+              message: 'Please enter English Name!',
+            },
+          ]}
+        />
+
+        <ProFormText
+          name="name_sw"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.name_sw',
+            defaultMessage: 'Swahili Name',
+          })}
+          width="md"
+          rules={[
+            {
+              required: true,
+              message: 'Please enter the Kiswahili name!',
             },
           ]}
         />

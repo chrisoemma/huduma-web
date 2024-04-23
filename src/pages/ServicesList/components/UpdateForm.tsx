@@ -46,10 +46,12 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   useEffect(() => {
 
     if (props.updateModalOpen && categories.length > 0) {
-      const categoryName = categories.find((cat) => cat.id === props.values.category_id)?.name || '';
+      const categoryName = categories.find((cat) => cat.id === props.values.category_id)?.name?.en || '';
       form.setFieldsValue({
-        name: props.values.name,
-        description:props.values.description,
+        name_en: props.values.name?.en || '', 
+        name_sw: props.values.name?.sw || '', 
+        description_en: props.values.description?.en || '', 
+        description_sw: props.values.description?.sw || '', 
         target: categoryName,
       });
       const initialImageUrl = props.values.images?.[0]?.img_url;
@@ -105,25 +107,42 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const handleUpdate = async (values) => {
     try {
     
+    
+     
       const serviceId = props.values.id;
-        //return console.log('values',values);
+       
+
+     
+
       const selectedCategory = 
-      categories.find((cat) => cat.name === values.category) ||
+      categories.find((cat) => cat?.name?.en === values.category) ||
       categories.find((cat) => cat.id == values.category);
+      
+     
     if (!selectedCategory) {
       console.error('Selected category not found');
       return;
     }
 
+   
     const usedValues = await form.validateFields();
 
-    const category_id = selectedCategory.id;
-    const description = values.description;
-    const img_url = imageUrl || props.values.images?.[0]?.img_url;
+   
+   let  img_url = imageUrl || props.values.images?.[0]?.img_url;
+
+    // Upload new image if available
+    if (values.image && values.image.length > 0) {
+
+     
+      const downloadURL = await handleUpload(values.image[0].originFileObj);
+      img_url = downloadURL;
+    }
      
     usedValues.category_id=selectedCategory.id;
-    usedValues.description = values.description;
-    usedValues.name = values.name;
+    usedValues.description_en = values.description_en;
+    usedValues.name_en = values.name_en;
+    usedValues.description_sw = values.description_sw;
+    usedValues.name_sw = values.name_sw;
     usedValues.img_url = imageUrl || props.values.images?.[0]?.img_url;
 
       await updateService(serviceId, { ...usedValues, img_url });
@@ -157,8 +176,6 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
             id: 'pages.searchTable.updateForm.editCategory',
             defaultMessage: 'Edit Service',
           })}
-
-          
           open={props.updateModalOpen}
           footer={submitter}
           onCancel={() => {
@@ -173,29 +190,40 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       {/* Step 1 */}
       <StepsForm.StepForm
         initialValues={{
-          name: props.values.name,
-          description: props.values.description,
-          category: categories.find((cat) => cat.id === props.values.category_id)?.name,
+          name_en: props.values.name?.en || '', 
+          name_sw: props.values.name?.sw || '', 
+          description_en: props.values.description?.en || '', 
+          description_sw: props.values.description?.sw || '', 
+          category: categories.find((cat) => cat.id === props.values.category_id)?.name?.en,
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.step1',
           defaultMessage: 'Service info',
         })}
       >
-        <ProFormText
-          name="name"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.serviceName',
-            defaultMessage: 'Service Name',
-          })}
-          width="md"
-          rules={[
-            {
-              required: true,
-              message: 'Please enter the service name!',
-            },
-          ]}
-        />
+      <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'English Name is required',
+              },
+            ]}
+            width="md"
+            name="name_en"
+            label="English name"
+          />
+
+          <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'Kiswahili Name is required',
+              },
+            ]}
+            width="md"
+            name="name_sw"
+            label="Kiswahili name"
+          />
         <ProFormSelect
           name="category"
           width="md"
@@ -204,7 +232,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
             defaultMessage: 'Service category',
           })}
           valueEnum={categories.reduce((enumObj, category) => {
-            enumObj[category.id] = category.name;
+            enumObj[category.id] = category?.name?.en;
             return enumObj;
           }, {})}
           rules={[
@@ -214,16 +242,36 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
             },
           ]}
         />
-        <ProFormTextArea
-          name="description"
+          <ProFormTextArea
+          name="description_en"
           width="md"
           label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.description',
-            defaultMessage: 'Description',
+            id: 'pages.searchTable.updateForm.description_eng',
+            defaultMessage: 'English Description',
           })}
           placeholder={intl.formatMessage({
             id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
-            defaultMessage: 'Description',
+            defaultMessage: 'Description in English',
+          })}
+          rules={[
+            {
+              required: true,
+              message: 'Please enter the description!',
+              min: 5,
+            },
+          ]}
+        />
+
+        <ProFormTextArea
+          name="description_sw"
+          width="md"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.description_sw',
+            defaultMessage: 'Kiswahili Description',
+          })}
+          placeholder={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+            defaultMessage: 'Description in Kiswahili',
           })}
           rules={[
             {
