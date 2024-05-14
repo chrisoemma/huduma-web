@@ -475,8 +475,8 @@ const handleOkCancel =async()=>{
         >
             {Object.values(packages.reduce((acc, subPackage) => {
                 if (!selectedRowsState.some(subscription => subscription.discount_id === subPackage.id)) {
-                    const packageId = subPackage.package.id;
-                    const packageName = subPackage.package.name;
+                    const packageId = subPackage?.package?.id;
+                    const packageName = subPackage?.package?.name;
                     if (!acc[packageId]) {
                         acc[packageId] = {
                             name: packageName,
@@ -522,11 +522,11 @@ const handleOkCancel =async()=>{
                                     onClick={() => setSelectedCard(subPackage.id)}
                                 >
                             
-                                    <p style={{ textDecoration: 'line-through' }}>Price: {subPackage.package.amount * subPackage.duration}</p>
-                                    <p>Price: {(subPackage.package.amount * subPackage.duration) - (subPackage.amount * subPackage.duration)}</p>
-                                    <p>Duration: {subPackage.duration}</p>
+                                    <p style={{ textDecoration: 'line-through' }}>Price: {subPackage?.package?.amount * subPackage?.duration}</p>
+                                    <p>Price: {(subPackage.package?.amount * subPackage?.duration) - (subPackage?.amount * subPackage?.duration)}</p>
+                                    <p>Duration: {subPackage?.duration}</p>
 
-                                    {selectedCard === subPackage.id && (
+                                    {selectedCard === subPackage?.id && (
                                         <div style={{ position: 'absolute', top: 10, right: 10 }}>
                                             <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
                                         </div>

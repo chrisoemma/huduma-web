@@ -145,6 +145,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     usedValues.name_sw = values.name_sw;
     usedValues.img_url = imageUrl || props.values.images?.[0]?.img_url;
 
+    
+
       await updateService(serviceId, { ...usedValues, img_url });
       form.resetFields();
       setImageUrl(undefined);

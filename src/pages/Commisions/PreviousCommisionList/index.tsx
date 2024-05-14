@@ -165,7 +165,7 @@ const PreviousCommisionList: React.FC = () => {
       valueType: 'text',
       render: (_, record) => {
         const userType = record.user_type;
-        const name = userType === 'Client' ? record.client.name : record.provider.name;
+        const name = userType === 'Client' ? record?.client?.name : record?.provider?.name;
         const tagColor = userType === 'Client' ? 'blue' : 'green';
         const tagText = userType === 'Client' ? 'Client' : 'Provider';
         return (

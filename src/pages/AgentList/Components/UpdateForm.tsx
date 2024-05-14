@@ -37,7 +37,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       form.setFieldsValue({
         first_name: props.values.first_name,
         last_name: props.values.last_name,
-        status: getStatus(props.values.user?.status),
+        status:props.values.user?.status,
         nida: props.values.nida,
         email: props.values.user?.email,
         phone: props.values.phone,
@@ -191,6 +191,10 @@ const handleViewDocs = () => {
 
       const currentUser = initialState?.currentUser;
        values.action_by = currentUser?.id;
+
+       if(values.status=='Pending approval'){
+        values.status='Pending';
+      }
          
       const response = await updateAgent(agentId, { ...values, profile_img });
 
@@ -252,7 +256,7 @@ const handleViewDocs = () => {
         initialValues={{
           first_name: props.values.first_name,
           last_name: props.values.last_name,
-          status: getStatus(props.values.user?.status),
+          status: props.values.status,
           nida: props.values.nida,
           email: props.values.user?.email,
           phone: props.values.phone
@@ -347,7 +351,7 @@ const handleViewDocs = () => {
       <StepsForm.StepForm
 
         initialValues={{
-          status: getStatus(props.values.user?.status),
+          status: props.values.status,
           nida: props.values.nida,
         }}
         title={intl.formatMessage({
@@ -410,7 +414,7 @@ const handleViewDocs = () => {
           })}
           options={[
             {
-              value: 'Pending',
+              value: 'Pending approval',
               label: 'Pending',
             },
          

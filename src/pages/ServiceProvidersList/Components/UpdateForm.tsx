@@ -32,7 +32,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const { initialState } = useModel('@@initialState');
   const [designationDocs, setDesignationDocs] = useState([]);
-  const [packages,setSubPackages]=useState([]);
+  const [packages, setSubPackages] = useState([]);
 
   const [selectedCard, setSelectedCard] = useState(null);
 
@@ -42,7 +42,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       form.setFieldsValue({
         first_name: props.values.first_name,
         last_name: props.values.last_name,
-        status: getStatus(props.values.user?.status),
+        status: props.values.status,
         nida: props.values.nida,
         email: props.values.user?.email,
         phone: props.values.phone
@@ -53,20 +53,27 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
 
+  console.log('props?.values?.status', props?.values?.status)
+
+  console.log('props.values.user?.status', props.values.user?.status)
+
+  console.log('getStatus(props.values.user?.status)', getStatus(props.values.user?.status));
+
+
   useEffect(() => {
     async function fetchData() {
-        try {
-            const response = await getPackages();
-            const packages = response.data.packages;
-            console.log('packages', response)
-            setSubPackages(packages);
-        } catch (error) {
-            console.error('Error fetching permissions data:', error);
-        }
+      try {
+        const response = await getPackages();
+        const packages = response.data.packages;
+        console.log('packages', response)
+        setSubPackages(packages);
+      } catch (error) {
+        console.error('Error fetching permissions data:', error);
+      }
     }
 
     fetchData();
-}, []);
+  }, []);
 
   useEffect(() => {
     async function fetchData() {
@@ -208,18 +215,22 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       const profile_img = imageUrl || props.values.user?.profile_img;
       values.profile_img = profile_img;
 
-     if(props?.values?.active_subscription==null){
-      if (!selectedCard) {
-        message.error('Please select a subscription package');
-        return;
+      if (props?.values?.active_subscription == null) {
+        if (!selectedCard) {
+          message.error('Please select a subscription package');
+          return;
+        }
       }
-    }
       values.phone = validateTanzanianPhoneNumber(values.phone);
       const currentUser = initialState?.currentUser;
       values.action_by = currentUser?.id;
-      values.package=selectedCard;
+      values.package = selectedCard;
 
-   
+      if (values.status == 'Pending approval') {
+        values.status = 'Pending';
+      }
+
+
       const response = await updateProvider(providerId, { ...values, profile_img });
       if (response.status) {
         setImageUrl(undefined);
@@ -233,7 +244,12 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           const errors = response.data.errors;
           showErrorWithLineBreaks(formatErrorMessages(errors));
         } else {
-          message.error(response.message);
+          if (response.error) {
+            message.error(response.error);
+          } else {
+            message.error(response.message);
+          }
+
         }
       }
     } catch (error) {
@@ -277,7 +293,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         initialValues={{
           first_name: props.values.first_name,
           last_name: props.values.last_name,
-          status: getStatus(props.values.user?.status),
+          status: props.values.status,
           nida: props.values.nida,
           email: props.values.user?.email,
           phone: props.values.phone
@@ -374,7 +390,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       <StepsForm.StepForm
 
         initialValues={{
-          status: getStatus(props.values.user?.status),
+          status: props.values.status,
           nida: props.values.nida,
         }}
         title={intl.formatMessage({
@@ -404,7 +420,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           label="NIDA"
         />
 
-             <Form.Item
+        <Form.Item
           name="image"
           label="Image"
           valuePropName="fileList"
@@ -464,7 +480,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           })}
           options={[
             {
-              value: 'Pending',
+              value: 'Pending approval',
               label: 'Pending',
             },
 
@@ -481,68 +497,68 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           onChange={(e) => setSelectedRadioValue(e.target.value)}
         />
 
-  
-<div>
-       <h3>{props?.values?.status=='Pending approval' && selectedRadioValue === 'Active' ?'Subscription Packages':''}{props?.values?.active_subscription?'Subscribed package': ''}</h3>
-       {props?.values?.status=='Pending approval' && selectedRadioValue === 'Active' ?(
-      <div style={{ display: 'flex', gap: '16px' }}>
-      {packages?.map(subPackage => (
-         <Card
-         key={subPackage?.id}
-         title={subPackage?.name}
-         style={{ width: 300, position: 'relative',boxShadow: selectedCard === subPackage?.id ? '0 0 10px rgba(0, 0, 0, 0.3)' : 'none'  }}
-      
-         onClick={() => setSelectedCard(subPackage?.id)}
-       >
-         <p style={{ textDecoration: 'line-through' }}>Price: {subPackage?.amount}</p>
-         <p>Trial: Free</p>
-       
-         {selectedCard === subPackage?.id && (
-           <div style={{ position: 'absolute', top: 10, right: 10 }}>
-             <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
-           </div>
-         )}
-       </Card>
 
-      ))}
-    </div>
-    ):(<div />)}
+        <div>
+          <h3>{props?.values?.status == 'Pending approval' && selectedRadioValue === 'Active' ? 'Subscription Packages' : ''}{props?.values?.active_subscription ? 'Subscribed package' : ''}</h3>
+          {props?.values?.status == 'Pending approval' && selectedRadioValue === 'Active' ? (
+            <div style={{ display: 'flex', gap: '16px' }}>
+              {packages?.map(subPackage => (
+                <Card
+                  key={subPackage?.id}
+                  title={subPackage?.name}
+                  style={{ width: 300, position: 'relative', boxShadow: selectedCard === subPackage?.id ? '0 0 10px rgba(0, 0, 0, 0.3)' : 'none' }}
 
-    {props?.values?.active_subscription?(<Card
-         key={props?.values?.active_subscription?.package.id}
-         title={props?.values?.active_subscription?.package.name}
-         style={{ width: 300, position: 'relative' }}
-       >
-         {props.values.active_subscription.is_trial ? (
-  <div>
-    <p style={{ textDecoration: 'line-through' }}>Price: {props?.values?.active_subscription?.package?.amount}</p>
-    <p>Trial: Free</p>
-  </div>
-) : (
-  <div>
-    {props?.values?.active_subscription?.discount ? (
-      <div>
-        <p>Price: {props?.values?.active_subscription?.amount-props?.values?.active_subscription?.discount?.amount}</p>
-        <p>Duration: {props?.values?.active_subscription?.discount?.duration}</p>
-      </div>
-    ) : (
-      <div>
-        <p>Price: {props?.values?.active_subscription?.package?.amount}</p>
-        <p>Duration: 1</p>
-      </div>
-    )}
-  </div>
-)}
+                  onClick={() => setSelectedCard(subPackage?.id)}
+                >
+                  <p style={{ textDecoration: 'line-through' }}>Price: {subPackage?.amount}</p>
+                  <p>Trial: Free</p>
 
-         <p>Starts: {props?.values?.active_subscription.start_date}</p>
-         <p>Ends: {props?.values?.active_subscription.end_date}</p>
-           <div style={{ position: 'absolute', top: 10, right: 10 }}>
-             <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
-           </div>
-       
-       </Card>):(<div />)}
-  </div>
-   
+                  {selectedCard === subPackage?.id && (
+                    <div style={{ position: 'absolute', top: 10, right: 10 }}>
+                      <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
+                    </div>
+                  )}
+                </Card>
+
+              ))}
+            </div>
+          ) : (<div />)}
+
+          {props?.values?.active_subscription ? (<Card
+            key={props?.values?.active_subscription?.package.id}
+            title={props?.values?.active_subscription?.package.name}
+            style={{ width: 300, position: 'relative' }}
+          >
+            {props.values.active_subscription.is_trial ? (
+              <div>
+                <p style={{ textDecoration: 'line-through' }}>Price: {props?.values?.active_subscription?.package?.amount}</p>
+                <p>Trial: Free</p>
+              </div>
+            ) : (
+              <div>
+                {props?.values?.active_subscription?.discount ? (
+                  <div>
+                    <p>Price: {props?.values?.active_subscription?.amount - props?.values?.active_subscription?.discount?.amount}</p>
+                    <p>Duration: {props?.values?.active_subscription?.discount?.duration}</p>
+                  </div>
+                ) : (
+                  <div>
+                    <p>Price: {props?.values?.active_subscription?.package?.amount}</p>
+                    <p>Duration: 1</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <p>Starts: {props?.values?.active_subscription.start_date}</p>
+            <p>Ends: {props?.values?.active_subscription.end_date}</p>
+            <div style={{ position: 'absolute', top: 10, right: 10 }}>
+              <CheckOutlined style={{ fontSize: 24, color: 'green' }} />
+            </div>
+
+          </Card>) : (<div />)}
+        </div>
+
 
       </StepsForm.StepForm>
 

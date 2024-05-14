@@ -15,11 +15,8 @@ import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message,  Dropdown, Menu} from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
-// import html2pdf from 'html2pdf.js';
-// import * as XLSX from 'xlsx';
-
-
-
+import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx';
 
 import { formatErrorMessages, getMonthName, showErrorWithLineBreaks } from '@/utils/function';
 import { AddPayment, getActiveCommisions } from '../CommisionSlice';
@@ -54,23 +51,48 @@ const ActiveCommisionList: React.FC = () => {
 
 
 
-  // const handleDownloadPDF = () => {
-  //   const element = document.getElementById('table-container');
-  //   if (element) {
-  //     html2pdf(element);
-  //   }
-  // };
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('pro-table-container');
+    if (element) {
+      html2pdf(element);
+    }
+  };
 
   // Function to download as Excel
-  // const handleDownloadExcel = () => {
-  //   const table = document.getElementById('table-container');
-  //   if (table) {
-  //     const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table);
-  //     const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  //     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  //     XLSX.writeFile(wb, 'table_data.xlsx');
-  //   }
-  // };
+  const handleDownloadExcel = () => {
+    const table = document.getElementById('pro-table-container');
+    if (table) {
+      const data = [];
+      const headers = [];
+      // Extract headers from the first row
+      const headerCells = table.querySelector('thead').querySelectorAll('th');
+      headerCells.forEach(cell => {
+        headers.push(cell.innerText.trim()); // Trim to remove extra spaces
+      });
+      // Add 'payment_amount' to headers
+      headers.push('payment_amount');
+      
+      // Extract data rows
+      const bodyRows = table.querySelectorAll('tbody tr');
+      bodyRows.forEach(row => {
+        const rowData = [];
+        row.querySelectorAll('td').forEach(cell => {
+          rowData.push(cell.innerText.trim());
+        });
+        // Push rowData and set 'payment_amount' to an empty string
+        rowData.push('');
+        data.push(rowData);
+      });
+  
+      // Create worksheet
+      const ws: XLSX.WorkSheet = XLSX.utils.aoa_to_sheet([headers, ...data]);
+  
+      // Create workbook
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      XLSX.writeFile(wb, 'payments.xlsx');
+    }
+  };
 
 
 
@@ -208,7 +230,7 @@ const ActiveCommisionList: React.FC = () => {
       valueType: 'text',
       render: (_, record) => {
         const userType = record.user_type;
-        const name = userType === 'Client' ? record.client.name : record.provider.name;
+        const name = userType === 'Client' ? record?.client?.name : record?.provider?.name;
         const tagColor = userType === 'Client' ? 'blue' : 'green';
         const tagText = userType === 'Client' ? 'Client' : 'Provider';
         return (
@@ -386,7 +408,9 @@ const ActiveCommisionList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable
-        //key={categories.length}
+        id="pro-table-container"
+       
+        rowSelection={false}
         pagination={{
           pageSizeOptions: ['15', '30', '60', '100'],
           defaultPageSize: 15, 
@@ -448,11 +472,11 @@ const ActiveCommisionList: React.FC = () => {
 
 
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        // rowSelection={{
+        //   onChange: (_, selectedRows) => {
+        //     setSelectedRows(selectedRows);
+        //   },
+        // }}
       />
 
       <ModalForm
@@ -526,7 +550,7 @@ const ActiveCommisionList: React.FC = () => {
         )}
       </Drawer>
 
-      {/* <FooterToolbar>
+      <FooterToolbar>
         <Button
           icon={<ExportOutlined />}
           onClick={handleDownloadPDF}
@@ -555,7 +579,7 @@ const ActiveCommisionList: React.FC = () => {
             <DownloadOutlined /> Export
           </Button>
         </Dropdown>
-      </FooterToolbar> */}
+      </FooterToolbar>
     </PageContainer>
   );
 };

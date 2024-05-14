@@ -445,13 +445,14 @@ const ClientList: React.FC = () => {
             hideInForm: true,
             render: (text, record) => {
                 let color = '';
-                if (text == 'Active' || text == 'Approved') {
+                if (text == 'Active') {
                     color = 'green';
-                } else if (text == 'In Active' || text=='Pending approval') {
-                    text = 'Waiting Verification';
+                } else if (text=='Pending approval') {
+                    text = 'Waiting Phone Verification';
                     color = 'yellow'
-                } else if (text == 'Deactivated' || text == 'Suspended') {
+                } else if (text == 'Deactivated' || text == 'Suspended' || text == 'In Active') {
                     color = 'red';
+                    text='Deactivated';
                 }
 
                 return (
