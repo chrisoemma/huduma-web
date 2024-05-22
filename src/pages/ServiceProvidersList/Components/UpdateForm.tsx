@@ -489,7 +489,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
               label: 'Active',
             },
             {
-              value: 'In Active',
+              value: 'Deactivated',
               label: 'Deactivate',
             },
           ]}

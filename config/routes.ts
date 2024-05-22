@@ -100,6 +100,11 @@ export default [
         name: 'Clients',
         component: './ClientsList',
       },
+      {
+        path: '/user-management/employees',
+        name: 'Employees',
+        component: './AllEmployeesList',
+      },
     ],
   },
 

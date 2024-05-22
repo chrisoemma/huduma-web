@@ -17,6 +17,22 @@ import { request } from '@umijs/max';
       });
   }
 
+  export async function getAllEmployees(
+    params: {
+        current?: number;
+        pageSize?: number;
+      },
+    options?: { [key: string]: any }) {
+
+    return request(`${API_URL}/employees`, {
+        method: 'GET',
+        params: {
+          ...params,
+        },
+        ...(options || {}),
+      });
+  }
+
   export async function addEmployee(providerId:number,options?: { [key: string]: any }) {
     return request(`${API_URL}/employees/store_employee/${providerId}`, {
       method: 'POST',
