@@ -393,15 +393,15 @@ const EmployeeList: React.FC = () => {
                 actionRef={actionRef}
                 rowKey="id"
                 toolBarRender={() => [
-                    <Button
-                        type="primary"
-                        key="primary"
-                        onClick={() => {
-                            handleModalOpen(true);
-                        }}
-                    >
-                        <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
-                    </Button>,
+                    // <Button
+                    //     type="primary"
+                    //     key="primary"
+                    //     onClick={() => {
+                    //         handleModalOpen(true);
+                    //     }}
+                    // >
+                    //     <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+                    // </Button>,
                 ]}
                 search={{
                     labelWidth: 120,
