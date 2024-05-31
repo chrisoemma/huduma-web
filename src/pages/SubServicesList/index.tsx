@@ -38,6 +38,8 @@ const SubSubServiceList: React.FC = () => {
   const [services, setServices] = useState([]);
 
   const intl = useIntl();
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef();
 
   const handleRemove = async (selectedRows: API.SubServiceListItem[]) => {
 
@@ -72,11 +74,14 @@ const SubSubServiceList: React.FC = () => {
     const name_sw = formData.get('name_sw') as string;
     const description_en = formData.get('description_en') as string;
     const description_sw = formData.get('description_sw') as string;
-
+    setLoading(true);
     try {
       const storageRef = ref(storage, `images/${imageFile.name}`);
+     
+    
 
       if (imageFile) {
+        const hide = message.loading('Loading....');
         const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
         uploadTask.on(
@@ -94,7 +99,7 @@ const SubSubServiceList: React.FC = () => {
             }
           },
           (error) => {
-            // Handle unsuccessful uploads
+            setLoading(false);
             console.error('Upload error:', error);
           },
           async () => {
@@ -111,26 +116,30 @@ const SubSubServiceList: React.FC = () => {
               
                 // Save the download URL to the database
               };
-              // Save the data to the database
-              const hide = message.loading('Loading...');
               try {
                 await addSubService(SubServiceData);
+                setLoading(false);
                 hide();
                 message.success('Added successfully');
                 return true
               } catch (error) {
                 hide();
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false
               } finally {
                 handleModalOpen(false);
-                actionRef.current.reload();
+                actionRef.current?.reload();
+                formRef.current.resetFields();
+
               }
             } catch (error) {
               message.error('Error getting download URL, please try again!');
+              setLoading(false); 
               return false
             } finally {
               handleModalOpen(false);
+              setLoading(false); 
             }
           }
         );
@@ -151,17 +160,22 @@ const SubSubServiceList: React.FC = () => {
         try {
           await addSubService(SubServiceData);
           hide();
+          setLoading(false); 
           message.success('Added successfully');
           return true
         } catch (error) {
+          
           hide();
+          setLoading(false); 
           message.error('Adding failed, please try again!');
           return false
         }
       }
     } catch (error) {
       message.error('Image upload failed, please try again!');
+      setLoading(false); 
       return false
+      
     }
   };
 
@@ -419,6 +433,7 @@ const SubSubServiceList: React.FC = () => {
         })}
         width="400px"
         open={createModalOpen}
+        formRef={formRef}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
@@ -438,7 +453,15 @@ const SubSubServiceList: React.FC = () => {
             if (actionRef.current) {
               actionRef.current.reload();
             }
+            formRef.current.resetFields();
           }
+        }}
+        
+        submitter={{
+          submitButtonProps: {
+            loading: loading, // Set loading state on the button
+            disabled: loading, // Disable button while loading
+          },
         }}
       >
         <ProForm.Group>

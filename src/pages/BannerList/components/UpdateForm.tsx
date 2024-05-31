@@ -6,10 +6,10 @@ import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import {
-    ProFormDateTimePicker,
-    ProFormTextArea,
+  ProFormDateTimePicker,
+  ProFormTextArea,
 
-  } from '@ant-design/pro-components';
+} from '@ant-design/pro-components';
 import { updateBanner } from '../BannerSlice';
 import moment from 'moment';
 
@@ -18,7 +18,7 @@ export type UpdateFormProps = {
   onSubmit: (values: FormValueType) => Promise<void>;
   updateModalOpen: boolean;
   values: Partial<API.CategoryListItem>;
-  onTableReload: () => void; 
+  onTableReload: () => void;
 };
 
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
@@ -27,15 +27,16 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.url);
 
   const { Dragger } = Upload;
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-  
+
     if (props.updateModalOpen) {
       form.setFieldsValue({
         description: props.values.description,
         status: props.values.status,
-        start_date:props.values.start_date,
-        end_date:props.values.end_date,
+        start_date: props.values.start_date,
+        end_date: props.values.end_date,
       });
 
     }
@@ -86,6 +87,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const handleUpdate = async () => {
     try {
+      setLoading(true);
       const values = await form.validateFields();
       const bannerId = props.values.id;
 
@@ -96,6 +98,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       form.resetFields();
       setImageUrl(undefined);
       props.onCancel(true);
+      setLoading(false);
       message.success('Banner updated successfully');
       props.onTableReload();
     } catch (error) {
@@ -126,6 +129,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           key="submit"
           type="primary"
           onClick={handleUpdate}
+          disabled={loading}
         >
           Update
         </Button>,
@@ -140,8 +144,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         initialValues={{
           decription: props.values.decription,
           status: props.values.status,
-          start_date:props.values.start_date,
-         end_date:props.values.end_date,
+          start_date: props.values.start_date,
+          end_date: props.values.end_date,
         }}
       >
         <ProFormTextArea
@@ -151,45 +155,45 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
             defaultMessage: 'Description',
           })}
           width="md"
-    
+
         />
 
-<ProFormDateTimePicker
-    rules={[
-      {
-        required: true,
-        message: 'Start Date is required',
-      },
-    ]}
-    width="md"
-    name="start_date"
-    label="Start Date"
-   
-  />
+        <ProFormDateTimePicker
+          rules={[
+            {
+              required: true,
+              message: 'Start Date is required',
+            },
+          ]}
+          width="md"
+          name="start_date"
+          label="Start Date"
+
+        />
 
 
 
-  <ProFormDateTimePicker
-    rules={[
-        {
-          required: true,
-          message: 'End Date is required',
-        },
-        ({ getFieldValue }) => ({
-          validator(_, value) {
-            const startDate = getFieldValue('start_date');
-            if (startDate && value && moment(value).isBefore(startDate)) {
-              return Promise.reject('End Date must be equal or after Start Date');
-            }
-            return Promise.resolve();
-          },
-        }),
-      ]}
-    width="md"
-    name="end_date"
-    label="End Date"
-    
-  />
+        <ProFormDateTimePicker
+          rules={[
+            {
+              required: true,
+              message: 'End Date is required',
+            },
+            ({ getFieldValue }) => ({
+              validator(_, value) {
+                const startDate = getFieldValue('start_date');
+                if (startDate && value && moment(value).isBefore(startDate)) {
+                  return Promise.reject('End Date must be equal or after Start Date');
+                }
+                return Promise.resolve();
+              },
+            }),
+          ]}
+          width="md"
+          name="end_date"
+          label="End Date"
+
+        />
         <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({

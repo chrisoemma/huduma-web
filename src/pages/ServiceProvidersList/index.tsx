@@ -41,12 +41,13 @@ const ProviderList: React.FC = () => {
     const [currentBusinessesData, setCurrentBusinessesData] = useState([])
     const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
     const [validationResult, setValidationResult] = useState(null);
-    const [loading, setLoading] = useState(false);
 
     const intl = useIntl();
     const [form] = ProForm.useForm();
     const { Item } = Form;
     const { initialState } = useModel('@@initialState');
+    const [loading, setLoading] = useState(false);
+    const formRef = useRef();
 
     
       const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
@@ -55,7 +56,7 @@ const ProviderList: React.FC = () => {
         const hide = message.loading('Loading....');
         if (!selectedRows) return true;
         try {
-          // console.log('in try and catch');
+   
           const currentUser = initialState?.currentUser;
                 const  action_by=currentUser?.id;
         const response=  await removeProvider({
@@ -209,8 +210,10 @@ const ProviderList: React.FC = () => {
         const nida = formData.get('nida') as string;
         const currentUser = initialState?.currentUser;
 
+        setLoading(true);
+
         let providerData: API.ProviderListItem = {
-            id: 0, // Set the appropriate ID
+  
             first_name: first_name,
             last_name: last_name,
             nida: nida,
@@ -272,22 +275,27 @@ const ProviderList: React.FC = () => {
             try {
                 const response = await addProvider(providerData);
                 if (response.status) {
+                    setLoading(false); 
                     hide();
                     message.success(response.message);
                     return true;
                 } else {
+                    setLoading(false); 
                     if (response.data) {
                         const errors = response.data.errors;
                         showErrorWithLineBreaks(formatErrorMessages(errors));
                     } else {
+                        setLoading(false); 
                         message.error(response.message);
                     }
                 }
             } catch (error) {
                 hide();
+                setLoading(false); 
                 message.error('Adding failed, please try again!');
                 return false;
             } finally {
+                setLoading(false); 
                 handleModalOpen(false);
                 actionRef.current.reload();
             }
@@ -692,6 +700,7 @@ const ProviderList: React.FC = () => {
                     })}
                     width="400px"
                     open={createModalOpen}
+                    formRef={formRef}
                     onOpenChange={handleModalOpen}
                     onFinish={async (value) => {
                             // //
@@ -714,8 +723,16 @@ const ProviderList: React.FC = () => {
                             if (actionRef.current) {
                                 actionRef.current.reload();
                             }
+                            formRef.current.resetFields();
                         }
                     }}
+
+                    submitter={{
+                        submitButtonProps: {
+                          loading: loading, 
+                          disabled: loading,
+                        },
+                      }}
                 >
                     <ProForm.Group>
                         <ProFormText

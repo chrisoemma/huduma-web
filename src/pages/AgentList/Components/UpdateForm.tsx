@@ -29,6 +29,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const stepsFormRef = useRef();
   const [designationDocs, setDesignationDocs] = useState([]);
+  const [loading, setLoading] = useState(false);
 
 
   useEffect(() => {
@@ -182,6 +183,7 @@ const handleViewDocs = () => {
 
   const handleUpdate = async (values) => {
 
+    setLoading(true);
     try {
 
       const agentId = props.values.id;
@@ -202,19 +204,23 @@ const handleViewDocs = () => {
         setImageUrl(undefined);
         form.resetFields();
         props.onCancel(true);
+        setLoading(false);
         message.success(response.message);
         props.onTableReload();
         stepsFormRef.current?.submit();
       } else {
+        setLoading(false);
         if (response.data) {
           const errors = response.data.errors;
           showErrorWithLineBreaks(formatErrorMessages(errors));
         } else {
+          setLoading(false);
           message.error(response.message);
         }
       }
 
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };

@@ -36,6 +36,9 @@ const ServiceList: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<API.ServiceListItem[]>([]);
   const [categories, setCategories] = useState([]);
   const [services,setServices]=useState([]);
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef();
+
 
   const intl = useIntl();
 
@@ -73,12 +76,14 @@ const ServiceList: React.FC = () => {
     const imageFile = formData.get('image') as File;
     const categoryId = formData.get('category');
     const description = formData.get('description') as string;
+    setLoading(true);
 
     try {
       
       if (imageFile) {
         const storageRef = ref(storage, `images/${imageFile.name}`);
         const uploadTask = uploadBytesResumable(storageRef, imageFile);
+        const hide = message.loading('Loading...');
 
         uploadTask.on(
           'state_changed',
@@ -96,6 +101,7 @@ const ServiceList: React.FC = () => {
           },
           (error) => {
             console.error('Upload error:', error);
+            setLoading(false);
           },
           async () => {
             try {
@@ -117,15 +123,18 @@ const ServiceList: React.FC = () => {
 
                 await addService(serviceData);
                 hide();
+                setLoading(false);
                 message.success('Added successfully');
                 return true
               } catch (error) {
                 hide();
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false
               } finally {
                 handleModalOpen(false);
                 actionRef.current.reload();
+                formRef.current.resetFields();
               }
             } catch (error) {
               message.error('Error getting download URL, please try again!');
@@ -399,6 +408,7 @@ const ServiceList: React.FC = () => {
         width="400px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
+        formRef={formRef}
         onFinish={async (value) => {
           const formData = new FormData();
           formData.append('name_en', value.name_en);
@@ -417,7 +427,15 @@ const ServiceList: React.FC = () => {
             if (actionRef.current) {
               actionRef.current.reload();
             }
+            formRef.current.resetFields();
           }
+        }}
+        submitter={{
+          submitButtonProps: {
+            loading: loading, // Set loading state on the button
+            disabled: loading, // Disable button while loading
+          },
+        
         }}
       >
         

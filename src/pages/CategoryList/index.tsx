@@ -7,17 +7,15 @@ import {
   ProForm,
   ProDescriptions,
   ProFormText,
-  ProFormTextArea,
   ProFormUploadButton,
   ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
 import { Button, Drawer, Image, Input, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
-import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
-import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
 
 
@@ -26,16 +24,19 @@ const CategoryList: React.FC = () => {
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
 
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
-  const [loading, setLoading] = useState(false);
+ 
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
 
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.CategoryListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.CategoryListItem[]>([]);
-  const [categories, setCategories] = useState([]);
+
 
   const intl = useIntl();
+
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef();
 
 
   const handleRemove = async (selectedRows: API.CategoryListItem[]) => {
@@ -44,7 +45,7 @@ const CategoryList: React.FC = () => {
     const hide = message.loading('Loading....');
     if (!selectedRows) return true;
     try {
-      // console.log('in try and catch');
+
       await removeCategory({
         key: selectedRows.map((row) => row.id),
       });
@@ -66,81 +67,64 @@ const CategoryList: React.FC = () => {
 
 
   const handleAdd = async (formData: FormData) => {
-
     const name_en = formData.get('name_en') as string;
     const name_sw = formData.get('name_sw') as string;
     const imageFile = formData.get('image') as File;
-
+  
+    setLoading(true);
     try {
-   
-     
       if (imageFile) {
-        setLoading(false); 
         const hide = message.loading('Loading...');
         const storageRef = ref(storage, `images/${imageFile.name}`);
         const uploadTask = uploadBytesResumable(storageRef, imageFile);
-         
+  
         uploadTask.on(
           'state_changed',
           (snapshot) => {
             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
             console.log('Upload is ' + progress + '% done');
-            switch (snapshot.state) {
-              case 'paused':
-                console.log('Upload is paused');
-                break;
-              case 'running':
-                console.log('Upload is running');
-                break;
-            }
           },
           (error) => {
             console.error('Upload error:', error);
+            setLoading(false); 
           },
           async () => {
-            
             try {
-           
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               const categoryData: API.CategoryListItem = {
                 id: 0,
                 name_en: name_en,
                 name_sw: name_sw,
-                img_url: downloadURL, 
+                img_url: downloadURL,
               };
-            
-              try {
-               
-                await addCategory(categoryData);
-                hide();
-                setLoading(false)
-                message.success('Added successfully');
-                return true
-              } catch (error) {
-                hide();
-                setLoading(false)
-                message.error('Adding failed, please try again!');
-                return false
-              } finally {
-                handleModalOpen(false);
-                actionRef.current.reload();
-              }
+  
+              await addCategory(categoryData);
+              hide();
+              message.success('Added successfully');
+              setLoading(false); 
+              return true;
             } catch (error) {
-              message.error('Error getting download URL, please try again!');
-              return false
+              hide();
+              message.error('Adding failed, please try again!');
+              setLoading(false); // Set loading to false if adding category fails
+              return false;
             } finally {
               handleModalOpen(false);
+              actionRef.current?.reload();
             }
           }
         );
       } else {
         message.error('Please, Upload an image!');
+        setLoading(false); // Set loading to false if no image is uploaded
       }
     } catch (error) {
       message.error('Image upload failed, please try again!');
-      return false
+      setLoading(false); // Set loading to false if there is a catch error
+      return false;
     }
   };
+  
 
 
 
@@ -341,75 +325,85 @@ const CategoryList: React.FC = () => {
           </Button> */}
         </FooterToolbar>
       )}
-      <ModalForm
-        title={intl.formatMessage({
-          id: 'pages.searchTable.createForm.newCategory',
-          defaultMessage: 'Category Name',
-        })}
-        width="400px"
-        open={createModalOpen}
-        onOpenChange={handleModalOpen}
-        onFinish={async (value) => {
-          const formData = new FormData();
-          formData.append('name_en', value.name_en);
-          formData.append('name_sw', value.name_sw);
-          if (value.image) {
-            formData.append('image', value.image[0].originFileObj);
-          }
 
-          const success = await handleAdd(formData);
 
-          if (success) {
-            handleModalOpen(false);
-            if (actionRef.current) {
-              actionRef.current.reload();
-            }
-          }
-        }}
-        loading={loading}
-      >
-        <ProForm.Group>
-          <ProFormText
-            rules={[
-              {
-                required: true,
-                message: 'English Name is required',
-              },
-            ]}
-            width="md"
-            name="name_en"
-            label="English name"
-          />
+<ModalForm
+  title={intl.formatMessage({
+    id: 'pages.searchTable.createForm.newCategory',
+    defaultMessage: 'Category Name',
+  })}
+  width="400px"
+  open={createModalOpen}
+  onOpenChange={handleModalOpen}
+  formRef={formRef}
+  onFinish={async (value) => {
+    const formData = new FormData();
+    formData.append('name_en', value.name_en);
+    formData.append('name_sw', value.name_sw);
+    if (value.image) {
+      formData.append('image', value.image[0].originFileObj);
+    }
 
-          <ProFormText
-            rules={[
-              {
-                required: true,
-                message: 'Kiswahili Name is required',
-              },
-            ]}
-            width="md"
-            name="name_sw"
-            label="Kiswahili name"
-          />
-          <ProFormUploadButton
-            name="image"
-            label="Upload Image"
-            style={{ display: 'none' }}
-            fieldProps={{
-              accept: 'image/*',
-              max: 1,
-              listType: 'picture-card',
-              title: 'Click or Drag to Upload', // Custom title
-              placeholder: 'Click or Drag to Upload', // Custom placeholder
-            }}
-            onChange={(fileList) => {
-              // Handle file list changes if needed
-              // console.log('File List:', fileList);
-            }}
-          />
-        </ProForm.Group>
-      </ModalForm>
+    const success = await handleAdd(formData);
+
+    if (success) {
+      handleModalOpen(false);
+      if (actionRef.current) {
+        actionRef.current.reload();
+      }
+      formRef.current.resetFields();
+    }
+  }}
+  submitter={{
+    submitButtonProps: {
+      loading: loading, 
+      disabled: loading,
+    },
+  }}
+>
+  <ProForm.Group>
+    <ProFormText
+      rules={[
+        {
+          required: true,
+          message: 'English Name is required',
+        },
+      ]}
+      width="md"
+      name="name_en"
+      label="English name"
+    />
+    <ProFormText
+      rules={[
+        {
+          required: true,
+          message: 'Kiswahili Name is required',
+        },
+      ]}
+      width="md"
+      name="name_sw"
+      label="Kiswahili name"
+    />
+    <ProFormUploadButton
+      name="image"
+      label="Upload Image"
+      fieldProps={{
+        accept: 'image/*',
+        max: 1,
+        listType: 'picture-card',
+        title: 'Click or Drag to Upload', // Custom title
+        placeholder: 'Click or Drag to Upload', // Custom placeholder
+      }}
+      onChange={(fileList) => {
+        // Handle file list changes if needed
+      }}
+    />
+  </ProForm.Group>
+</ModalForm>
+
+
+
+
       <UpdateForm
         onSubmit={async (value) => {
           // const success = await handleUpdate(value);

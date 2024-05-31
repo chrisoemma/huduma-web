@@ -37,6 +37,8 @@ const AdminList: React.FC = () => {
 
     const intl = useIntl();
     const [form] = ProForm.useForm();
+    const [loading, setLoading] = useState(false);
+    const formRef = useRef();
 
 
     //   const handleRemove = async (selectedRows: API.AdminListItem[]) => {
@@ -82,6 +84,7 @@ const AdminList: React.FC = () => {
 
 
     const handleAdd = async (formData: FormData) => {
+
         const name = formData.get('name') as string;
         const phone = formData.get('phone') as string;
         const newphone = validateTanzanianPhoneNumber(phone);
@@ -95,11 +98,11 @@ const AdminList: React.FC = () => {
             name: name,
             email: email,
             phone: newphone,
-            roles: role,
+            role: role,
             profile_img: '',
         };
 
-
+        setLoading(true);
         const uploadImage = async () => {
             if (imageFile) {
                 const storageRef = ref(storage, `profile/${imageFile.name}`);
@@ -122,6 +125,7 @@ const AdminList: React.FC = () => {
                         },
                         (error) => {
                             // Handle unsuccessful uploads
+                            setLoading(false); 
                             console.error('Upload error:', error);
                             reject(error);
                         },
@@ -153,21 +157,26 @@ const AdminList: React.FC = () => {
                 const response = await addUserAdmin(userData);
                 if (response.status) {
                     hide();
+                    setLoading(false); 
                     message.success(response.message);
                     return true;
                 } else {
                     if (response.data) {
+                        setLoading(false); 
                         const errors = response.data.errors;
                         showErrorWithLineBreaks(formatErrorMessages(errors));
                     } else {
+                        setLoading(false); 
                         message.error(response.message);
                     }
                 }
             } catch (error) {
                 hide();
+                setLoading(false); 
                 message.error('Adding failed, please try again!');
                 return false;
             } finally {
+                setLoading(false); 
                 handleModalOpen(false);
                 actionRef.current.reload();
             }
@@ -443,6 +452,7 @@ const AdminList: React.FC = () => {
                 width="400px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
+                formRef={formRef}
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('name', value.name);
@@ -463,8 +473,16 @@ const AdminList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
                 }}
+
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
             >
                 <ProForm.Group>
                     <ProFormText

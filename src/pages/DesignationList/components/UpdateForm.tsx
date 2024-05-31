@@ -19,6 +19,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [form] = Form.useForm();
   const [Docs,setDocs]=useState([]);
 
+  const [loading, setLoading] = useState(false);
+
 
   useEffect(() => {
     async function fetchData() {
@@ -79,6 +81,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const handleUpdate = async () => {
+    setLoading(true);
     try {
       const values = await form.validateFields();
       values.updated_by = 1;
@@ -96,10 +99,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         form.resetFields();
         props.onCancel(true);
         props.onTableReload();
+        setLoading(false);
       } else {
+        setLoading(false);
         message.error(response.message);
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -123,7 +129,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         >
           Cancel
         </Button>,
-        <Button key="submit" type="primary" onClick={handleUpdate}>
+        <Button key="submit" type="primary" 
+        onClick={handleUpdate}
+        disabled={loading} 
+        >
           Update
         </Button>,
       ]}

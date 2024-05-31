@@ -25,6 +25,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const { initialState } = useModel('@@initialState');
   const stepsFormRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
 
@@ -100,6 +101,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       values.profile_img = profile_img;
       const currentUser = initialState?.currentUser;
       values.action_by = currentUser?.id;
+      setLoading(true);
 
       
 
@@ -110,20 +112,25 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       // return 
       if (response.status) {
         setImageUrl(undefined);
+        setLoading(false)
         form.resetFields();
         props.onCancel(true);
         message.success(response.message);
         props.onTableReload();
         stepsFormRef.current?.submit();
       } else {
+        setLoading(false)
         if (response.data) {
+          setLoading(false)
           const errors = response.data.errors;
           showErrorWithLineBreaks(formatErrorMessages(errors));
         } else {
+          setLoading(false)
           message.error(response.message);
         }
       }
     } catch (error) {
+      setLoading(false)
       console.log('Update failed:', error);
     }
   };

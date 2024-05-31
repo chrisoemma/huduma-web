@@ -35,6 +35,9 @@ const DesignationList: React.FC = () => {
     const intl = useIntl();
     const { initialState } = useModel('@@initialState');
 
+    const [loading, setLoading] = useState(false);
+    const formRef = useRef();
+
     useEffect(() => {
         async function fetchData() {
           try {
@@ -78,25 +81,32 @@ const DesignationList: React.FC = () => {
 
             // Save the data to the database
             const hide = message.loading('Loading...');
+            setLoading(true);
             try {
                 const response = await addDesignations(DesignationData);
 
                 if (response.status) {
                     hide();
+                    setLoading(false);
+                    
                     message.success(response.message)
+                    formRef.current.resetFields();
                     return true
                 } else {
                     message.error(response.message)
+                    setLoading(false);
                     return false
                 }
 
             } catch (error) {
                 hide();
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false
             }
 
         } catch (error) {
+            setLoading(false);
             message.error('Failed to create data!');
             return false
         }
@@ -106,10 +116,6 @@ const DesignationList: React.FC = () => {
 
     const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
   
-
-           
-
-               
         const hide = message.loading('Loading....');
         if (!selectedRows) return true;
         try {
@@ -347,6 +353,7 @@ const DesignationList: React.FC = () => {
                 })}
                 width="400px"
                 open={createModalOpen}
+                formRef={formRef}
                 onOpenChange={handleModalOpen}
                 onFinish={async (value) => {
 
@@ -365,8 +372,16 @@ const DesignationList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
                 }}
+
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
             >
                 <ProForm.Group>
                     <ProFormText

@@ -39,6 +39,8 @@ const DiscountList: React.FC = () => {
 
     const intl = useIntl();
     const { initialState } = useModel('@@initialState');
+    const [loading, setLoading] = useState(false);
+    const formRef = useRef();
 
 
 
@@ -76,6 +78,8 @@ const DiscountList: React.FC = () => {
         const duration = formData.get('duration') as string;
         const name = formData.get('name') as string;
 
+        setLoading(true);
+
         try {
 
             const PackageData: API.DiscountListItem = {
@@ -87,29 +91,32 @@ const DiscountList: React.FC = () => {
 
             };
 
-            // console.log('package data',PackageData);
-            // return 
-            // Save the data to the database
+       
             const hide = message.loading('Loading...');
             try {
                 const response = await addDiscount(PackageData);
 
                 if (response.status) {
                     hide();
+                    setLoading(false);
                     message.success(response.message)
+                    formRef.current.resetFields();
                     return true
                 } else {
+                    setLoading(false);
                     message.error(response.message)
                     return false
                 }
 
             } catch (error) {
                 hide();
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false
             }
 
         } catch (error) {
+            setLoading(false);
             message.error('Failed to create data!');
             return false
         }
@@ -204,8 +211,8 @@ const DiscountList: React.FC = () => {
             dataIndex: 'amountToBePaid', // Set correct dataIndex
             valueType: 'text',
             render: (_, record) => {
-                const amountToBePaid = parseFloat(record.package.amount) - parseFloat(record.amount);
-                const formattedAmount = amountToBePaid.toFixed(2);
+                const amountToBePaid = parseFloat(record?.package?.amount) - parseFloat(record?.amount);
+                const formattedAmount = amountToBePaid?.toFixed(2);
                 return <strong>{formattedAmount}</strong>;
             },
             search: false,
@@ -340,6 +347,7 @@ const DiscountList: React.FC = () => {
                 width="400px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
+                formRef={formRef}
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('package', value.package);
@@ -354,8 +362,16 @@ const DiscountList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
                 }}
+
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
             >
                 <ProForm.Group>
                     <ProFormSelect

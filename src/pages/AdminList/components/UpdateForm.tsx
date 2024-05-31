@@ -25,6 +25,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [roles, setRoles] = useState([]);
 
   const stepsFormRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -107,6 +108,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const handleChange = async (info: any) => {
 
+    
     if (info.file.status === 'done') {
       const downloadURL = await handleUpload(info.file.originFileObj);
       setImageUrl(downloadURL);
@@ -116,11 +118,17 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const handleUpdate = async (values) => {
 
     try {
+      setLoading(true);
 
       const userId = props.values.id;
       const profile_img = imageUrl || props.values?.profile_img;
       values.phone = validateTanzanianPhoneNumber(values.phone);
       values.profile_img = profile_img;
+
+      console.log('values1235',values)
+      console.log('user iddd',userId);
+      
+      
 
       const response = await updateUserAdmin(userId, { ...values, profile_img });
       if (response.status) {
@@ -128,17 +136,21 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         form.resetFields();
         props.onCancel(true);
         message.success(response.message);
+        setLoading(false);
         props.onTableReload();
         stepsFormRef.current?.submit();
       } else {
         if (response.data) {
+          setLoading(false);
           const errors = response.data.errors;
           showErrorWithLineBreaks(formatErrorMessages(errors));
         } else {
+          setLoading(false);
           message.error(response.message);
         }
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };

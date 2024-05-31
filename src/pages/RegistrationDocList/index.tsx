@@ -33,11 +33,8 @@ const RegistrationDocList: React.FC = () => {
     const [selectedRowsState, setSelectedRows] = useState<API.RegistrationDocListItem[]>([]);
 
     const intl = useIntl();
-
-
-
-
-
+    const [loading, setLoading] = useState(false);
+    const formRef = useRef();
 
 
     const handleStatus = async (selectedRows: API.RegistrationDocListItem[],status) => {
@@ -72,6 +69,7 @@ const RegistrationDocList: React.FC = () => {
 
         const doc_name = formData.get('doc_name') as string;
        const type = formData.get('type');
+       setLoading(true);
         try {
 
             const RegistrationDoc: API.RegistrationDocListItem = {
@@ -89,19 +87,24 @@ const RegistrationDocList: React.FC = () => {
                 if (response.status) {
                     hide();
                     message.success(response.message)
+                    setLoading(false);
+                    formRef.current.resetFields();
                     return true
                 } else {
                     message.error(response.message)
+                    setLoading(false);
                     return false
                 }
 
             } catch (error) {
                 hide();
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false
             }
 
         } catch (error) {
+            setLoading(false);
             message.error('Failed to create data!');
             return false
         }
@@ -326,6 +329,7 @@ const RegistrationDocList: React.FC = () => {
                 width="400px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
+                formRef={formRef}
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('doc_name', value.doc_name);
@@ -338,8 +342,16 @@ const RegistrationDocList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
                 }}
+
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
             >
                 <ProForm.Group>
                     <ProFormText

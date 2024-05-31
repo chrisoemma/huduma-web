@@ -17,6 +17,7 @@ export type UpdateFormProps = {
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
 
   useEffect(() => {
@@ -31,22 +32,28 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   }, [props.updateModalOpen, props.values, form]);
 
   const handleUpdate = async () => {
+
     try {
+      setLoading(true);
       const values = await form.validateFields();
       values.updated_by=1;
       const docId = props.values.id;
+      
 
       const response = await updateRegistrationDoc(docId, { ...values });
-
+  
       if (response.status) {
         message.success(response.message)
         form.resetFields();
         props.onCancel(true);
+        setLoading(false);
         props.onTableReload();
       } else {
+        setLoading(false);
         message.error(response.message)
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -74,6 +81,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           key="submit"
           type="primary"
           onClick={handleUpdate}
+          disabled={loading} 
         >
           Update
         </Button>,

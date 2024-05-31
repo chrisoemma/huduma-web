@@ -26,6 +26,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const stepsFormRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Fetch categories when the component mounts
@@ -107,13 +108,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const handleUpdate = async (values) => {
     try {
     
-    
+      setLoading(true);
      
       const serviceId = props.values.id;
        
-
-     
-
       const selectedCategory = 
       categories.find((cat) => cat?.name?.en === values.category) ||
       categories.find((cat) => cat.id == values.category);
@@ -148,13 +146,14 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     
 
       await updateService(serviceId, { ...usedValues, img_url });
-      form.resetFields();
+      setLoading(false);
       setImageUrl(undefined);
       props.onCancel(true);
       message.success('Service updated successfully');
       props.onTableReload();
       stepsFormRef.current?.submit();
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -185,6 +184,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           }}
         >
           {dom}
+
+          
         </Modal>
       )}
     >

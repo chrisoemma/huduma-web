@@ -7,7 +7,6 @@ import { getPackages } from '@/pages/SubscriptionPackageList/SubscriptionPackage
 import { updateCommissionAmount } from '../commissionAmountSlice';
 
 
-
 export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
   onSubmit: (values: FormValueType) => Promise<void>;
@@ -27,9 +26,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const { initialState } = useModel('@@initialState');
-
-
-
+  const [loading, setLoading] = useState(false);
 
 
   useEffect(() => {
@@ -40,7 +37,6 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       setPackageAmount(packageObject ? packageObject.amount : null)
 
       form.setFieldsValue({
-
         payment_for: props.values.payment_for || '',
         user_type:props.values.user_type || '',
         duration: props.values.duration || '',
@@ -51,6 +47,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const handleUpdate = async () => {
+
+    setLoading(true);
     try {
       const values = await form.validateFields();
       values.updated_by = 1;
@@ -58,7 +56,6 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       values.payment_for = props.values.payment_for;
       values.user_type = props.values.user_type
 
-      
       const updatedValues = { ...values };
 
       const response = await updateCommissionAmount(commissionId, updatedValues);
@@ -66,12 +63,15 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       if (response.status) {
         message.success(response.message);
         form.resetFields();
+        setLoading(false);
         props.onCancel(true);
         props.onTableReload();
       } else {
+        setLoading(false);
         message.error(response.message);
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -95,7 +95,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         >
           Cancel
         </Button>,
-        <Button key="submit" type="primary" onClick={handleUpdate}>
+        <Button key="submit" type="primary" 
+        onClick={handleUpdate}
+        disabled={loading} 
+        >
           Update
         </Button>,
       ]}

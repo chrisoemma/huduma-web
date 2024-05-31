@@ -18,7 +18,7 @@ import { Button, Drawer, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 
 import UpdateForm from './components/UpdateForm';
-import { addCommissionAmount,getCommissionAmount,  removeCommissionAmount } from './commissionAmountSlice.ts';
+import { addCommissionAmount, getCommissionAmount, removeCommissionAmount } from './commissionAmountSlice.ts';
 
 
 
@@ -39,9 +39,8 @@ const DiscountList: React.FC = () => {
 
     const intl = useIntl();
     const { initialState } = useModel('@@initialState');
-
-
-
+    const [loading, setLoading] = useState(false);
+    const formRef = useRef();
 
 
 
@@ -51,6 +50,7 @@ const DiscountList: React.FC = () => {
         const amount = formData.get('amount') as string;
         const user_type = formData.get('user_type') as string;
 
+        setLoading(true);
         try {
 
             const commissionAmount: API.DiscountListItem = {
@@ -67,21 +67,24 @@ const DiscountList: React.FC = () => {
 
                 if (response.status) {
                     hide();
+                    setLoading(false);
                     message.success(response.message)
+                    formRef.current.resetFields();
                     return true
                 } else {
                     message.error(response.message)
+                    setLoading(false);
                     return false
                 }
-
             } catch (error) {
                 hide();
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false
             }
-
         } catch (error) {
             message.error('Failed to create data!');
+            setLoading(false);
             return false
         }
     };
@@ -112,6 +115,7 @@ const DiscountList: React.FC = () => {
             return true;
         } catch (error) {
             hide();
+            setLoading(false);
             message.error('Delete failed, please try again');
             return false;
         }
@@ -338,6 +342,7 @@ const DiscountList: React.FC = () => {
                 })}
                 width="400px"
                 open={createModalOpen}
+                formRef={formRef}
                 onOpenChange={handleModalOpen}
                 onFinish={async (value) => {
                     const formData = new FormData();
@@ -352,11 +357,19 @@ const DiscountList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
                 }}
+
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
+
+
             >
-
-
 
                 <ProForm.Group>
 
@@ -374,7 +387,6 @@ const DiscountList: React.FC = () => {
                         label="Amount"
 
                     />
-
                     <ProFormSelect
                         name="user_type"
                         width="md"

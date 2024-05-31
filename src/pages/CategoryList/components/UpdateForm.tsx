@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Modal, Upload, Image, Form, Button, message } from 'antd';
 import { ProFormText, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
@@ -21,6 +21,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.images?.[0]?.img_url);
 
   const { Dragger } = Upload;
+
+  const [loading, setLoading] = useState(false);
+  
 
   useEffect(() => {
   
@@ -78,7 +81,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   };
 
   const handleUpdate = async () => {
+    
     try {
+      setLoading(true);
       const values = await form.validateFields();
 
      
@@ -89,12 +94,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   
       await updateCategory(categoryId, { ...values, img_url });
 
-      form.resetFields();
+      setLoading(false);
       setImageUrl(undefined);
       props.onCancel(true);
       message.success('Category updated successfully');
       props.onTableReload();
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -122,10 +128,12 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           key="submit"
           type="primary"
           onClick={handleUpdate}
+          disabled={loading} 
         >
           Update
         </Button>,
       ]}
+      
       onCancel={() => {
         props.onCancel();
         form.resetFields();
@@ -138,6 +146,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           name_sw: props.values.name?.sw || '', 
           status: props.values.status,
         }}
+
+
       >
       <ProFormText
           name="name_en"

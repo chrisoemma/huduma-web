@@ -17,6 +17,7 @@ export type UpdateFormProps = {
 const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
 
 
@@ -36,11 +37,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const handleUpdate = async () => {
+    
     try {
       const values = await form.validateFields();
       values.updated_by = 1;
       const packageId = props.values.id;
-
+     
+      setLoading(true);
 
 
       // Update the designation values with the selected documents
@@ -49,14 +52,18 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       const response = await updatePackage(packageId, updatedValues);
 
       if (response.status) {
-        message.success(response.message);
+        setLoading(false);
+    
         form.resetFields();
         props.onCancel(true);
+        setLoading(false);
         props.onTableReload();
       } else {
+        setLoading(false);
         message.error(response.message);
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -80,7 +87,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         >
           Cancel
         </Button>,
-        <Button key="submit" type="primary" onClick={handleUpdate}>
+        <Button key="submit" type="primary" 
+        onClick={handleUpdate}
+        disabled={loading} 
+        >
           Update
         </Button>,
       ]}

@@ -27,6 +27,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [permissions, setPermissions] = useState([]);
 
   const stepsFormRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -110,6 +111,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     try {
 
       const roleId = props.values.id;
+      setLoading(true);
 
       const values = await form.validateFields();
 
@@ -124,15 +126,17 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       //  console.log('updatedd values',updatedValues)
 
       //  return 
-  
+      
       const response = await updateRole(roleId, updatedValues);
       if (response.status) {
         form.resetFields();
         props.onCancel(true);
+        setLoading(false);
         message.success(response.message);
         props.onTableReload();
         stepsFormRef.current?.submit();
       } else {
+        setLoading(false);
         if (response.data) {
           const errors = response.data.errors;
           showErrorWithLineBreaks(formatErrorMessages(errors));
@@ -142,6 +146,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       }
 
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -170,6 +175,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           key="submit"
           type="primary"
           onClick={handleUpdate}
+          disabled={loading} 
         >
           Update
         </Button>,

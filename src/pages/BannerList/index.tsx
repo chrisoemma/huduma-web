@@ -36,13 +36,15 @@ const BannerList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.BannerListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.BannerListItem[]>([]);
-  const [categories, setCategories] = useState([]);
+
 
   const intl = useIntl();
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef();
 
 
   const handleRemove = async (selectedRows: API.BannerListItem[]) => {
-  
+
 
     const hide = message.loading('Loading....');
     if (!selectedRows) return true;
@@ -67,7 +69,7 @@ const BannerList: React.FC = () => {
 
 
 
-  
+
 
   const handleAdd = async (formData: FormData) => {
 
@@ -76,11 +78,13 @@ const BannerList: React.FC = () => {
     const end_date = formData.get('end_date') as string;
     const imageFile = formData.get('image') as File;
 
+    setLoading(true);
 
     try {
       const storageRef = ref(storage, `banners/${imageFile.name}`);
 
       if (imageFile) {
+
         const uploadTask = uploadBytesResumable(storageRef, imageFile);
 
         uploadTask.on(
@@ -105,11 +109,11 @@ const BannerList: React.FC = () => {
             try {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               const BannerData: API.BannerListItem = {
-                id: 0, 
+                id: 0,
                 description: description,
-                start_date:start_date,
-                end_date:end_date,
-                url: downloadURL, 
+                start_date: start_date,
+                end_date: end_date,
+                url: downloadURL,
               };
 
               // Save the data to the database
@@ -117,15 +121,20 @@ const BannerList: React.FC = () => {
               try {
                 await addBanner(BannerData);
                 hide();
+                setLoading(false);
                 message.success('Added successfully');
+            
                 return true
               } catch (error) {
                 hide();
                 message.error('Adding failed, please try again!');
+                setLoading(false);
                 return false
               } finally {
                 handleModalOpen(false);
-                actionRef.current.reload();
+                formRef.current.resetFields();
+                setLoading(false);
+               
               }
             } catch (error) {
               message.error('Error getting download URL, please try again!');
@@ -144,80 +153,80 @@ const BannerList: React.FC = () => {
 
 
   const columns: ProColumns<API.BannerListItem>[] = [
- 
-    {
-        title: <FormattedMessage id="pages.searchTable.titleImage" defaultMessage="Image" />,
-        dataIndex: 'url',
-        hideInSearch: true,
-        render: (_, record) => (
-          <Image
-            src={record.url}
-            alt="Image"
-            style={{ maxWidth: '100px' }}
-          />
-        ),
-      },
 
     {
-        title: (
-          <FormattedMessage
-            id="pages.searchTable.updateForm.ruleName.description"
-            defaultMessage="Description"
-          />
-        ),
-        dataIndex: 'description',
-        valueType: 'text',
-        tip: 'The Description is the unique key',
-        render: (dom, entity) => {
-          return (
-            <a
-              onClick={() => {
-                setCurrentRow(entity);
-                setShowDetail(true);
-              }}
-            >
-              {dom}
-            </a>
-          );
-        },
-        search: true,
-      },
+      title: <FormattedMessage id="pages.searchTable.titleImage" defaultMessage="Image" />,
+      dataIndex: 'url',
+      hideInSearch: true,
+      render: (_, record) => (
+        <Image
+          src={record.url}
+          alt="Image"
+          style={{ maxWidth: '100px' }}
+        />
+      ),
+    },
 
-      {
-        title: 'Start Date',
-        dataIndex: 'start_date', 
-        hideInSearch: true,
-        render: (text, record) => (
-          <span>{moment(record.start_date).format('DD/MM/YYYY HH:mm:ss')}</span>
-        ),
+    {
+      title: (
+        <FormattedMessage
+          id="pages.searchTable.updateForm.ruleName.description"
+          defaultMessage="Description"
+        />
+      ),
+      dataIndex: 'description',
+      valueType: 'text',
+      tip: 'The Description is the unique key',
+      render: (dom, entity) => {
+        return (
+          <a
+            onClick={() => {
+              setCurrentRow(entity);
+              setShowDetail(true);
+            }}
+          >
+            {dom}
+          </a>
+        );
       },
-      {
-        title: 'End Date',
-        dataIndex: 'end_date',
-        hideInSearch: true,
-        render: (text, record) => (
-          <span>{moment(record.end_date).format('DD/MM/YYYY HH:mm:ss')}</span>
-        ),
-      },
-      {
-        title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
-        dataIndex: 'status',
-        hideInForm: true,
-        search: false,
-        render: (text, record) => {
-            let color = '';
-            if (text == 'Active') {
-                color = 'green';
-            } else if (text == 'In Active') {
-                color = 'red';
-            }
+      search: true,
+    },
 
-            return (
-                <span>
-                    <Tag color={color}>{text}</Tag>
-                </span>
-            );
-        },
+    {
+      title: 'Start Date',
+      dataIndex: 'start_date',
+      hideInSearch: true,
+      render: (text, record) => (
+        <span>{moment(record.start_date).format('DD/MM/YYYY HH:mm:ss')}</span>
+      ),
+    },
+    {
+      title: 'End Date',
+      dataIndex: 'end_date',
+      hideInSearch: true,
+      render: (text, record) => (
+        <span>{moment(record.end_date).format('DD/MM/YYYY HH:mm:ss')}</span>
+      ),
+    },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
+      dataIndex: 'status',
+      hideInForm: true,
+      search: false,
+      render: (text, record) => {
+        let color = '';
+        if (text == 'Active') {
+          color = 'green';
+        } else if (text == 'In Active') {
+          color = 'red';
+        }
+
+        return (
+          <span>
+            <Tag color={color}>{text}</Tag>
+          </span>
+        );
+      },
     },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
@@ -233,7 +242,7 @@ const BannerList: React.FC = () => {
         >
           <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
         </a>,
-       
+
       ],
     },
   ];
@@ -244,11 +253,11 @@ const BannerList: React.FC = () => {
         //key={categories.length}
         pagination={{
           pageSizeOptions: ['15', '30', '60', '100'],
-          defaultPageSize: 15, 
-          showSizeChanger: true, 
-          locale: {items_per_page: ""}
+          defaultPageSize: 15,
+          showSizeChanger: true,
+          locale: { items_per_page: "" }
         }}
-    
+
         actionRef={actionRef}
         rowKey="id"
         toolBarRender={() => [
@@ -264,24 +273,24 @@ const BannerList: React.FC = () => {
         ]}
         search={{
           labelWidth: 120,
-        //  filterType: 'light', // Use a light filter form for better layout
+          //  filterType: 'light', // Use a light filter form for better layout
         }}
         request={async (params, sorter, filter) => {
-          try {      
+          try {
             const response = await getBanners(params);
 
-            console.log('resposnseee',response);
+            console.log('resposnseee', response);
             const banners = response.data.banners;
-            
+
             const filteredBanners = banners.filter(banner =>
               params.description
                 ? banner.description
-                    .toLowerCase()
-                    .split(' ')
-                    .some(word => word.startsWith(params.description.toLowerCase()))
+                  .toLowerCase()
+                  .split(' ')
+                  .some(word => word.startsWith(params.description.toLowerCase()))
                 : true
             );
-      
+
             return {
               data: filteredBanners,
               success: true,
@@ -294,7 +303,7 @@ const BannerList: React.FC = () => {
             };
           }
         }}
-      
+
         columns={columns}
         rowSelection={{
           onChange: (_, selectedRows) => {
@@ -310,15 +319,15 @@ const BannerList: React.FC = () => {
               <a style={{ fontWeight: 600 }}>{selectedRowsState.length}</a>{' '}
               <FormattedMessage id="pages.searchTable.item" defaultMessage="项" />
               &nbsp;&nbsp;
-             
+
             </div>
           }
         >
           <Button
             onClick={async () => {
               await handleRemove(selectedRowsState);
-             setSelectedRows([]);
-             actionRef.current?.reload();
+              setSelectedRows([]);
+              actionRef.current?.reload();
             }}
           >
             <FormattedMessage
@@ -335,6 +344,7 @@ const BannerList: React.FC = () => {
         })}
         width="400px"
         open={createModalOpen}
+        formRef={formRef}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
@@ -352,52 +362,60 @@ const BannerList: React.FC = () => {
             if (actionRef.current) {
               actionRef.current.reload();
             }
+            formRef.current.resetFields();
           }
+        }}
+
+        submitter={{
+          submitButtonProps: {
+            loading: loading,
+            disabled: loading,
+          },
         }}
       >
         <ProForm.Group>
-        <ProFormTextArea
-         width="md"
-         name="description"
-         label="Description"
-  />
+          <ProFormTextArea
+            width="md"
+            name="description"
+            label="Description"
+          />
 
-<ProFormDateTimePicker
-    rules={[
-      {
-        required: true,
-        message: 'Start Date is required',
-      },
-    ]}
-    width="md"
-    name="start_date"
-    label="Start Date"
-   
-  />
-</ProForm.Group>
+          <ProFormDateTimePicker
+            rules={[
+              {
+                required: true,
+                message: 'Start Date is required',
+              },
+            ]}
+            width="md"
+            name="start_date"
+            label="Start Date"
 
-<ProForm.Group>
-  <ProFormDateTimePicker
-    rules={[
-        {
-          required: true,
-          message: 'End Date is required',
-        },
-        ({ getFieldValue }) => ({
-          validator(_, value) {
-            const startDate = getFieldValue('start_date');
-            if (startDate && value && moment(value).isBefore(startDate)) {
-              return Promise.reject('End Date must be equal or after Start Date');
-            }
-            return Promise.resolve();
-          },
-        }),
-      ]}
-    width="md"
-    name="end_date"
-    label="End Date"
-    
-  />
+          />
+        </ProForm.Group>
+
+        <ProForm.Group>
+          <ProFormDateTimePicker
+            rules={[
+              {
+                required: true,
+                message: 'End Date is required',
+              },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  const startDate = getFieldValue('start_date');
+                  if (startDate && value && moment(value).isBefore(startDate)) {
+                    return Promise.reject('End Date must be equal or after Start Date');
+                  }
+                  return Promise.resolve();
+                },
+              }),
+            ]}
+            width="md"
+            name="end_date"
+            label="End Date"
+
+          />
           <ProFormUploadButton
             name="image"
             label="Upload Banner"

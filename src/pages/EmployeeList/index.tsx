@@ -34,10 +34,14 @@ const EmployeeList: React.FC = () => {
     const [selectedRowsState, setSelectedRows] = useState<API.EmployeeListItem[]>([]);
     const [clients, setClients] = useState([]);
     const { id } = useParams();
-    const { data, error, loading } = useRequest(() => getProviderEmployees(Number(id)));
+    const { data, error, } = useRequest(() => getProviderEmployees(Number(id)));
 
     const intl = useIntl();
-    const [form] = ProForm.useForm(); 
+    const [form] = ProForm.useForm();
+
+    const [loading, setLoading] = useState(false);
+    const formRef = useRef();
+
 
 
     //   const handleRemove = async (selectedRows: API.EmployeeListItem[]) => {
@@ -65,8 +69,8 @@ const EmployeeList: React.FC = () => {
     //   };
 
 
-  
-      
+
+
 
     const handleAdd = async (formData: FormData) => {
         const name = formData.get('name') as string;
@@ -75,92 +79,97 @@ const EmployeeList: React.FC = () => {
         const email = formData.get('email') as string;
         const imageFile = formData.get('image') as File;
         const nida = formData.get('nida') as string;
-      
+
+        setLoading(true);
+
         let employeeData: API.EmployeeListItem = {
-          id: 0, // Set the appropriate ID
-          name: name,
-          nida: nida,
-          email: email,
-          phone:newphone,
-          profile_img: '',
+            name: name,
+            nida: nida,
+            email: email,
+            phone: newphone,
+            profile_img: '',
         };
-      
+
         const uploadImage = async () => {
-          if (imageFile) {
-            const storageRef = ref(storage, `profile/${imageFile.name}`);
-            const uploadTask = uploadBytesResumable(storageRef, imageFile);
-      
-            return new Promise<string>((resolve, reject) => {
-              uploadTask.on(
-                'state_changed',
-                (snapshot) => {
-                  const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                  console.log('Upload is ' + progress + '% done');
-                  switch (snapshot.state) {
-                    case 'paused':
-                      console.log('Upload is paused');
-                      break;
-                    case 'running':
-                      console.log('Upload is running');
-                      break;
-                  }
-                },
-                (error) => {
-                  // Handle unsuccessful uploads
-                  console.error('Upload error:', error);
-                  reject(error);
-                },
-                async () => {
-                  try {
-                    const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-                    resolve(downloadURL);
-                  } catch (error) {
-                    reject(error);
-                  }
-                }
-              );
-            });
-          } else {
-            return Promise.resolve('');
-          }
-        };
-      
-        try {
-          const downloadURL = await uploadImage();
-          employeeData = {
-            ...employeeData,
-            profile_img: downloadURL,
-          };
-          // Add employee data to the database
-          const hide = message.loading('Loading...');
-          try {
-            const response = await addEmployee(id, employeeData);
-            if (response.status) {
-              hide();
-              message.success(response.message);
-              return true;
+            if (imageFile) {
+                const storageRef = ref(storage, `profile/${imageFile.name}`);
+                const uploadTask = uploadBytesResumable(storageRef, imageFile);
+
+                return new Promise<string>((resolve, reject) => {
+                    uploadTask.on(
+                        'state_changed',
+                        (snapshot) => {
+                            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                            console.log('Upload is ' + progress + '% done');
+                            switch (snapshot.state) {
+                                case 'paused':
+                                    console.log('Upload is paused');
+                                    break;
+                                case 'running':
+                                    console.log('Upload is running');
+                                    break;
+                            }
+                        },
+                        (error) => {
+                            // Handle unsuccessful uploads
+                            console.error('Upload error:', error);
+                            reject(error);
+                        },
+                        async () => {
+                            try {
+                                const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+                                resolve(downloadURL);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        }
+                    );
+                });
             } else {
-              if (response.data) {
-                const errors = response.data.errors;
-                showErrorWithLineBreaks(formatErrorMessages(errors));
-              } else {
-                message.error(response.message);
-              }
+                return Promise.resolve('');
             }
-          } catch (error) {
-            hide();
-            message.error('Adding failed, please try again!');
-            return false;
-          } finally {
-            handleModalOpen(false);
-            actionRef.current.reload();
-          }
+        };
+
+        try {
+            const downloadURL = await uploadImage();
+            employeeData = {
+                ...employeeData,
+                profile_img: downloadURL,
+            };
+            // Add employee data to the database
+            const hide = message.loading('Loading...');
+            try {
+                const response = await addEmployee(id, employeeData);
+                if (response.status) {
+                    setLoading(false);
+                    hide();
+                    message.success(response.message);
+                    return true;
+                } else {
+                    setLoading(false);
+                    if (response.data) {
+                        const errors = response.data.errors;
+                        showErrorWithLineBreaks(formatErrorMessages(errors));
+                    } else {
+                        message.error(response.message);
+                    }
+                }
+            } catch (error) {
+                hide();
+                setLoading(false);
+                message.error('Adding failed, please try again!');
+                return false;
+            } finally {
+                setLoading(false);
+                handleModalOpen(false);
+                actionRef.current.reload();
+            }
         } catch (error) {
-          message.error(error);
-          return false;
+            message.error(error);
+            return false;
         }
-      };
-       
+    };
+
 
 
 
@@ -357,10 +366,10 @@ const EmployeeList: React.FC = () => {
                 //key={categories.length}
                 pagination={{
                     pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize: 15, 
-                    showSizeChanger: true, 
-                    locale: {items_per_page: ""}
-                  }}
+                    defaultPageSize: 15,
+                    showSizeChanger: true,
+                    locale: { items_per_page: "" }
+                }}
                 headerTitle={intl.formatMessage({
                     id: 'pages.searchTable.providerEmployees',
                     defaultMessage: `Provider employees`,
@@ -454,7 +463,7 @@ const EmployeeList: React.FC = () => {
                 </FooterToolbar>
             )}
             <ModalForm
-             form={form}
+                form={form}
                 title={intl.formatMessage({
                     id: 'pages.searchTable.createForm.newClient',
                     defaultMessage: 'New Employee',
@@ -462,6 +471,7 @@ const EmployeeList: React.FC = () => {
                 width="400px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
+                formRef={formRef}
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('name', value.name);
@@ -480,7 +490,15 @@ const EmployeeList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
+                }}
+
+                submitter={{
+                    submitButtonProps: {
+                        loading: loading,
+                        disabled: loading,
+                    },
                 }}
             >
                 <ProForm.Group>
@@ -522,8 +540,8 @@ const EmployeeList: React.FC = () => {
                     <ProFormText
                         rules={[
                             {
-                            type: 'email',
-                            message: 'Please enter a valid email address!',
+                                type: 'email',
+                                message: 'Please enter a valid email address!',
                             },
                         ]}
                         width="md"

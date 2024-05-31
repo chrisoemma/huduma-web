@@ -40,10 +40,12 @@ const AgentList: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const intl = useIntl();
     const [form] = ProForm.useForm();
+    const formRef = useRef();
 
     const [validationResult, setValidationResult] = useState(null);
     const { Item } = Form;
     const { initialState } = useModel('@@initialState');
+    
 
 
     const handleViewDocs = () => {
@@ -166,10 +168,10 @@ const AgentList: React.FC = () => {
         const nida = formData.get('nida') as string;
 
         const currentUser = initialState?.currentUser;
+        setLoading(true);
 
 
         let agentData: API.AgentListItem = {
-            id: 0, // Set the appropriate ID
             first_name: first_name,
             last_name: last_name,
             nida: nida,
@@ -229,28 +231,36 @@ const AgentList: React.FC = () => {
             // Add agent data to the database
             const hide = message.loading('Loading...');
             try {
+
+           
                 const response = await addAgent(agentData);
                 if (response.status) {
+                    setLoading(false); 
                     hide();
                     message.success(response.message);
                     return true;
                 } else {
+                    setLoading(false); 
                     if (response.data) {
                         const errors = response.data.errors;
                         showErrorWithLineBreaks(formatErrorMessages(errors));
                     } else {
+                        setLoading(false); 
                         message.error(response.message);
                     }
                 }
             } catch (error) {
+                setLoading(false); 
                 hide();
                 message.error('Adding failed, please try again!');
                 return false;
             } finally {
                 handleModalOpen(false);
+                setLoading(false); 
                 actionRef.current.reload();
             }
         } catch (error) {
+            setLoading(false); 
             message.error('Image upload failed, please try again!');
             return false;
         }
@@ -636,6 +646,7 @@ const AgentList: React.FC = () => {
                 width="400px"
                 open={createModalOpen}
                 onOpenChange={handleModalOpen}
+                formRef={formRef}
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('name', value.name);
@@ -658,8 +669,17 @@ const AgentList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+
+                        formRef.current.resetFields();
                     }
                 }}
+
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
             >
                 <ProForm.Group>
                     <ProFormText

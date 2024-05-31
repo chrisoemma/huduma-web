@@ -36,6 +36,8 @@ const RoleList: React.FC = () => {
   const [permissions, setPermissions] = useState([]);
 
   const intl = useIntl();
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef()
 
 
 
@@ -69,6 +71,8 @@ const RoleList: React.FC = () => {
 
   const handleAdd = async (formData: FormData) => {
 
+    setLoading(true);
+
     const name = formData.get('name') as string;
     const permissions = formData.getAll('permissions[]').map(id => parseInt(id, 10));
 
@@ -85,19 +89,23 @@ const RoleList: React.FC = () => {
         const response = await addRole(roleData);
         if (response.status) {
           hide();
+          setLoading(false);
           message.success(response.message);
           return true;
         } else {
+          setLoading(false);
           if (response.data) {
             const errors = response.data.errors;
             showErrorWithLineBreaks(formatErrorMessages(errors));
           } else {
+            setLoading(false);
             message.error(response.message);
           }
         }
       } catch (error) {
         hide();
         console.log('errorrrs',error)
+        setLoading(false);
         message.error('Adding failed, please try again!');
         return false
       }
@@ -328,6 +336,7 @@ const RoleList: React.FC = () => {
         width="400px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
+        formRef={formRef}
         onFinish={async (value) => {
           const formData = new FormData();
           formData.append('name', value.name);
@@ -347,6 +356,14 @@ const RoleList: React.FC = () => {
               actionRef.current.reload();
             }
           }
+          formRef.current.resetFields();
+        }}
+
+        submitter={{
+          submitButtonProps: {
+            loading: loading, 
+            disabled: loading,
+          },
         }}
       >
         <ProForm.Group>

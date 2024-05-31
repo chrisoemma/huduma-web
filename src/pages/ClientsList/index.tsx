@@ -38,6 +38,7 @@ const ClientList: React.FC = () => {
     const [clients, setClients] = useState([]);
     const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
     const [loading, setLoading] = useState(false);
+     const formRef = useRef();
 
     const intl = useIntl();
     const [form] = ProForm.useForm();
@@ -154,6 +155,8 @@ const ClientList: React.FC = () => {
         const nida = formData.get('nida') as string;
         const currentUser = initialState?.currentUser;
 
+        setLoading(true);
+
         let userData: API.ClientListItem = {
            // first_name: first_name,
            // last_name: last_name,
@@ -223,25 +226,31 @@ const ClientList: React.FC = () => {
              
                 if (response.status) {
                     hide();
+                    setLoading(false); 
                     message.success(response.message);
                     return true;
                 } else {
+                    setLoading(false); 
                     if (response.data) {
                         const errors = response.data.errors;
                         showErrorWithLineBreaks(formatErrorMessages(errors));
                     } else {
+                        setLoading(false); 
                         message.error(response.message);
                     }
                 }
             } catch (error) {
                 hide();
+                setLoading(false); 
                 message.error('Adding failed, please try again!');
                 return false;
             } finally {
+                setLoading(false); 
                 handleModalOpen(false);
                 actionRef.current.reload();
             }
         } catch (error) {
+            setLoading(false); 
             message.error('Image upload failed, please try again!');
             return false;
         }
@@ -587,6 +596,7 @@ const ClientList: React.FC = () => {
                 })}
                 width="400px"
                 open={createModalOpen}
+                formRef={formRef}
                 onOpenChange={handleModalOpen}
                 onFinish={async (value) => {
                     const formData = new FormData();
@@ -608,8 +618,16 @@ const ClientList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
                 }}
+
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
             >
                 <ProForm.Group>
                     <ProFormText
@@ -623,8 +641,7 @@ const ClientList: React.FC = () => {
                         name="name"
                         label="Name"
                     />
-                  
-
+                    
                     <ProFormText
                         rules={[
                             {

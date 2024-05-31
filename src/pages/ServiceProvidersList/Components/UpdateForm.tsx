@@ -34,6 +34,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [designationDocs, setDesignationDocs] = useState([]);
   const [packages, setSubPackages] = useState([]);
 
+  const [loading, setLoading] = useState(false);
+
   const [selectedCard, setSelectedCard] = useState(null);
 
   useEffect(() => {
@@ -209,6 +211,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const handleUpdate = async (values) => {
 
+    setLoading(true);
+
     try {
 
       const providerId = props.values.id;
@@ -235,24 +239,29 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       if (response.status) {
         setImageUrl(undefined);
         form.resetFields();
+        setLoading(false);
         props.onCancel(true);
         message.success(response.message);
         props.onTableReload();
         stepsFormRef.current?.submit();
       } else {
+        setLoading(false);
         if (response.data) {
           const errors = response.data.errors;
           showErrorWithLineBreaks(formatErrorMessages(errors));
         } else {
+          setLoading(false);
           if (response.error) {
             message.error(response.error);
           } else {
+            setLoading(false);
             message.error(response.message);
           }
 
         }
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };

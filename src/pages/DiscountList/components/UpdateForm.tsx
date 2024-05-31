@@ -26,6 +26,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const { initialState } = useModel('@@initialState');
+  const [loading, setLoading] = useState(false);
 
 
 
@@ -77,8 +78,11 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const handleUpdate = async () => {
+
     try {
+      setLoading(true);
       const values = await form.validateFields();
+    
       values.updated_by = 1;
       const discountId = props.values.id;
       const selectedPackageData =
@@ -98,13 +102,16 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
       if (response.status) {
         message.success(response.message);
+        setLoading(false);
         form.resetFields();
         props.onCancel(true);
         props.onTableReload();
       } else {
+        setLoading(false);
         message.error(response.message);
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };
@@ -118,6 +125,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         id: 'pages.searchTable.updateForm.editPackage',
         defaultMessage: 'Edit Subscription Package',
       })}
+      
       visible={props.updateModalOpen}
       footer={[
         <Button
@@ -128,7 +136,11 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         >
           Cancel
         </Button>,
-        <Button key="submit" type="primary" onClick={handleUpdate}>
+        <Button key="submit" type="primary" 
+        onClick={handleUpdate}
+        disabled={loading}
+        
+        >
           Update
         </Button>,
       ]}

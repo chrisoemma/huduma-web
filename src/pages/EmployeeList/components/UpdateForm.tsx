@@ -24,6 +24,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.user?.profile_img);
 
   const stepsFormRef = useRef();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
 
@@ -90,6 +91,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const handleUpdate = async (values) => {
 
     try {
+      setLoading(true);
 
       const employeeId = props.values.id;
       const profile_img = imageUrl || props.values.user?.profile_img;
@@ -98,6 +100,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
       const response = await updateEmployee(employeeId, { ...values, profile_img });
       if (response.status) {
+        setLoading(false);
         setImageUrl(undefined);
         form.resetFields();
         props.onCancel(true);
@@ -105,6 +108,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         props.onTableReload();
         stepsFormRef.current?.submit();
       } else {
+        setLoading(false);
         if (response.data) {
           const errors = response.data.errors;
           showErrorWithLineBreaks(formatErrorMessages(errors));
@@ -113,6 +117,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         }
       }
     } catch (error) {
+      setLoading(false);
       console.log('Update failed:', error);
     }
   };

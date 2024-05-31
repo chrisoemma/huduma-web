@@ -34,6 +34,9 @@ const SubscriptionPackageList: React.FC = () => {
 
     const intl = useIntl();
     const { initialState } = useModel('@@initialState');
+    
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef();
 
 
 
@@ -42,7 +45,7 @@ const SubscriptionPackageList: React.FC = () => {
         const name = formData.get('name') as string;
         const amount = formData.get('amount') as string;
 
-          
+        setLoading(true);
         try {
 
             const PackageData: API.SubscriptionPackageListItem = {
@@ -52,24 +55,26 @@ const SubscriptionPackageList: React.FC = () => {
 
             };
 
-            // console.log('package data',PackageData);
-            // return 
-            // Save the data to the database
+           
             const hide = message.loading('Loading...');
             try {
                 const response = await addPackage(PackageData);
 
                 if (response.status) {
+                    setLoading(false);
+                    formRef.current.resetFields();
                     hide();
                     message.success(response.message)
                     return true
                 } else {
+                    setLoading(false);
                     message.error(response.message)
                     return false
                 }
 
             } catch (error) {
                 hide();
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false
             }
@@ -324,6 +329,7 @@ const SubscriptionPackageList: React.FC = () => {
                 })}
                 width="400px"
                 open={createModalOpen}
+                formRef={formRef}
                 onOpenChange={handleModalOpen}
                 onFinish={async (value) => {
 
@@ -341,8 +347,15 @@ const SubscriptionPackageList: React.FC = () => {
                         if (actionRef.current) {
                             actionRef.current.reload();
                         }
+                        formRef.current.resetFields();
                     }
                 }}
+                submitter={{
+                    submitButtonProps: {
+                      loading: loading, 
+                      disabled: loading,
+                    },
+                  }}
             >
                 <ProForm.Group>
                     <ProFormText

@@ -27,6 +27,7 @@
       const [categories, setCategories] = useState([]);
     
       const stepsFormRef = useRef();
+      const [loading, setLoading] = useState(false);
     
       useEffect(() => {
         async function fetchData() {
@@ -60,6 +61,7 @@
       const handleUpdate = async () => {
         try {
           const roleId = props.values.id;
+          setLoading(true);
       
           // Validate the form fields
           const values = await form.validateFields();
@@ -81,11 +83,13 @@
       
           if (response.status) {
             form.resetFields();
+            setLoading(false);
             props.onCancel(true);
             message.success(response.message);
             props.onTableReload();
             stepsFormRef.current?.submit();
           } else {
+            setLoading(false);
             if (response.data) {
               const errors = response.data.errors;
               showErrorWithLineBreaks(formatErrorMessages(errors));
@@ -123,6 +127,7 @@
               key="submit"
               type="primary"
               onClick={handleUpdate}
+              disabled={loading} 
             >
               Update
             </Button>,

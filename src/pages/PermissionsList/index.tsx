@@ -38,6 +38,8 @@ const PermissionList: React.FC = () => {
   const [categories, setCategories] = useState([]);
 
   const intl = useIntl();
+  const [loading, setLoading] = useState(false);
+  const formRef = useRef();
 
 
 
@@ -74,10 +76,7 @@ const PermissionList: React.FC = () => {
     const name = formData.get('name') as string;
     const category = formData.get('category') as string;
 
-      console.log('categoryyyr',category);
-
-        
-
+    setLoading(true);
     try {
 
       const permissionData: API.PermissionListItem = {
@@ -91,9 +90,11 @@ const PermissionList: React.FC = () => {
         const response = await addPermission(permissionData);
         if (response.status) {
           hide();
+          setLoading(false);
           message.success(response.message);
           return true;
         } else {
+          setLoading(false);
           if (response.data) {
             const errors = response.data.errors;
             showErrorWithLineBreaks(formatErrorMessages(errors));
@@ -103,12 +104,14 @@ const PermissionList: React.FC = () => {
         }
       } catch (error) {
         hide();
+        setLoading(false);
         console.log('errorrrs', error)
         message.error('Adding failed, please try again!');
         return false
       }
 
     } catch (error) {
+      setLoading(false);
       message.error('Image upload failed, please try again!');
       return false
     }
@@ -312,12 +315,11 @@ const PermissionList: React.FC = () => {
         width="400px"
         open={createModalOpen}
         onOpenChange={handleModalOpen}
+        formRef={formRef}
         onFinish={async (value) => {
           const formData = new FormData();
           formData.append('name', value.name);
           formData.append('category', value.category);
-
-
           const success = await handleAdd(formData);
 
           if (success) {
@@ -325,8 +327,17 @@ const PermissionList: React.FC = () => {
             if (actionRef.current) {
               actionRef.current.reload();
             }
+            formRef.current.resetFields();
           }
         }}
+
+        submitter={{
+          submitButtonProps: {
+            loading: loading, 
+            disabled: loading,
+          },
+        }}
+
       >
         <ProForm.Group>
           <ProFormText
