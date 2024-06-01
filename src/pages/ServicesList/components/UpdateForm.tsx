@@ -1,7 +1,7 @@
 // import {
 import React, { useEffect, useState,useRef } from 'react';
-import { Modal, Upload, Image, Form, Button, message } from 'antd';
-import { ProFormText,   StepsForm, ProFormSelect, ProFormTextArea } from '@ant-design/pro-form';
+import { Modal, Upload, Image, Form, Button, message, } from 'antd';
+import { ProFormText,   StepsForm, ProFormSelect, ProFormTextArea,ProFormRadio  } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FormattedMessage, useIntl } from '@umijs/max';
@@ -54,6 +54,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         description_en: props.values.description?.en || '', 
         description_sw: props.values.description?.sw || '', 
         target: categoryName,
+        status: props.values.status,
       });
       const initialImageUrl = props.values.images?.[0]?.img_url;
       setImageUrl(initialImageUrl);
@@ -141,6 +142,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     usedValues.name_en = values.name_en;
     usedValues.description_sw = values.description_sw;
     usedValues.name_sw = values.name_sw;
+    usedValues.status=values.status;
     usedValues.img_url = imageUrl || props.values.images?.[0]?.img_url;
 
     
@@ -198,6 +200,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           description_en: props.values.description?.en || '', 
           description_sw: props.values.description?.sw || '', 
           category: categories.find((cat) => cat.id === props.values.category_id)?.name?.en,
+          status: props.values.status,
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.step1',
@@ -227,6 +230,24 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
             name="name_sw"
             label="Kiswahili name"
           />
+
+         <ProFormRadio.Group
+          name="status"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.ruleProps.typeLabelStatus',
+            defaultMessage: 'Status',
+          })}
+          options={[
+            {
+              value: 'Active',
+              label: 'Active',
+            },
+            {
+              value: 'In-Active',
+              label: 'In-Active',
+            },
+          ]}
+        />
         <ProFormSelect
           name="category"
           width="md"

@@ -9,7 +9,7 @@ export async function getCategories(
     },
     options?: { [key: string]: any },
   ) {
-    return request(`${API_URL}/categories`, {
+    return request(`${API_URL}/admin/categories`, {
       method: 'GET',
       params: {
         ...params,

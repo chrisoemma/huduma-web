@@ -11,7 +11,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Image, Input, message } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
@@ -190,28 +190,24 @@ const CategoryList: React.FC = () => {
         ));
       }
     },
-
     {
       title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
       dataIndex: 'status',
       hideInForm: true,
-      valueEnum: {
-        0: {
-          text: (
-            <FormattedMessage
-              id="pages.searchTable.nameStatus.default"
-              defaultMessage="Shut down"
-            />
-          ),
-          status: 'Default',
-        },
-        1: {
-          text: 'Active',
-          status: 'Active',
-        },
-
+      render: (text, record) => {
+          let color = '';
+          if (text == 'Active') {
+              color = 'green';
+          } else if (text == 'In-Active') {
+              color = 'red';
+          }
+          return (
+              <span>
+                  <Tag color={color}>{text}</Tag>
+              </span>
+          );
       },
-    },
+  },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
       dataIndex: 'option',

@@ -9,7 +9,7 @@ export async function getServices(
     },
     options?: { [key: string]: any },
   ) {
-    return request(`${API_URL}/services`, {
+    return request(`${API_URL}/admin/services`, {
       method: 'GET',
       params: {
         ...params,

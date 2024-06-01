@@ -13,7 +13,7 @@ import {
   ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Image, Input, message } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 // import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './Components/UpdateForm';
@@ -310,6 +310,24 @@ const SubSubServiceList: React.FC = () => {
       },
       search: true,
     },
+    {
+      title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
+      dataIndex: 'status',
+      hideInForm: true,
+      render: (text, record) => {
+          let color = '';
+          if (text == 'Active') {
+              color = 'green';
+          } else if (text == 'In-Active') {
+              color = 'red';
+          }
+          return (
+              <span>
+                  <Tag color={color}>{text}</Tag>
+              </span>
+          );
+      },
+  },
     {
       title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
       dataIndex: 'option',

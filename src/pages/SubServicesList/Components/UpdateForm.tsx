@@ -1,7 +1,7 @@
 // import {
   import React, { useEffect, useState,useRef } from 'react';
   import { Modal, Upload, Image, Form, Button, message } from 'antd';
-  import { ProFormText,   StepsForm, ProFormSelect, ProFormTextArea } from '@ant-design/pro-form';
+  import { ProFormText,   StepsForm, ProFormSelect, ProFormTextArea,ProFormRadio } from '@ant-design/pro-form';
   import { InboxOutlined } from '@ant-design/icons';
   import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
   import { FormattedMessage, useIntl } from '@umijs/max';
@@ -56,6 +56,7 @@ import { updateSubService } from '../SubServiceSlice';
           description_en: props.values.description?.en || '', 
           description_sw: props.values.description?.sw || '', 
           target: servicesName,
+          status: props.values.status,
         });
         const initialImageUrl = props.values.default_images?.[0]?.img_url;
         setImageUrl(initialImageUrl);
@@ -135,6 +136,7 @@ import { updateSubService } from '../SubServiceSlice';
       usedValues.name_en = values.name_en;
       usedValues.description_sw = values.description_sw;
       usedValues.name_sw = values.name_sw;
+      usedValues.status=values.status;
       usedValues.img_url = imageUrl || props.values.default_images?.[0]?.img_url;
   
         await updateSubService(subServiceId, { ...usedValues, img_url });
@@ -188,6 +190,7 @@ import { updateSubService } from '../SubServiceSlice';
             name_sw: props.values.name?.sw || '', 
             description_en: props.values.description?.en || '', 
             description_sw: props.values.description?.sw || '', 
+            status: props.values.status,
             service: services.find((service) => service.id === props.values.service_id)?.name?.en,
           }}
           title={intl.formatMessage({
@@ -272,6 +275,24 @@ import { updateSubService } from '../SubServiceSlice';
               required: true,
               message: 'Please enter the description!',
               min: 5,
+            },
+          ]}
+        />
+
+<ProFormRadio.Group
+          name="status"
+          label={intl.formatMessage({
+            id: 'pages.searchTable.updateForm.ruleProps.typeLabelStatus',
+            defaultMessage: 'Status',
+          })}
+          options={[
+            {
+              value: 'Active',
+              label: 'Active',
+            },
+            {
+              value: 'In-Active',
+              label: 'In-Active',
             },
           ]}
         />

@@ -186,12 +186,12 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           })}
           options={[
             {
-              value: '1',
+              value: 'Active',
               label: 'Active',
             },
             {
-              value: '2',
-              label: 'Inactive',
+              value: 'In-Active',
+              label: 'In-Active',
             },
           ]}
         />
