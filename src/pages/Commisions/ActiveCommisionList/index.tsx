@@ -15,7 +15,7 @@ import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message,  Dropdown, Menu} from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
-//import html2pdf from 'html2pdf.js';
+import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
 
 import { formatErrorMessages, getMonthName, showErrorWithLineBreaks } from '@/utils/function';
@@ -54,7 +54,7 @@ const ActiveCommisionList: React.FC = () => {
   const handleDownloadPDF = () => {
     const element = document.getElementById('pro-table-container');
     if (element) {
-    //  html2pdf(element);
+     html2pdf(element);
     }
   };
 
