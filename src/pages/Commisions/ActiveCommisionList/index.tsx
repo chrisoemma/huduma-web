@@ -13,7 +13,7 @@ import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Upload, Input, Tag, message, Dropdown, Menu } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import moment from 'moment';
-import html2pdf from 'html2pdf.js';
+//import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
 
 import { formatErrorMessages, getMonthName, showErrorWithLineBreaks } from '@/utils/function';
@@ -55,52 +55,52 @@ const ActiveCommisionList: React.FC = () => {
 
 
 
-  const handleDownloadPDF = () => {
-    const table = document.getElementById('pro-table-container');
-    if (table) {
-      const tableClone = table.cloneNode(true) as HTMLElement;
+  // const handleDownloadPDF = () => {
+  //   const table = document.getElementById('pro-table-container');
+  //   if (table) {
+  //     const tableClone = table.cloneNode(true) as HTMLElement;
   
-      // Remove "Option" column and checkboxes
-      const ths = tableClone.querySelectorAll('th');
-      ths.forEach((th, index) => {
-        if (th.innerText.includes('Option')) {
-          th.remove();
-          tableClone.querySelectorAll(`td:nth-child(${index + 1}), th:nth-child(${index + 1})`).forEach(td => td.remove());
-        }
-      });
+  //     // Remove "Option" column and checkboxes
+  //     const ths = tableClone.querySelectorAll('th');
+  //     ths.forEach((th, index) => {
+  //       if (th.innerText.includes('Option')) {
+  //         th.remove();
+  //         tableClone.querySelectorAll(`td:nth-child(${index + 1}), th:nth-child(${index + 1})`).forEach(td => td.remove());
+  //       }
+  //     });
   
-      tableClone.querySelectorAll('input[type="checkbox"]').forEach(input => input.remove());
+  //     tableClone.querySelectorAll('input[type="checkbox"]').forEach(input => input.remove());
   
-      // Add custom CSS for PDF styling
-      const style = document.createElement('style');
-      style.textContent = `
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        th, td {
-          padding: 8px;
-          border: 1px solid #ddd;
-          text-align: left;
-        }
-        th {
-          background-color: #f2f2f2;
-        }
-      `;
-      tableClone.appendChild(style);
+  //     // Add custom CSS for PDF styling
+  //     const style = document.createElement('style');
+  //     style.textContent = `
+  //       table {
+  //         width: 100%;
+  //         border-collapse: collapse;
+  //       }
+  //       th, td {
+  //         padding: 8px;
+  //         border: 1px solid #ddd;
+  //         text-align: left;
+  //       }
+  //       th {
+  //         background-color: #f2f2f2;
+  //       }
+  //     `;
+  //     tableClone.appendChild(style);
   
-      const options = {
-        margin: [0.5, 0.5, 0.5, 0.5], // Adjust margins
-        filename: 'payments.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true }, // Use higher scale for better quality
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }, // Set landscape orientation
-        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Avoid page breaks within elements
-      };
+  //     const options = {
+  //       margin: [0.5, 0.5, 0.5, 0.5], // Adjust margins
+  //       filename: 'payments.pdf',
+  //       image: { type: 'jpeg', quality: 0.98 },
+  //       html2canvas: { scale: 2, useCORS: true }, // Use higher scale for better quality
+  //       jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }, // Set landscape orientation
+  //       pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Avoid page breaks within elements
+  //     };
   
-      html2pdf().from(tableClone).set(options).save();
-    }
-  };
+  //     html2pdf().from(tableClone).set(options).save();
+  //   }
+  // };
 
 
  
@@ -701,24 +701,24 @@ const ActiveCommisionList: React.FC = () => {
       </Drawer>
 
       <FooterToolbar>
-        <Button
+        {/* <Button
           icon={<ExportOutlined />}
           onClick={handleDownloadPDF}
         >
           Print
-        </Button>
+        </Button> */}
         <Dropdown
           overlay={
             <Menu onClick={({ key }) => {
               if (key === 'pdf') {
-                handleDownloadPDF();
+               // handleDownloadPDF();
               } else if (key === 'excel') {
                 handleDownloadExcel();
               }
             }}>
-              <Menu.Item key="pdf">
+              {/* <Menu.Item key="pdf">
                 <DownloadOutlined /> PDF
-              </Menu.Item>
+              </Menu.Item> */}
               <Menu.Item key="excel">
                 <DownloadOutlined /> Excel
               </Menu.Item>

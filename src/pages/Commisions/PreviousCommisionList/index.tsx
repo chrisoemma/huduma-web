@@ -14,7 +14,7 @@ import {
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message,  Dropdown, Menu} from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
-import html2pdf from 'html2pdf.js';
+//import html2pdf from 'html2pdf.js';
 import * as XLSX from 'xlsx';
 
 
@@ -102,7 +102,7 @@ const PreviousCommisionList: React.FC = () => {
         pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Avoid page breaks within elements
       };
   
-      html2pdf().from(tableClone).set(options).save();
+      //html2pdf().from(tableClone).set(options).save();
     }
   };
   
@@ -488,24 +488,24 @@ const PreviousCommisionList: React.FC = () => {
       </Drawer>
 
       <FooterToolbar>
-        <Button
+        {/* <Button
           icon={<ExportOutlined />}
           onClick={handleDownloadPDF}
         >
           Print
-        </Button>
+        </Button> */}
         <Dropdown
           overlay={
             <Menu onClick={({ key }) => {
               if (key === 'pdf') {
-                handleDownloadPDF();
+              //  handleDownloadPDF();
               } else if (key === 'excel') {
                 handleDownloadExcel();
               }
             }}>
-              <Menu.Item key="pdf">
+              {/* <Menu.Item key="pdf">
                 <DownloadOutlined /> PDF
-              </Menu.Item>
+              </Menu.Item> */}
               <Menu.Item key="excel">
                 <DownloadOutlined /> Excel
               </Menu.Item>
