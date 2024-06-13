@@ -14,9 +14,8 @@ import {
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message,  Dropdown, Menu} from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
-import moment from 'moment';
-// import html2pdf from 'html2pdf.js';
-// import * as XLSX from 'xlsx';
+import html2pdf from 'html2pdf.js';
+import * as XLSX from 'xlsx';
 
 
 
@@ -43,34 +42,97 @@ const PreviousCommisionList: React.FC = () => {
   const [paymentHistoryVisible, setPaymentHistoryVisible] = useState<boolean>(false);
   const [paymentHistory, setPaymentHistory] = useState<API.CommissionPayment[]>([]);
 
+  useEffect(() => {
+    if (paymentHistoryVisible && currentRow) {
+      const paymentHistory = currentRow.payments || [];
+      setPaymentHistory(paymentHistory);
+    }
+  }, [currentRow, paymentHistoryVisible]);
+
   const handlePaymentHistoryClick = () => {
-    // Extract payment history from the selected row
-    setPaymentHistory([]);
-
-    const paymentHistory = currentRow?.payments || [];
-    setPaymentHistory(paymentHistory);
+    if (currentRow) {
+      const paymentHistory = currentRow.payments || [];
+      setPaymentHistory(paymentHistory);
+    }
     setPaymentHistoryVisible(true);
+  }
+
+
+
+  const handleDownloadPDF = () => {
+    const table = document.getElementById('table-container');
+    if (table) {
+      const tableClone = table.cloneNode(true) as HTMLElement;
+  
+      // Remove "Option" column and checkboxes
+      const ths = tableClone.querySelectorAll('th');
+      ths.forEach((th, index) => {
+        if (th.innerText.includes('Option')) {
+          th.remove();
+          tableClone.querySelectorAll(`td:nth-child(${index + 1}), th:nth-child(${index + 1})`).forEach(td => td.remove());
+        }
+      });
+  
+      tableClone.querySelectorAll('input[type="checkbox"]').forEach(input => input.remove());
+  
+      // Add custom CSS for PDF styling
+      const style = document.createElement('style');
+      style.textContent = `
+        table {
+          width: 100%;
+          border-collapse: collapse;
+        }
+        th, td {
+          padding: 8px;
+          border: 1px solid #ddd;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+        }
+      `;
+      tableClone.appendChild(style);
+  
+      const options = {
+        margin: [0.5, 0.5, 0.5, 0.5], // Adjust margins
+        filename: 'payments.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true }, // Use higher scale for better quality
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'landscape' }, // Set landscape orientation
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'] } // Avoid page breaks within elements
+      };
+  
+      html2pdf().from(tableClone).set(options).save();
+    }
   };
+  
 
+  const handleDownloadExcel = () => {
+    const table = document.getElementById('table-container');
+    if (table) {
+ 
+      const tableClone = table.cloneNode(true) as HTMLElement;
 
+      const ths = tableClone.querySelectorAll('th');
+      ths.forEach((th, index) => {
+        if (th.innerText.includes('Option')) {
+          th.remove();
+          tableClone.querySelectorAll(`td:nth-child(${index + 1}), th:nth-child(${index + 1})`).forEach(td => td.remove());
+        }
+      });
+  
+      const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(tableClone);
+      const wb: XLSX.WorkBook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+      const now = new Date();
+      const formattedDate = now.toLocaleDateString('en-CA'); // Format: YYYY-MM-DD
+      const formattedTime = now.toLocaleTimeString('en-GB', { hour12: false }).replace(/:/g, '-'); // Format: HH-MM-SS
+      const filename = `payments_${formattedDate}_${formattedTime}.xlsx`;
 
-  // const handleDownloadPDF = () => {
-  //   const element = document.getElementById('table-container');
-  //   if (element) {
-  //     html2pdf(element);
-  //   }
-  // };
-
-  // // Function to download as Excel
-  // const handleDownloadExcel = () => {
-  //   const table = document.getElementById('table-container');
-  //   if (table) {
-  //     const ws: XLSX.WorkSheet = XLSX.utils.table_to_sheet(table);
-  //     const wb: XLSX.WorkBook = XLSX.utils.book_new();
-  //     XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-  //     XLSX.writeFile(wb, 'table_data.xlsx');
-  //   }
-  // };
+      XLSX.writeFile(wb, filename);
+    }
+  };
+  
 
 
 
@@ -106,7 +168,7 @@ const PreviousCommisionList: React.FC = () => {
                   title: 'Amount',
                   dataIndex: 'amount',
                   valueType: 'text',
-                  render: (text) => `$${text}`,
+                  render: (text) => `TSH ${text}`,
                 },
                 {
                   title: 'Date',
@@ -331,6 +393,7 @@ const PreviousCommisionList: React.FC = () => {
   return (
     <PageContainer>
       <ProTable
+        id="table-container"
         //key={categories.length}
         pagination={{
           pageSizeOptions: ['15', '30', '60', '100'],
@@ -393,11 +456,11 @@ const PreviousCommisionList: React.FC = () => {
 
 
         columns={columns}
-        rowSelection={{
-          onChange: (_, selectedRows) => {
-            setSelectedRows(selectedRows);
-          },
-        }}
+        // rowSelection={{
+        //   onChange: (_, selectedRows) => {
+        //     setSelectedRows(selectedRows);
+        //   },
+        // }}
       />
 
       <Drawer
@@ -424,7 +487,7 @@ const PreviousCommisionList: React.FC = () => {
         )}
       </Drawer>
 
-      {/* <FooterToolbar>
+      <FooterToolbar>
         <Button
           icon={<ExportOutlined />}
           onClick={handleDownloadPDF}
@@ -453,7 +516,7 @@ const PreviousCommisionList: React.FC = () => {
             <DownloadOutlined /> Export
           </Button>
         </Dropdown>
-      </FooterToolbar> */}
+      </FooterToolbar>
     </PageContainer>
   );
 };

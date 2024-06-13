@@ -86,7 +86,7 @@ const ClientList: React.FC = () => {
 
     const handleNidaChecking = async (nida) => {
         try {
-          setLoading(true); // Set loading to true when starting the operation
+          setLoading(true); 
     
           const nidaValidationData = {
             status: '',

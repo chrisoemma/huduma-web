@@ -35,13 +35,18 @@ export async function getActiveCommisions(
     });
   }
 
-  export async function AddPayment(commisionId: number, options?: { [key: string]: any }) {
-    
+  export async function AddPayment(commisionId: number, paymentData: { amount: string; action_by: number; agent_id: number }) {
     return request(`${API_URL}/admin/commisions/payment/${commisionId}`, {
-      method: 'Post',
+      method: 'POST',
+      data: paymentData,
+    });
+  }
+
+  export async function PayByExcel(options?: { [key: string]: any }) {
+    return request(`${API_URL}/admin/commisions/payment_by_excel`, {
+      method: 'POST',
       data: {
-        method: 'post',
-        ...(options || {}),
+        excelData: options?.excelData,
       },
     });
   }
