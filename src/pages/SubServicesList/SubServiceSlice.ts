@@ -29,12 +29,13 @@ export async function getSubServices(
   }
 
   export async function removeSubService(options?: { [key: string]: any }) {
-    //console.log('keyyyyeyye',options)
+    const { deleted_by, ...otherOptions } = options || {};
 return request(`${API_URL}/sub_services/destroy_bunch`, {
   method: 'DELETE',
   data:{
     method: 'delete',
-    ...(options || {}),
+    deleted_by: deleted_by,
+    ...(otherOptions || {}),
   }
 });
 }

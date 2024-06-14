@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Upload, Image, Form, Button, message } from 'antd';
 import { ProFormText, ProFormCheckbox } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { getWorkingDocuments, updateDesignation } from '../DesignationSlice';
 
 export type UpdateFormProps = {
@@ -20,6 +20,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [Docs,setDocs]=useState([]);
 
   const [loading, setLoading] = useState(false);
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const action_by = currentUser?.id;
 
 
   useEffect(() => {
@@ -84,7 +87,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      values.updated_by = 1;
+      values.updated_by = action_by;
       const DesignationId = props.values.id;
 
       const selectedDocumentIds = form.getFieldValue('working_documents');

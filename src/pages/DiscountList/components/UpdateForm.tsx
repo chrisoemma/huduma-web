@@ -26,6 +26,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const action_by = currentUser?.id
   const [loading, setLoading] = useState(false);
 
 
@@ -83,7 +85,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       setLoading(true);
       const values = await form.validateFields();
     
-      values.updated_by = 1;
+      values.updated_by = action_by;
       const discountId = props.values.id;
       const selectedPackageData =
         subPackages.find((subPackage) => subPackage.id == values.package) ||

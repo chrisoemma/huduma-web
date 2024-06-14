@@ -4,7 +4,7 @@
   import { ProFormText,   StepsForm, ProFormSelect, ProFormTextArea,ProFormRadio } from '@ant-design/pro-form';
   import { InboxOutlined } from '@ant-design/icons';
   import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
-  import { FormattedMessage, useIntl } from '@umijs/max';
+  import { FormattedMessage, useIntl, useModel } from '@umijs/max';
   import { storage } from '@/firebase/firebase';
 
   import { getServices } from '@/pages/ServicesList/ServiceSlice';
@@ -25,8 +25,10 @@ import { updateSubService } from '../SubServiceSlice';
     const [form] = Form.useForm();
     const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.default_images?.[0]?.img_url);
     const [services, setServices] = useState([]);
-  
-  
+    const { initialState } = useModel('@@initialState');
+    const currentUser = initialState?.currentUser;
+    const  action_by=currentUser?.id;
+
     const stepsFormRef = useRef();
   
     useEffect(() => {
@@ -138,6 +140,7 @@ import { updateSubService } from '../SubServiceSlice';
       usedValues.name_sw = values.name_sw;
       usedValues.status=values.status;
       usedValues.img_url = imageUrl || props.values.default_images?.[0]?.img_url;
+      usedValues.updated_by=action_by;
   
         await updateSubService(subServiceId, { ...usedValues, img_url });
         form.resetFields();

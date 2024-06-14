@@ -72,13 +72,14 @@ export async function getWorkingDocuments(
 
 export async function removeDesignation(options?: { [key: string]: any }) {
   
-  const { action_by, ...otherOptions } = options || {};
+  const { action_by,deleted_by, ...otherOptions } = options || {};
 
 return request(`${API_URL}/admin/destroy_bunch_designation`, {
 method: 'DELETE',
 data:{
   method: 'delete',
   action_by: action_by,
+  deleted_by: deleted_by,
   ...(otherOptions || {}),
 }
 });

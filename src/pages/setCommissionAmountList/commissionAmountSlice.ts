@@ -43,13 +43,14 @@ export async function getCommissionAmount(
 
 export async function removeCommissionAmount(options?: { [key: string]: any }) {
   
-  const { action_by, ...otherOptions } = options || {};
+  const { action_by,deleted_by, ...otherOptions } = options || {};
 
 return request(`${API_URL}/admin/set_agents_commissions/destroy_bunch`, {
 method: 'DELETE',
 data:{
   method: 'delete',
   action_by: action_by,
+  deleted_by:deleted_by,
   ...(otherOptions || {}),
 }
 });

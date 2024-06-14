@@ -10,7 +10,7 @@ import {
   ProFormUploadButton,
   ProTable,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
@@ -31,12 +31,16 @@ const CategoryList: React.FC = () => {
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.CategoryListItem>();
   const [selectedRowsState, setSelectedRows] = useState<API.CategoryListItem[]>([]);
+  const { initialState } = useModel('@@initialState');
 
 
   const intl = useIntl();
 
   const [loading, setLoading] = useState(false);
   const formRef = useRef();
+
+  const currentUser = initialState?.currentUser;
+  const  action_by=currentUser?.id;
 
 
   const handleRemove = async (selectedRows: API.CategoryListItem[]) => {
@@ -48,6 +52,7 @@ const CategoryList: React.FC = () => {
 
       await removeCategory({
         key: selectedRows.map((row) => row.id),
+        deleted_by:action_by
       });
       hide();
       message.success('Deleted successfully and will refresh soon');
@@ -96,6 +101,7 @@ const CategoryList: React.FC = () => {
                 name_en: name_en,
                 name_sw: name_sw,
                 img_url: downloadURL,
+                created_by:action_by
               };
   
               await addCategory(categoryData);

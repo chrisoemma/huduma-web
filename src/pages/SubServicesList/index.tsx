@@ -12,7 +12,7 @@ import {
   ProFormUploadButton,
   ProTable,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 // import type { FormValueType } from './components/UpdateForm';
@@ -36,6 +36,9 @@ const SubSubServiceList: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<API.SubServiceListItem[]>([]);
   const [subServices, setSubServices] = useState([]);
   const [services, setServices] = useState([]);
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const  action_by=currentUser?.id;
 
   const intl = useIntl();
   const [loading, setLoading] = useState(false);
@@ -50,6 +53,7 @@ const SubSubServiceList: React.FC = () => {
       // console.log('in try and catch');
       await removeSubService({
         key: selectedRows.map((row) => row.id),
+        deleted_by:action_by
       });
       hide();
       message.success('Deleted successfully');
@@ -106,13 +110,13 @@ const SubSubServiceList: React.FC = () => {
             try {
               const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
               const SubServiceData: API.SubServiceListItem = {
-                id: 0, // Set the appropriate ID
                 name_en: name_en,
                 name_sw: name_sw,
                 description_en: description_en,
                 description_sw: description_sw,
                 service_id: serviceId,
                 img_url: downloadURL,
+                created_by:action_by
               
                 // Save the download URL to the database
               };
@@ -152,6 +156,7 @@ const SubSubServiceList: React.FC = () => {
           description_en: description_en,
           description_sw: description_sw,
           service_id: serviceId,
+          created_by:action_by
         
         };
 

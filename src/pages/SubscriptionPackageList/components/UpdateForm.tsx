@@ -18,6 +18,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const action_by = currentUser?.id
 
 
 
@@ -40,12 +43,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     
     try {
       const values = await form.validateFields();
-      values.updated_by = 1;
+      values.updated_by =action_by;
       const packageId = props.values.id;
      
       setLoading(true);
-
-
       // Update the designation values with the selected documents
       const updatedValues = { ...values };
 

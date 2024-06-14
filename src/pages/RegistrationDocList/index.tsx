@@ -12,7 +12,7 @@ import {
     ProTable,
     ProFormSelect,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
@@ -35,6 +35,9 @@ const RegistrationDocList: React.FC = () => {
     const intl = useIntl();
     const [loading, setLoading] = useState(false);
     const formRef = useRef();
+    const { initialState } = useModel('@@initialState');
+    const currentUser = initialState?.currentUser;
+    const  action_by=currentUser?.id;
 
 
     const handleStatus = async (selectedRows: API.RegistrationDocListItem[],status) => {
@@ -45,7 +48,8 @@ const RegistrationDocList: React.FC = () => {
             // console.log('in try and catch');
           const response=  await updateRegistrationDocStatus({
                document_ids: selectedRows.map((row) => row.id),
-                status:status
+                status:status,
+                updated_by:action_by
             });
             hide();
             message.success(response.message);
@@ -75,7 +79,7 @@ const RegistrationDocList: React.FC = () => {
             const RegistrationDoc: API.RegistrationDocListItem = {
                 doc_name: doc_name,
                 type:type,
-                created_by: 1
+                created_by: action_by
 
             };
 

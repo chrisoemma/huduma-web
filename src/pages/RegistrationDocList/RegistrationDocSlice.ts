@@ -41,12 +41,13 @@ export async function getRegistrationDoc(
 }
 
 
-export async function updateRegistrationDocStatus(options?: { [document_ids: string]: any, status: string }) {
+export async function updateRegistrationDocStatus(options?: { [document_ids: string]: any, status: string,updated_by:number }) {
   return request(`${API_URL}/admin/working_documents_status`, {
       method: 'PUT',
       data: {
           method: 'put',
           status: options?.status,
+          updated_by:options?.updated_by,
           ...(options || {}),
       },
   });

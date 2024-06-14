@@ -12,7 +12,7 @@ import {
   ProFormUploadButton,
   ProTable,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 // import type { FormValueType } from './components/UpdateForm';
@@ -38,6 +38,9 @@ const ServiceList: React.FC = () => {
   const [services,setServices]=useState([]);
   const [loading, setLoading] = useState(false);
   const formRef = useRef();
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const  action_by=currentUser?.id;
 
 
   const intl = useIntl();
@@ -51,6 +54,7 @@ const ServiceList: React.FC = () => {
       // console.log('in try and catch');
       await removeService({
         key: selectedRows.map((row) => row.id),
+        deleted_by:action_by
       });
       hide();
       message.success('Deleted successfully');
@@ -114,7 +118,8 @@ const ServiceList: React.FC = () => {
                 description_sw: description_sw,
                 category_id:categoryId,
                 img_url: downloadURL,
-                description:description
+                description:description,
+                created_by:action_by
                 
               };
              

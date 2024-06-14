@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Upload, Image, Form, Button, message } from 'antd';
 import { ProFormText, ProFormRadio,ProFormSelect } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { updateRegistrationDoc } from '../RegistrationDocSlice';
 
 
@@ -18,6 +18,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const  action_by=currentUser?.id;
 
 
   useEffect(() => {
@@ -36,8 +39,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     try {
       setLoading(true);
       const values = await form.validateFields();
-      values.updated_by=1;
+      values.updated_by=action_by;
       const docId = props.values.id;
+
       
 
       const response = await updateRegistrationDoc(docId, { ...values });

@@ -26,6 +26,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const { initialState } = useModel('@@initialState');
+  const currentUser = initialState?.currentUser;
+  const action_by = currentUser?.id
   const [loading, setLoading] = useState(false);
 
 
@@ -51,7 +53,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     setLoading(true);
     try {
       const values = await form.validateFields();
-      values.updated_by = 1;
+      values.updated_by = action_by;
       const commissionId = props.values.id;
       values.payment_for = props.values.payment_for;
       values.user_type = props.values.user_type

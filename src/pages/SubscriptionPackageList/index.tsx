@@ -34,6 +34,8 @@ const SubscriptionPackageList: React.FC = () => {
 
     const intl = useIntl();
     const { initialState } = useModel('@@initialState');
+    const currentUser = initialState?.currentUser;
+    const action_by = currentUser?.id;
     
   const [loading, setLoading] = useState(false);
   const formRef = useRef();
@@ -51,7 +53,7 @@ const SubscriptionPackageList: React.FC = () => {
             const PackageData: API.SubscriptionPackageListItem = {
                 name: name,
                 amount: parseFloat(amount),
-                created_by: 1
+                created_by: action_by
 
             };
 
@@ -94,12 +96,11 @@ const SubscriptionPackageList: React.FC = () => {
         if (!selectedRows) return true;
         try {
             // console.log('in try and catch');
-            const currentUser = initialState?.currentUser;
-            const action_by = currentUser?.id;
              
             const response = await removePackage({
                 key: selectedRows.map((row) => row.id),
                 action_by: action_by,
+                deleted_by:action_by
             });
 
             hide();

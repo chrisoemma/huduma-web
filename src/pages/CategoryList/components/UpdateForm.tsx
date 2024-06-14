@@ -4,7 +4,7 @@ import { ProFormText, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { updateCategory } from '../CategorySlice';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 
 export type UpdateFormProps = {
@@ -23,6 +23,10 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const { Dragger } = Upload;
 
   const [loading, setLoading] = useState(false);
+  const { initialState } = useModel('@@initialState');
+
+  const currentUser = initialState?.currentUser;
+  const  action_by=currentUser?.id;
   
 
   useEffect(() => {
@@ -88,9 +92,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
      
       const categoryId = props.values.id;
-
-
       const img_url = imageUrl || props.values.images?.[0]?.img_url;
+      values.updated_by=action_by;
   
       await updateCategory(categoryId, { ...values, img_url });
 
