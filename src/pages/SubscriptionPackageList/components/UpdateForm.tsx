@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Modal, Upload, Image, Form, Button, message } from 'antd';
 import { ProFormText, ProFormCheckbox ,ProFormRadio} from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
-import { FormattedMessage, useIntl } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { updatePackage } from '../SubscriptionPackageSlice';
 
 export type UpdateFormProps = {
