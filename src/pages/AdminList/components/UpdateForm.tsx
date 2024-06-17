@@ -125,10 +125,17 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       values.phone = validateTanzanianPhoneNumber(values.phone);
       values.profile_img = profile_img;
 
-      console.log('values1235',values)
-      console.log('user iddd',userId);
+
+      const selectedRole =
+      roles.find((role) => role?.id == values?.role) ||
+      roles.find((role) => role?.name === values?.role);
+
+      values.role=selectedRole.id;
+
+      // console.log('values1235',values)
+      // console.log('user iddd',userId);
       
-      
+      // return 
 
       const response = await updateUserAdmin(userId, { ...values, profile_img });
       if (response.status) {

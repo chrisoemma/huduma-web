@@ -197,6 +197,12 @@ const handleViewDocs = () => {
        if(values.status=='Pending approval'){
         values.status='Pending';
       }
+
+
+        // console.log('agent data',values);
+        // console.log('agent id',agentId);
+
+        // return 
          
       const response = await updateAgent(agentId, { ...values, profile_img });
 
@@ -215,7 +221,13 @@ const handleViewDocs = () => {
           showErrorWithLineBreaks(formatErrorMessages(errors));
         } else {
           setLoading(false);
-          message.error(response.message);
+          if (response.error) {
+            message.error(response.error);
+          } else {
+            setLoading(false);
+            message.error(response.message);
+          }
+
         }
       }
 
