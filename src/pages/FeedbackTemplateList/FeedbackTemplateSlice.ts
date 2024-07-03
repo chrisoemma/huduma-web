@@ -43,7 +43,7 @@ export async function getFeedbackTemplates(
 
 export async function removeFeedbackTemplate(options?: { [key: string]: any }) {
   
-  const { action_by,deleted_by, ...otherOptions } = options || {};
+  const {deleted_by, ...otherOptions } = options || {};
 
 return request(`${API_URL}/admin/feedback_templates/destroy_bunch`, {
 method: 'DELETE',

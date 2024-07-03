@@ -90,7 +90,8 @@ const FeedbackTemplateList: React.FC = () => {
 
     const handleAdd = async (formData: FormData) => {
 
-        const reason = formData.get('reason') as string;
+        const reason_en = formData.get('reason_en') as string;
+        const reason_sw = formData.get('reason_sw') as string
         const action = formData.get('action') as string;
         const resource = formData.get('resource') as string;
  
@@ -101,13 +102,15 @@ const FeedbackTemplateList: React.FC = () => {
 
             const feedbackTemplate: API.FeedbackTemplateListItem = {
                 action: action,
-                reason: reason,
+                reason_en: reason_en,
+                reason_sw: reason_sw,
                 created_by: action_by,
                 resource:resource
 
             };
  
        
+         
             const hide = message.loading('Loading...');
             try {
                 const response = await addFeedbackTemplate(feedbackTemplate);
@@ -150,7 +153,6 @@ const FeedbackTemplateList: React.FC = () => {
 
             const response = await removeFeedbackTemplate({
                 key: selectedRows.map((row) => row.id),
-                action_by: action_by,
                 deleted_by:action_by
             });
 
@@ -194,25 +196,32 @@ const FeedbackTemplateList: React.FC = () => {
         },
         {
             title: (
-                <FormattedMessage id="pages.searchTable.reason" defaultMessage="Reason" />
+              <FormattedMessage
+                id="pages.searchTable.updateForm.ruleName.reason"
+                defaultMessage="Reason"
+              />
             ),
-            dataIndex:  'reason', // Access nested property
+            dataIndex: 'reason',
             valueType: 'text',
-            tip: 'Reason',
+            tip: 'The Reason is the unique key',
+            render: (text, record) => {
+              const reason = record.reason; 
+              if (reason) {
+                  return (
+                      <>
+                          <div style={{ marginBottom: 10 }}>
+                              <b>English:</b> {reason?.en}
+                          </div>
+                          <div>
+                              <b>Swahili:</b> {reason?.sw}
+                          </div>
+                      </>
+                  );
+              }
+              return '-------';
+          },
             search: false,
-            render: (dom, entity) => {
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
-            },
-        },
+          },
 
         {
             title: (
@@ -380,7 +389,8 @@ const FeedbackTemplateList: React.FC = () => {
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('action', value.action);
-                    formData.append('reason', value.reason);
+                    formData.append('reason_en', value.reason_en);
+                    formData.append('reason_sw', value.reason_sw);
                     formData.append('resource',value.resource);
                  
 
@@ -429,12 +439,24 @@ const FeedbackTemplateList: React.FC = () => {
                         rules={[
                             {
                                 required: true,
-                                message: 'Reason is required',
+                                message: 'English Reason is required',
                             },
                         ]}
                         width="md"
-                        name="reason"
+                        name="reason_en"
                         label="Reason"
+                    />
+
+                   <ProFormText
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Reason  swahili is required',
+                            },
+                        ]}
+                        width="md"
+                        name="reason_sw"
+                        label="Sababu"
                     />
 
 

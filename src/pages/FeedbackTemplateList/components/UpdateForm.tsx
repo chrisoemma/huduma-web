@@ -81,7 +81,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       form.setFieldsValue({
         status: props.values.status,
         action: props.values.action || '',
-        reason: props.values.reason || '',
+        reason_en: props?.values?.reason?.en || '',
+        reason_sw: props?.values?.reason?.sw || '',
         resource: props.values.resource || ''
       })
     }
@@ -160,9 +161,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         form={form}
         initialValues={{
           status: props.values.status,
-          action: props.values.action || '',
-          reason: props.values.reason || '',
-          resource: props.values.resource || ''
+          reason_en: props?.values?.reason?.en || '',
+          reason_sw: props?.values?.reason?.sw || '',
+          resource: props?.values?.resource || ''
         }}
       >
 
@@ -190,12 +191,24 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           rules={[
             {
               required: true,
-              message: 'Reason is required',
+              message: 'English Reason is required',
             },
           ]}
           width="md"
-          name="reason"
+          name="reason_en"
           label="Reason"
+        />
+
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: 'Reason  swahili is required',
+            },
+          ]}
+          width="md"
+          name="reason_sw"
+          label="Sababu"
         />
 
 
