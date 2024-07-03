@@ -21,6 +21,7 @@ import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addService, getServices, removeService } from './ServiceSlice';
 import { getCategories } from '../CategoryList/CategorySlice';
+import { resizeImage } from '@/utils/function';
 
 
 const ServiceList: React.FC = () => {
@@ -86,7 +87,8 @@ const ServiceList: React.FC = () => {
       
       if (imageFile) {
         const storageRef = ref(storage, `images/${imageFile.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+        const resizedImageBlob = await resizeImage(imageFile, 500, 350);
+        const uploadTask = uploadBytesResumable(storageRef, resizedImageBlob);
         const hide = message.loading('Loading...');
 
         uploadTask.on(

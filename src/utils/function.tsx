@@ -160,4 +160,41 @@ export function validateTanzanianPhoneNumber(phoneNumber) {
         return 'Unknown'; // or any default status you prefer
     }
   }
+
+
+
+export const resizeImage = (file: File, maxWidth: number, maxHeight: number): Promise<Blob> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.src = URL.createObjectURL(file);
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      let width = img.width;
+      let height = img.height;
+
+      // Calculate the scaling factor
+      const scaleFactor = Math.min(maxWidth / width, maxHeight / height);
+
+      // Apply the scaling factor to maintain aspect ratio
+      width = Math.round(width * scaleFactor);
+      height = Math.round(height * scaleFactor);
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error('Canvas is empty'));
+        }
+      }, file.type);
+    };
+    img.onerror = (err) => {
+      reject(err);
+    };
+  });
+};
+
   

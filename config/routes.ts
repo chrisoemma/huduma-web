@@ -242,6 +242,11 @@ export default [
         component: './DesignationList',
       },
       {
+        path: '/settings/feeback-templates',
+        name: 'Feedback Templates',
+        component: './FeedbackTemplateList',
+      },
+      {
         path: '/settings/subscriptions-packages',
         name: 'Subscriptions Packages',
         component: './SubscriptionPackageList',

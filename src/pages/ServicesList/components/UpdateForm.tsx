@@ -8,6 +8,7 @@ import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { storage } from '@/firebase/firebase';
 import { updateService } from '../ServiceSlice';
 import { getCategories } from '@/pages/CategoryList/CategorySlice';
+import { resizeImage } from '@/utils/function';
 
 
 export type UpdateFormProps = {
@@ -76,7 +77,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const handleUpload = async (file: File) => {
     const storageRef = ref(storage, `images/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
+    const resizedImageBlob = await resizeImage(file, 500, 350);
+    const uploadTask = uploadBytesResumable(storageRef, resizedImageBlob);
 
     return new Promise<string | undefined>((resolve, reject) => {
       uploadTask.on(

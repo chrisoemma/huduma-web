@@ -17,6 +17,7 @@ import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
+import { resizeImage } from '@/utils/function';
 
 
 const CategoryList: React.FC = () => {
@@ -79,9 +80,12 @@ const CategoryList: React.FC = () => {
     setLoading(true);
     try {
       if (imageFile) {
+
         const hide = message.loading('Loading...');
+       
         const storageRef = ref(storage, `images/${imageFile.name}`);
-        const uploadTask = uploadBytesResumable(storageRef, imageFile);
+        const resizedImageBlob = await resizeImage(imageFile, 500, 350);
+        const uploadTask = uploadBytesResumable(storageRef, resizedImageBlob);
   
         uploadTask.on(
           'state_changed',
