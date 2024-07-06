@@ -33,7 +33,7 @@ const FeedbackTemplateList: React.FC = () => {
     const actionRef = useRef<ActionType>();
     const [currentRow, setCurrentRow] = useState<API.FeedbackTemplateListItem>();
     const [selectedRowsState, setSelectedRows] = useState<API.FeedbackTemplateListItem[]>([]);
-  
+    const [selectedResource, setSelectedResource] = useState(null);
 
     const intl = useIntl();
     const { initialState } = useModel('@@initialState');
@@ -41,8 +41,9 @@ const FeedbackTemplateList: React.FC = () => {
     const action_by = currentUser?.id
     const [loading, setLoading] = useState(false);
     const formRef = useRef();
+    const [selectedAction, setSelectedAction] = useState(null);
 
-    let templateActions=[
+    const templateActions=[
         {
             id:'Cancelled',
             name:'Cancel'
@@ -57,7 +58,7 @@ const FeedbackTemplateList: React.FC = () => {
         }
     ]
 
-    let resources=[
+    const resources=[
         {
             id:'Client',
             name:'Client'
@@ -84,6 +85,11 @@ const FeedbackTemplateList: React.FC = () => {
         },
     ]
 
+    const ratings = [
+        { id: '<=3', name: 'Below 3 inclusive' },
+        { id: '>3', name: 'Above 3' },
+    ];
+
 
 
 
@@ -94,6 +100,7 @@ const FeedbackTemplateList: React.FC = () => {
         const reason_sw = formData.get('reason_sw') as string
         const action = formData.get('action') as string;
         const resource = formData.get('resource') as string;
+        const rating=formData.get('rating') as string;
  
 
         setLoading(true);
@@ -105,7 +112,8 @@ const FeedbackTemplateList: React.FC = () => {
                 reason_en: reason_en,
                 reason_sw: reason_sw,
                 created_by: action_by,
-                resource:resource
+                resource:resource,
+                rating:rating
 
             };
  
@@ -141,10 +149,7 @@ const FeedbackTemplateList: React.FC = () => {
         }
     };
 
-
-
     const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
-
 
         const hide = message.loading('Loading....');
         if (!selectedRows) return true;
@@ -230,6 +235,28 @@ const FeedbackTemplateList: React.FC = () => {
             dataIndex:  'resource', // Access nested property
             valueType: 'text',
             tip: 'User Type',
+            search: false,
+            render: (dom, entity) => {
+                return (
+                    <a
+                        onClick={() => {
+                            setCurrentRow(entity);
+                            setShowDetail(true);
+                        }}
+                    >
+                        {dom}
+                    </a>
+                );
+            },
+        },
+
+
+        {
+            title: (
+                <FormattedMessage id="pages.searchTable.reason" defaultMessage="Rating Scale" />
+            ),
+            dataIndex:  'rating_scale', // Access nested property
+            valueType: 'text',
             search: false,
             render: (dom, entity) => {
                 return (
@@ -392,6 +419,9 @@ const FeedbackTemplateList: React.FC = () => {
                     formData.append('reason_en', value.reason_en);
                     formData.append('reason_sw', value.reason_sw);
                     formData.append('resource',value.resource);
+                    if (value.rating) {
+                        formData.append('rating', value.rating);
+                    }
                  
 
                     const success = await handleAdd(formData);
@@ -430,8 +460,39 @@ const FeedbackTemplateList: React.FC = () => {
                                 message: 'Please select Action!',
                             },
                         ]}
+                        onChange={(value) => setSelectedAction(value)}
                    
                     />
+            <ProFormSelect
+                    name="resource"
+                    width="md"
+                    label={intl.formatMessage({
+                        id: 'pages.searchTable.updateForm.selectResource',
+                        defaultMessage: 'Select User Type',
+                    })}
+                    valueEnum={resources.reduce((enumObj, resource) => {
+                        enumObj[resource.id] = resource.name;
+                        return enumObj;
+                    }, {})}
+                    rules={[{ required: true, message: 'Please Select User Type!' }]}
+                    onChange={(value) => setSelectedResource(value)}
+                />
+
+                {selectedAction === 'Completed' && selectedResource === 'Client' && (
+                    <ProFormSelect
+                        name="rating"
+                        width="md"
+                        label={intl.formatMessage({
+                            id: 'pages.searchTable.updateForm.selectRating',
+                            defaultMessage: 'Select Rating',
+                        })}
+                        valueEnum={ratings.reduce((enumObj, rating) => {
+                            enumObj[rating.id] = rating.name;
+                            return enumObj;
+                        }, {})}
+                        rules={[{ required: true, message: 'Please select Rating!' }]}
+                    />
+                )}
 
 
 
@@ -460,25 +521,6 @@ const FeedbackTemplateList: React.FC = () => {
                     />
 
 
-                       <ProFormSelect
-                        name="resource"
-                        width="md"
-                        label={intl.formatMessage({
-                            id: 'pages.searchTable.updateForm.selectResource',
-                            defaultMessage: 'Select User Tpe',
-                        })}
-                        valueEnum={resources.reduce((enumObj, resource) => {
-                            enumObj[resource.id] = resource.name;
-                            return enumObj;
-                        }, {})}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please Select User Type!',
-                            },
-                        ]}
-                   
-                    />
            
                 </ProForm.Group>
             </ModalForm>

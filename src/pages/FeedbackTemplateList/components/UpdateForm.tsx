@@ -26,9 +26,14 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const currentUser = initialState?.currentUser;
   const action_by = currentUser?.id
   const [loading, setLoading] = useState(false);
+  const [selectedAction, setSelectedAction] = useState<string | null>(null);
+  const [selectedResource, setSelectedResource] = useState<string | null>(null);
 
 
-
+  const ratings = [
+    { id: '<=3', name: 'Below 3 inclusive' },
+    { id: '>3', name: 'Above 3' },
+  ];
 
   let templateActions = [
     {
@@ -85,6 +90,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         reason_sw: props?.values?.reason?.sw || '',
         resource: props.values.resource || ''
       })
+      setSelectedAction(props.values.action || '');
+      setSelectedResource(props.values.resource || '');
     }
   }, [props.updateModalOpen, props.values, form]);
 
@@ -106,6 +113,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
       const updatedValues = { ...values };
 
+    
+
       const response = await updateFeedbackTemplate(feedbackTemplateId, updatedValues);
 
       if (response.status) {
@@ -126,135 +135,116 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   return (
     <Modal
-      width={640}
-      bodyStyle={{ padding: '32px 40px 48px' }}
-      destroyOnClose
-      title={intl.formatMessage({
-        id: 'pages.searchTable.updateForm.editPackage',
-        defaultMessage: 'Edit Subscription Package',
-      })}
-
-      visible={props.updateModalOpen}
-      footer={[
-        <Button
-          key="cancel"
-          onClick={() => {
-            props.onCancel();
-          }}
-        >
-          Cancel
-        </Button>,
-        <Button key="submit" type="primary"
-          onClick={handleUpdate}
-          disabled={loading}
-
-        >
-          Update
-        </Button>,
-      ]}
-      onCancel={() => {
-        props.onCancel();
-        form.resetFields();
-      }}
-    >
-      <Form
-        form={form}
-        initialValues={{
-          status: props.values.status,
-          reason_en: props?.values?.reason?.en || '',
-          reason_sw: props?.values?.reason?.sw || '',
-          resource: props?.values?.resource || ''
+    width={640}
+    bodyStyle={{ padding: '32px 40px 48px' }}
+    destroyOnClose
+    title={intl.formatMessage({
+      id: 'pages.searchTable.updateForm.editPackage',
+      defaultMessage: 'Edit Feedback Template',
+    })}
+    visible={props.updateModalOpen}
+    footer={[
+      <Button
+        key="cancel"
+        onClick={() => {
+          props.onCancel();
         }}
       >
+        Cancel
+      </Button>,
+      <Button key="submit" type="primary" onClick={handleUpdate} disabled={loading}>
+        Update
+      </Button>,
+    ]}
+    onCancel={() => {
+      props.onCancel();
+      form.resetFields();
+    }}
+  >
+    <Form
+      form={form}
+      initialValues={{
+        status: props.values.status,
+        reason_en: props?.values?.reason?.en || '',
+        reason_sw: props?.values?.reason?.sw || '',
+        resource: props?.values?.resource || '',
+      }}
+    >
+      <ProFormSelect
+        name="action"
+        width="md"
+        label={intl.formatMessage({
+          id: 'pages.searchTable.updateForm.package',
+          defaultMessage: 'Action',
+        })}
+        valueEnum={templateActions.reduce((enumObj, action) => {
+          enumObj[action.id] = action.name;
+          return enumObj;
+        }, {})}
+        rules={[{ required: true, message: 'Please select Action!' }]}
+        onChange={(value) => setSelectedAction(value)}
+      />
 
+<ProFormSelect
+        name="resource"
+        width="md"
+        label={intl.formatMessage({
+          id: 'pages.searchTable.updateForm.userType',
+          defaultMessage: 'User type',
+        })}
+        valueEnum={resources.reduce((enumObj, resource) => {
+          enumObj[resource.id] = resource.name;
+          return enumObj;
+        }, {})}
+        rules={[{ required: true, message: 'Please select Resource!' }]}
+        onChange={(value) => setSelectedResource(value)}
+      />
+
+      {selectedAction === 'Completed' && selectedResource === 'Client' && (
         <ProFormSelect
-          name="action"
+          name="rating"
           width="md"
           label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.package',
-            defaultMessage: 'Subscription Package',
+            id: 'pages.searchTable.updateForm.selectRating',
+            defaultMessage: 'Select Rating',
           })}
-          valueEnum={templateActions.reduce((enumObj, action) => {
-            enumObj[action.id] = action.name;
+          valueEnum={ratings.reduce((enumObj, rating) => {
+            enumObj[rating.id] = rating.name;
             return enumObj;
           }, {})}
-          rules={[
-            {
-              required: true,
-              message: 'Please select Action!',
-            },
-          ]}
-
+          rules={[{ required: true, message: 'Please select Rating!' }]}
         />
+      )}
 
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: 'English Reason is required',
-            },
-          ]}
-          width="md"
-          name="reason_en"
-          label="Reason"
-        />
+      <ProFormText
+        rules={[{ required: true, message: 'English Reason is required' }]}
+        width="md"
+        name="reason_en"
+        label="Reason"
+      />
 
-        <ProFormText
-          rules={[
-            {
-              required: true,
-              message: 'Reason  swahili is required',
-            },
-          ]}
-          width="md"
-          name="reason_sw"
-          label="Sababu"
-        />
+      <ProFormText
+        rules={[{ required: true, message: 'Reason in Swahili is required' }]}
+        width="md"
+        name="reason_sw"
+        label="Sababu"
+      />
 
+  
 
-        <ProFormSelect
-          name="resource"
-          width="md"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.userType',
-            defaultMessage: 'User type',
-          })}
-          valueEnum={resources.reduce((enumObj, resource) => {
-            enumObj[resource.id] = resource.name;
-            return enumObj;
-          }, {})}
-          rules={[
-            {
-              required: true,
-              message: 'Please select Resource!',
-            },
-          ]}
-
-        />
-
-        <ProFormRadio.Group
-          name="status"
-          label={intl.formatMessage({
-            id: 'pages.searchTable.updateForm.ruleProps.typeLabelStatus',
-            defaultMessage: 'Status',
-          })}
-          options={[
-            {
-              value: 'Active',
-              label: 'Active',
-            },
-
-
-            {
-              value: 'In-Active',
-              label: 'In-Active',
-            },
-          ]}
-
-        />
-
-      </Form>
-    </Modal>
+      <ProFormRadio.Group
+        name="status"
+        label={intl.formatMessage({
+          id: 'pages.searchTable.updateForm.ruleProps.typeLabelStatus',
+          defaultMessage: 'Status',
+        })}
+        options={[
+          { value: 'Active', label: 'Active' },
+          { value: 'In-Active', label: 'In-Active' },
+        ]}
+      />
+    </Form>
+  </Modal>
   );
 };
 
