@@ -360,7 +360,7 @@ const ProviderList: React.FC = () => {
                     defaultMessage="Phone"
                 />
             ),
-            dataIndex: 'phone',
+            dataIndex: ['user','phone'],
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
@@ -392,7 +392,7 @@ const ProviderList: React.FC = () => {
                     defaultMessage="NIDA"
                 />
             ),
-            dataIndex: 'nida',
+            dataIndex: ['user','nida'],
             valueType: 'text',
             tip: 'The NIDA number is unique',
             render: (dom, entity) => {
@@ -590,7 +590,6 @@ const ProviderList: React.FC = () => {
                 >
                     Businesses
                 </a>
-
             ],
         },
     ];

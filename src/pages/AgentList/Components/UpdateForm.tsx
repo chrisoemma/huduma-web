@@ -131,9 +131,6 @@ const handleViewDocs = () => {
   history.push(route);
 };
 
-
-
-
   const { Dragger } = Upload;
 
   const beforeUpload = (file: File) => {

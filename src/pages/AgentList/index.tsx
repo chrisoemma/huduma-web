@@ -388,7 +388,7 @@ const AgentList: React.FC = () => {
                     defaultMessage="NIDA"
                 />
             ),
-            dataIndex: 'nida',
+            dataIndex: ['user','nida'],
             valueType: 'text',
             tip: 'The NIDA number is unique',
             render: (dom, entity) => {
@@ -485,6 +485,7 @@ const AgentList: React.FC = () => {
             dataIndex: ['user', 'profile_img'],
             hideInSearch: true,
             render: (_, record) => {
+                
                 const profileImage = record?.user?.profile_img;
                 return (
                     <Image
