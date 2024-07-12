@@ -74,7 +74,7 @@ const AgentList: React.FC = () => {
             hide();
             message.success('Deleted successfully');
             if (actionRef.current) {
-                console.log('invoking this which is null')
+              //  console.log('invoking this which is null')
                 actionRef.current.reloadAndRest();
             }
             return true;
@@ -191,13 +191,13 @@ const AgentList: React.FC = () => {
                         'state_changed',
                         (snapshot) => {
                             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                            console.log('Upload is ' + progress + '% done');
+                         //   console.log('Upload is ' + progress + '% done');
                             switch (snapshot.state) {
                                 case 'paused':
-                                    console.log('Upload is paused');
+                                  //  console.log('Upload is paused');
                                     break;
                                 case 'running':
-                                    console.log('Upload is running');
+                                   // console.log('Upload is running');
                                     break;
                             }
                         },
@@ -362,7 +362,7 @@ const AgentList: React.FC = () => {
             tip: 'The phone number is unique',
             render: (dom, entity) => {
                 // Check if phone_verified_at is null or not
-                    console.log('entitiees',entity);
+                    //console.log('entitiees',entity);
                 const verifiedTag = entity.user.phone_verified_at ? (
                      <Tag color="green"> Verified</Tag>
                 ) : (
@@ -587,7 +587,7 @@ const AgentList: React.FC = () => {
                             success: true,
                         };
                     } catch (error) {
-                        console.error('Error fetching agents data:', error);
+                       // console.error('Error fetching agents data:', error);
                         return {
                             data: [],
                             success: false,

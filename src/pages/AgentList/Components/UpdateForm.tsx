@@ -35,13 +35,15 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   useEffect(() => {
 
     if (props.updateModalOpen) {
+    
+
       form.setFieldsValue({
         first_name: props.values.first_name,
         last_name: props.values.last_name,
         status:props.values.user?.status,
-        nida: props.values.nida,
+        nida: props.values.user?.nida,
         email: props.values.user?.email,
-        phone: props.values.phone,
+        phone: props.values.user?.phone,
 
       });
     }
@@ -53,16 +55,16 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
         try {
 
-          console.log('props.values.id',props.values.id);
+         
 
             const response = await agentDesignationDoc(props.values.id);
             const designationDocs = response.data.documents;``
 
-            console.log('designationssss1234',designationDocs);
+        
             setDesignationDocs(designationDocs);
            
         } catch (error) {
-            console.error('Error fetching Roles data:', error);
+           // console.error('Error fetching Roles data:', error);
         }
     }
 
@@ -157,7 +159,7 @@ const handleViewDocs = () => {
         },
         (error) => {
           // Handle unsuccessful upload
-          console.error('Upload error:', error);
+         // console.error('Upload error:', error);
           reject(error);
         },
         async () => {
@@ -165,7 +167,7 @@ const handleViewDocs = () => {
             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
             resolve(downloadURL);
           } catch (error) {
-            console.error('Error getting download URL:', error);
+           // console.error('Error getting download URL:', error);
             reject(error);
           }
         }
@@ -233,7 +235,7 @@ const handleViewDocs = () => {
 
     } catch (error) {
       setLoading(false);
-      console.log('Update failed:', error);
+     // console.log('Update failed:', error);
     }
   };
 
@@ -275,9 +277,9 @@ const handleViewDocs = () => {
           first_name: props.values.first_name,
           last_name: props.values.last_name,
           status: props.values.status,
-          nida: props.values.nida,
+          nida: props.values.user?.nida,
           email: props.values.user?.email,
-          phone: props.values.phone
+          phone: props.values.user?.phone,
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.agentInfo',
@@ -370,7 +372,7 @@ const handleViewDocs = () => {
 
         initialValues={{
           status: props.values.status,
-          nida: props.values.nida,
+          nida: props.values.user?.nida,
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.step2',

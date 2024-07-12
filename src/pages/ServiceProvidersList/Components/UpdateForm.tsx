@@ -45,9 +45,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         first_name: props.values.first_name,
         last_name: props.values.last_name,
         status: props.values.status,
-        nida: props.values.nida,
+        nida: props.values.user?.nida,
         email: props.values.user?.email,
-        phone: props.values.phone
+        phone: props.values.user?.phone
       });
 
     }
@@ -303,9 +303,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           first_name: props.values.first_name,
           last_name: props.values.last_name,
           status: props.values.status,
-          nida: props.values.nida,
+          nida: props.values.user?.nida,
           email: props.values.user?.email,
-          phone: props.values.phone
+          phone: props.values.user?.phone
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.providerInfo',
@@ -400,7 +400,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
         initialValues={{
           status: props.values.status,
-          nida: props.values.nida,
+          nida: props.values.user?.nida,
         }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.step2',
