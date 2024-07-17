@@ -168,6 +168,7 @@ const ClientList: React.FC = () => {
             action_by:currentUser?.id
         };
 
+        
         const uploadImage = async () => {
             if (imageFile) {
                 const storageRef = ref(storage, `profile/${imageFile.name}`);

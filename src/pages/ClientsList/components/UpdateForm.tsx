@@ -33,7 +33,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       form.setFieldsValue({
         name: props.values.name,
         // last_name: props.values.last_name,
-        status:  getStatus(props.values.user?.status),
+        status:  props.values?.status,
         nida: props.values.nida,
         email: props.values.user?.email,
         phone: props.values.phone
@@ -43,6 +43,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   }, [props.updateModalOpen, props.values, form]);
 
   const { Dragger } = Upload;
+
 
   const beforeUpload = (file: File) => {
 
@@ -102,8 +103,6 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       const currentUser = initialState?.currentUser;
       values.action_by = currentUser?.id;
       setLoading(true);
-
-      
 
       const response = await updateClient(clientId, { ...values, profile_img });
 
@@ -171,7 +170,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         initialValues={{
           name: props.values.name,
           //  last_name: props.values.last_name,
-          status: getStatus(props.values.user?.status),
+          status: props.values.status,
           nida: props.values.nida,
           email: props.values.user?.email,
           phone: props.values.user?.phone
@@ -266,7 +265,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       <StepsForm.StepForm
 
         initialValues={{
-          status:  getStatus(props.values.user?.status),
+          status: props.values.status,
           nida: props.values.nida,
         }}
         title={intl.formatMessage({
@@ -312,7 +311,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           })}
           options={[
             {
-              value: 'Pending',
+              value: 'Pending approval',
               label: 'Pending',
             },
          
@@ -321,7 +320,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
               label: 'Active',
             },
             {
-              value: 'In Active',
+              value: 'Deactivated',
               label: 'Deactivate',
             },
           ]}
