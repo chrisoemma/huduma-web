@@ -40,7 +40,6 @@ import { request } from '@umijs/max';
       });
   }
 
-
   export async function updateDocStatus(docId: number, options?: {status:string }) {
     return request(`${API_URL}/admin/agents/change_doc_status/${docId}`, {
       method: 'PUT',

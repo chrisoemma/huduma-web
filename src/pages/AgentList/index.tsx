@@ -846,7 +846,7 @@ const AgentList: React.FC = () => {
                 )}
                   <Button type="primary" onClick={handleViewDocs}>
                         View Docs
-                </Button>
+                  </Button>
 
                 <Button style={{margin:20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
                     Validate NIDA

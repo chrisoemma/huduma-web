@@ -192,16 +192,6 @@ const handleViewDocs = () => {
 
       const currentUser = initialState?.currentUser;
        values.action_by = currentUser?.id;
-
-       if(values.status=='Pending approval'){
-        values.status='Pending';
-      }
-
-
-        // console.log('agent data',values);
-        // console.log('agent id',agentId);
-
-        // return 
          
       const response = await updateAgent(agentId, { ...values, profile_img });
 
@@ -440,7 +430,7 @@ const handleViewDocs = () => {
               label: 'Active',
             },
             {
-              value: 'In Active',
+              value: 'Deactivated',
               label: 'Deactivate',
             },
           

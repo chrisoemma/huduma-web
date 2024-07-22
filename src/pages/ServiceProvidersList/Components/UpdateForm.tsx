@@ -230,11 +230,6 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       values.action_by = currentUser?.id;
       values.package = selectedCard;
 
-      if (values.status == 'Pending approval') {
-        values.status = 'Pending';
-      }
-
-
       const response = await updateProvider(providerId, { ...values, profile_img });
       if (response.status) {
         setImageUrl(undefined);
