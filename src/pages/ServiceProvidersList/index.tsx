@@ -85,7 +85,6 @@ const ProviderList: React.FC = () => {
     const handleNidaValidationDrawerClose = () => {
         setValidationResult(null);
         setShowNidaValidationDrawer(false);
-
     };
 
     const handleNidaChecking = async (nida) => {
@@ -929,6 +928,7 @@ const ProviderList: React.FC = () => {
                     Requests
                 </Button>
                 </Drawer>
+
                 <Drawer
                     width={600}
                     title={`${currentRow?.name}'s Businesses`}

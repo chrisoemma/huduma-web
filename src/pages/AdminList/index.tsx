@@ -11,15 +11,18 @@ import {
     ProFormUploadButton,
     ProTable,
     ProFormSelect,
+    PageLoading,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message } from 'antd';
+import { Button, Drawer, Form, Image, Input, Tag, Tooltip, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { addUserAdmin, getRoles, getSystemAdmins } from './AdminSlice';
+import { CopyOutlined } from '@ant-design/icons';
+import { setUserTemporary } from '../User/AuthSlice';
 
 
 const AdminList: React.FC = () => {
@@ -37,8 +40,10 @@ const AdminList: React.FC = () => {
 
     const intl = useIntl();
     const [form] = ProForm.useForm();
+    const { Item } = Form;
     const [loading, setLoading] = useState(false);
     const formRef = useRef();
+    const [showTemporyPasswordDrawer, setShowTemporyPasswordDrawer] = useState<boolean>(false);
 
 
     //   const handleRemove = async (selectedRows: API.AdminListItem[]) => {
@@ -66,6 +71,7 @@ const AdminList: React.FC = () => {
     //   };
 
 
+
     useEffect(() => {
         async function fetchData() {
             try {
@@ -80,6 +86,55 @@ const AdminList: React.FC = () => {
 
         fetchData();
     }, []);
+
+
+
+    const handleTemporyPasswordDrawerOpen = () => {
+        setShowTemporyPasswordDrawer(true);
+    };
+
+    const handleTemporyPasswordDrawerClose = () => {
+        setShowTemporyPasswordDrawer(false);
+    };
+
+
+
+
+    const [generatedPassword, setGeneratedPassword] = useState('');
+    const [passwordCopied, setPasswordCopied] = useState(false);
+
+    const handleSubmit = async (values) => {
+        setLoading(true);
+        try {
+
+            const tempPassword = values.password;
+            const payload={
+                password:tempPassword,
+                user_id:currentRow?.id
+            }
+
+            const response = await setUserTemporary(payload);
+
+            if (response.status) {
+                setGeneratedPassword(tempPassword);
+                message.success('Password set successfully!')
+            } else {
+              message.error(response.message);
+            }
+           
+           ;
+        } catch (error) {
+            message.error('Failed to set password');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCopyPassword = () => {
+        navigator.clipboard.writeText(generatedPassword);
+        setPasswordCopied(true);
+        message.success('Password copied to clipboard!');
+    };
 
 
 
@@ -125,7 +180,7 @@ const AdminList: React.FC = () => {
                         },
                         (error) => {
                             // Handle unsuccessful uploads
-                            setLoading(false); 
+                            setLoading(false);
                             console.error('Upload error:', error);
                             reject(error);
                         },
@@ -157,26 +212,26 @@ const AdminList: React.FC = () => {
                 const response = await addUserAdmin(userData);
                 if (response.status) {
                     hide();
-                    setLoading(false); 
+                    setLoading(false);
                     message.success(response.message);
                     return true;
                 } else {
                     if (response.data) {
-                        setLoading(false); 
+                        setLoading(false);
                         const errors = response.data.errors;
                         showErrorWithLineBreaks(formatErrorMessages(errors));
                     } else {
-                        setLoading(false); 
+                        setLoading(false);
                         message.error(response.message);
                     }
                 }
             } catch (error) {
                 hide();
-                setLoading(false); 
+                setLoading(false);
                 message.error('Adding failed, please try again!');
                 return false;
             } finally {
-                setLoading(false); 
+                setLoading(false);
                 handleModalOpen(false);
                 actionRef.current.reload();
             }
@@ -272,7 +327,7 @@ const AdminList: React.FC = () => {
                     defaultMessage="Email"
                 />
             ),
-            dataIndex: ['user', 'email'],
+            dataIndex: 'email',
             valueType: 'text',
             tip: 'The Email is unique',
             render: (dom, entity) => {
@@ -317,8 +372,9 @@ const AdminList: React.FC = () => {
                 } else if (text == 'Pending approval') {
                     text = 'Pending';
                     color = 'yellow'
-                } else if (text == 'Deactivated' || text == 'Suspended') {
+                } else if (text == 'Deactivated' || text == 'Suspended' || text == 'In Active') {
                     color = 'red';
+                    text='Deactivated'
                 }
 
                 return (
@@ -353,11 +409,11 @@ const AdminList: React.FC = () => {
                 //key={categories.length}
                 pagination={{
                     pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize: 15, 
-                    showSizeChanger: true, 
-                    locale: {items_per_page: ""}
-                  }}
-           
+                    defaultPageSize: 15,
+                    showSizeChanger: true,
+                    locale: { items_per_page: "" }
+                }}
+
                 actionRef={actionRef}
                 rowKey="id"
                 toolBarRender={() => [
@@ -458,7 +514,7 @@ const AdminList: React.FC = () => {
                     formData.append('name', value.name);
                     formData.append('phone', value.phone);
                     formData.append('email', value.email);
-                    formData.append('role',value.role);
+                    formData.append('role', value.role);
 
                     if (value.image) {
                         formData.append('image', value.image[0].originFileObj);
@@ -479,10 +535,10 @@ const AdminList: React.FC = () => {
 
                 submitter={{
                     submitButtonProps: {
-                      loading: loading, 
-                      disabled: loading,
+                        loading: loading,
+                        disabled: loading,
                     },
-                  }}
+                }}
             >
                 <ProForm.Group>
                     <ProFormText
@@ -530,20 +586,28 @@ const AdminList: React.FC = () => {
                         label="Phone"
                     />
 
-                    <ProFormText
-                        name="email"
-                        label={intl.formatMessage({
-                            id: 'pages.searchTable.updateForm.email',
-                            defaultMessage: 'Email',
-                        })}
-                        width="md"
-                        rules={[
-                            {
-                                type: 'email',
-                                message: 'Please enter a valid email address!',
-                            },
-                        ]}
-                    />
+<ProFormText
+  name="email"
+  label={intl.formatMessage({
+    id: 'pages.searchTable.updateForm.email',
+    defaultMessage: 'Email',
+  })}
+  width="md"
+  rules={[
+    {
+      type: 'email',
+      message: 'Please enter a valid email address!',
+    },
+    {
+      validator: (_, value) => {
+        if (value && !value.endsWith('@espeservice.com')) {
+          return Promise.reject('Email must end with @espeservice.com');
+        }
+        return Promise.resolve();
+      },
+    },
+  ]}
+/>
 
                     <ProFormSelect
                         name="role"
@@ -635,6 +699,80 @@ const AdminList: React.FC = () => {
                         columns={columns as ProDescriptionsItemProps<API.AdminListItem>[]}
                     />
                 )}
+
+                <Button style={{ marginLeft: 20 }} type="primary" onClick={handleTemporyPasswordDrawerOpen}>
+                    Temporary Password
+                </Button>
+            </Drawer>
+
+            <Drawer
+                width={400}
+                title="Set Temporary password"
+                placement="right"
+                onClose={handleTemporyPasswordDrawerClose}
+                visible={showTemporyPasswordDrawer}
+                destroyOnClose
+            >
+                <Form form={form} onFinish={handleSubmit}>
+                    <Item
+                        label="Password"
+                        name="password"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Password required',
+                            },
+                            {
+                                min: 6,
+                                message: 'Password must be at least 6 characters',
+                            },
+                        ]}
+                    >
+                        <Input.Password />
+                    </Item>
+
+                    <Item
+                        label="Confirm "
+                        name="confirmPassword"
+                        rules={[
+                            {
+                                required: true,
+                                message: 'Please confirm your password',
+                            },
+                            ({ getFieldValue }) => ({
+                                validator(_, value) {
+                                    if (!value || getFieldValue('password') === value) {
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.reject('Passwords do not match');
+                                },
+                            }),
+                        ]}
+                    >
+                        <Input.Password />
+                    </Item>
+
+                    <Button type="primary" htmlType="submit" loading={loading} disabled={loading}>
+                        {loading ? 'Setting...' : 'Set Password'}
+                    </Button>
+
+                    {generatedPassword && (
+                        <div style={{ marginTop: 16 }}>
+                            <h3>Generated Password:</h3>
+                            <Input
+                                value={generatedPassword}
+                                readOnly
+                                suffix={
+                                    <Tooltip title="Copy to clipboard">
+                                        <CopyOutlined onClick={handleCopyPassword} style={{ cursor: 'pointer' }} />
+                                    </Tooltip>
+                                }
+                            />
+                            {passwordCopied && <p style={{ color: 'green' }}>Password copied to clipboard!</p>}
+                        </div>
+                    )}
+                </Form>
+
             </Drawer>
         </PageContainer>
     );

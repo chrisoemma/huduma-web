@@ -15,12 +15,15 @@ export async function login(options?: { [key: string]: any }) {
     });
 
       if(response.status){
-    return {
-      status: response.status,
-      token: response.token,
-      userData: response.user,
-    };
-
+        if(response.temporary_password){
+          return response
+        }else{
+          return {
+            status: response.status,
+            token: response.token,
+            userData: response.user,
+          };
+        }
   }else{
       return response
   }
@@ -33,8 +36,61 @@ export async function login(options?: { [key: string]: any }) {
 
 
   export async function outLogin(options?: { [key: string]: any }) {
-    return request(`${API_URL}/api/auth/logOut`, {
+    return request(`${API_URL}/auth/logOut`, {
       method: 'POST',
       ...(options || {}),
     });
   }
+
+
+  export async function verifyAccount(options?: { [key: string]: any }) {
+    return request(`${API_URL}/auth/verify_internal_user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data:{
+        method: 'post',
+        ...(options || {}),
+      }
+    });
+  }
+
+
+  export async function   requestNewToken(options?: { [key: string]: any }) {
+    return request(`${API_URL}/api/auth/logOut`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data:{
+        method: 'post',
+        ...(options || {}),
+      }
+    });
+  }
+
+
+  export async function createNewPassword(options?: { [key: string]: any }) {
+    return request(`${API_URL}/auth/set_account_password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: options,
+    });
+  }
+
+
+  export async function setUserTemporary(options?: { [key: string]: any }) {
+    return request(`${API_URL}/auth/set_temporary_password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      data: options,
+    });
+  }
+
+  
+  

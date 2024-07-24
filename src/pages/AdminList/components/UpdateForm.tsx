@@ -272,6 +272,14 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
               type: 'email',
               message: 'Please enter a valid email address!',
             },
+            {
+              validator: (_, value) => {
+                if (value && !value.endsWith('@espeservice.com')) {
+                  return Promise.reject('Email must end with @espeservice.com');
+                }
+                return Promise.resolve();
+              },
+            },
           ]}
         />
 

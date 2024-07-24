@@ -9,8 +9,30 @@ export default [
         path: '/user/login',
         component: './User/Login',
       },
+      {
+        name: 'verify-account',
+        path: '/user/verify-account',
+        component: './User/VerifyAccount',
+      },
+      {
+        name: 'create-account-password',
+        path: '/user/create-account-password',
+        component: './User/CreateAccountPassword',
+      },
+
     ],
   },
+  // {
+  //   path: '/account',
+  //   layout: false,
+  //   routes: [
+  //     {
+  //       name: 'account',
+  //       path: '/verify-account',
+  //       component: './User/VerifyAccount',
+  //     },
+  //   ],
+  // },
   {
     path: '/user-management',
     routes: [
