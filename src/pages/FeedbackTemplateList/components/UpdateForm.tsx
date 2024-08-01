@@ -44,8 +44,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const contexts = [
     {
-      id: "First time",
-      name: "First Time"
+      id: "Opening",
+      name: "Opening"
     },
     { id: 'After', name: 'After' },
   ];

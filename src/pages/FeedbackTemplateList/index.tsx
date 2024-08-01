@@ -46,8 +46,8 @@ const FeedbackTemplateList: React.FC = () => {
 
     const contexts = [
         {
-            id: "First time",
-            name: "First Time"
+            id: "Opening",
+            name: "Opening"
         },
         {
             id: "After",
