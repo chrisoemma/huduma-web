@@ -45,7 +45,7 @@ const ProviderDocsList: React.FC = () => {
   const [selectedRowsState, setSelectedRows] = useState<API.ProviderDocsListItem[]>([]);
   const [categories, setCategories] = useState([]);
   const { id } = useParams();
-  const { data, error, loading } = useRequest(() => getProviderDocs(Number(id)));
+  const { data, error } = useRequest(() => getProviderDocs(Number(id)));
   const [tableData, setTableData] = useState<API.ProviderDocsListItem[]>([]);
 
   const intl = useIntl();
@@ -60,7 +60,9 @@ const ProviderDocsList: React.FC = () => {
   const [validationResult, setValidationResult] = useState(null);
   const [providerData, setProviderData] = useState(null);
   const [nidaNumber, setNida] = useState(null)
-  const [loadingValidation, setLoading] = useState(false);
+  const [loadingValidation, setLoadingValidation] = useState(false);
+  const [loading,setLoading]=useState(false);
+  const formRef = useRef();
 
 
   const navigate = useNavigate();
@@ -170,7 +172,7 @@ const ProviderDocsList: React.FC = () => {
 
   const handleNidaChecking = async (nida) => {
     try {
-      setLoading(true); // Set loading to true when starting the operation
+      setLoadingValidation(true); // Set loading to true when starting the operation
 
       const nidaValidationData = {
         status: '',
@@ -207,7 +209,7 @@ const ProviderDocsList: React.FC = () => {
       setValidationResult({ error: 'Failed to perform NIDA checking' });
       return { error: 'Failed to perform NIDA checking' };
     } finally {
-      setLoading(false);
+      setLoadingValidation(false);
     }
   };
 
@@ -434,6 +436,7 @@ const ProviderDocsList: React.FC = () => {
     const doc_type = formData.get('doc_type') as string
     const businessId = business === 'undefined' ? null : business
 
+    setLoading(true);
     try {
 
       const fileType = imageFile.type;
@@ -478,40 +481,47 @@ const ProviderDocsList: React.FC = () => {
                 if (response.status) {
                   hide();
                   message.success(response.message);
+                  setLoading(false);
                   return true;
                 } else {
                   if (response.data) {
                     const errors = response.data.errors;
                     showErrorWithLineBreaks(formatErrorMessages(errors));
+                    setLoading(false);
                   } else {
+                    setLoading(false);
                     message.error(response.message);
                   }
                 }
               } catch (error) {
                 hide();
                 message.error('Adding failed, please try again!');
+                setLoading(false);
                 return false
               } finally {
                 handleModalOpen(false);
+                setLoading(false);
                 actionRef.current.reload();
               }
             } catch (error) {
               message.error('Error getting download URL, please try again!');
               return false
             } finally {
+              setLoading(false);
               handleModalOpen(false);
             }
           }
         );
       } else {
+        setLoading(false);
         message.error('Please upload Document of type image or pdf')
       }
     } catch (error) {
+        setLoading(false);
       message.error('Image upload failed, please try again!');
       return false
     }
   };
-
 
 
   const columns: ProColumns<API.ProviderDocsListItem>[] = [
@@ -799,6 +809,7 @@ const ProviderDocsList: React.FC = () => {
         })}
         width="400px"
         open={createModalOpen}
+        formRef={formRef}
         onOpenChange={handleModalOpen}
         onFinish={async (value) => {
           const formData = new FormData();
@@ -818,7 +829,14 @@ const ProviderDocsList: React.FC = () => {
             if (actionRef.current) {
               actionRef.current.reload();
             }
+            formRef.current.resetFields();
           }
+        }}
+        submitter={{
+          submitButtonProps: {
+            loading: loading, 
+            disabled: loading,
+          },
         }}
       >
         <ProForm.Group>
