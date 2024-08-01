@@ -27,6 +27,7 @@ import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice'
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
 import { Document, Page,pdfjs } from 'react-pdf';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 
 
@@ -60,6 +61,18 @@ const ProviderDocsList: React.FC = () => {
   const [providerData, setProviderData] = useState(null);
   const [nidaNumber, setNida] = useState(null)
   const [loadingValidation, setLoading] = useState(false);
+
+
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleBackClick = () => {
+    if (location.state && location.state.from) {
+      navigate(location.state.from, { state: { providerId: location.state.providerId } });
+    } else {
+      navigate('/user-management/service-providers');
+    }
+  }
 
 
   const [numPages, setNumPages] = useState<number>();
@@ -670,6 +683,15 @@ const ProviderDocsList: React.FC = () => {
         actionRef={actionRef}
         rowKey="id"
         toolBarRender={() => [
+
+          <Button
+          type="primary"
+          key="primary"
+          onClick={handleBackClick}
+        >
+          <PlusOutlined /> <FormattedMessage id="pages.searchTable.goBack" defaultMessage="Go Back" />
+        </Button>,
+
           <Button
             type="primary"
             key="primary"

@@ -43,45 +43,57 @@ const FeedbackTemplateList: React.FC = () => {
     const formRef = useRef();
     const [selectedAction, setSelectedAction] = useState(null);
 
-    const templateActions=[
+
+    const contexts = [
         {
-            id:'Cancelled',
-            name:'Cancel'
+            id: "First time",
+            name: "First Time"
         },
         {
-            id:'Rejected',
-            name:'Reject'
-        },
-        {
-            id:'Completed',
-            name:'Complete'
+            id: "After",
+            name: "After"
         }
     ]
 
-    const resources=[
+    const templateActions = [
         {
-            id:'Client',
-            name:'Client'
+            id: 'Cancelled',
+            name: 'Cancel'
         },
         {
-            id:'Provider',
-            name:'Provider'
+            id: 'Rejected',
+            name: 'Reject'
         },
         {
-            id:'Client & Provider',
-            name:'Client & Provider'
+            id: 'Completed',
+            name: 'Complete'
+        }
+    ]
+
+    const resources = [
+        {
+            id: 'Client',
+            name: 'Client'
         },
         {
-            id:'Agent',
-            name:'Agent'
+            id: 'Provider',
+            name: 'Provider'
         },
         {
-            id:'Internal',
-            name:'Internal'
+            id: 'Client & Provider',
+            name: 'Client & Provider'
         },
         {
-            id:'Other',
-            name:'Other'
+            id: 'Agent',
+            name: 'Agent'
+        },
+        {
+            id: 'Internal',
+            name: 'Internal'
+        },
+        {
+            id: 'Other',
+            name: 'Other'
         },
     ]
 
@@ -100,8 +112,8 @@ const FeedbackTemplateList: React.FC = () => {
         const reason_sw = formData.get('reason_sw') as string
         const action = formData.get('action') as string;
         const resource = formData.get('resource') as string;
-        const rating=formData.get('rating') as string;
- 
+        const rating = formData.get('rating') as string;
+        const context = formData.get('context') as string;
 
         setLoading(true);
 
@@ -112,13 +124,14 @@ const FeedbackTemplateList: React.FC = () => {
                 reason_en: reason_en,
                 reason_sw: reason_sw,
                 created_by: action_by,
-                resource:resource,
-                rating:rating
+                resource: resource,
+                rating: rating,
+                context: context
 
             };
- 
-       
-         
+
+
+
             const hide = message.loading('Loading...');
             try {
                 const response = await addFeedbackTemplate(feedbackTemplate);
@@ -158,7 +171,7 @@ const FeedbackTemplateList: React.FC = () => {
 
             const response = await removeFeedbackTemplate({
                 key: selectedRows.map((row) => row.id),
-                deleted_by:action_by
+                deleted_by: action_by
             });
 
             hide();
@@ -182,7 +195,7 @@ const FeedbackTemplateList: React.FC = () => {
             title: (
                 <FormattedMessage id="pages.searchTable.action" defaultMessage="Action" />
             ),
-            dataIndex:  'action', // Access nested property
+            dataIndex: 'action', // Access nested property
             valueType: 'text',
             tip: 'Action',
             render: (dom, entity) => {
@@ -201,38 +214,59 @@ const FeedbackTemplateList: React.FC = () => {
         },
         {
             title: (
-              <FormattedMessage
-                id="pages.searchTable.updateForm.ruleName.reason"
-                defaultMessage="Reason"
-              />
+                <FormattedMessage id="pages.searchTable.action" defaultMessage="Context" />
+            ),
+            dataIndex: 'context', 
+            valueType: 'text',
+            tip: 'Context',
+            render: (dom, entity) => {
+                return (
+                    <a
+                        onClick={() => {
+                            setCurrentRow(entity);
+                            setShowDetail(true);
+                        }}
+                    >
+                        {dom}
+                    </a>
+                );
+            },
+            search: false,
+        },
+        {
+            title: (
+                <FormattedMessage
+                    id="pages.searchTable.updateForm.ruleName.reason"
+                    defaultMessage="Reason"
+                />
             ),
             dataIndex: 'reason',
             valueType: 'text',
             tip: 'The Reason is the unique key',
             render: (text, record) => {
-              const reason = record.reason; 
-              if (reason) {
-                  return (
-                      <>
-                          <div style={{ marginBottom: 10 }}>
-                              <b>English:</b> {reason?.en}
-                          </div>
-                          <div>
-                              <b>Swahili:</b> {reason?.sw}
-                          </div>
-                      </>
-                  );
-              }
-              return '-------';
-          },
+                const reason = record.reason;
+                if (reason) {
+                    return (
+                        <>
+                            <div style={{ marginBottom: 10 }}>
+                                <b>English:</b> {reason?.en}
+                            </div>
+                            <div>
+                                <b>Swahili:</b> {reason?.sw}
+                            </div>
+                        </>
+                    );
+                }
+                return '-------';
+            },
             search: false,
-          },
+        },
 
         {
             title: (
                 <FormattedMessage id="pages.searchTable.reason" defaultMessage="User Type" />
             ),
-            dataIndex:  'resource', // Access nested property
+            dataIndex: 'resource', // Access nested property
             valueType: 'text',
             tip: 'User Type',
             search: false,
@@ -255,7 +289,7 @@ const FeedbackTemplateList: React.FC = () => {
             title: (
                 <FormattedMessage id="pages.searchTable.reason" defaultMessage="Rating Scale" />
             ),
-            dataIndex:  'rating_scale', // Access nested property
+            dataIndex: 'rating_scale', // Access nested property
             valueType: 'text',
             search: false,
             render: (dom, entity) => {
@@ -272,7 +306,6 @@ const FeedbackTemplateList: React.FC = () => {
             },
         },
 
-        
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
             dataIndex: 'status',
@@ -294,7 +327,7 @@ const FeedbackTemplateList: React.FC = () => {
             },
         },
 
-    
+
         {
             title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
             dataIndex: 'option',
@@ -418,11 +451,11 @@ const FeedbackTemplateList: React.FC = () => {
                     formData.append('action', value.action);
                     formData.append('reason_en', value.reason_en);
                     formData.append('reason_sw', value.reason_sw);
-                    formData.append('resource',value.resource);
+                    formData.append('resource', value.resource);
                     if (value.rating) {
                         formData.append('rating', value.rating);
                     }
-                 
+
 
                     const success = await handleAdd(formData);
 
@@ -437,10 +470,10 @@ const FeedbackTemplateList: React.FC = () => {
 
                 submitter={{
                     submitButtonProps: {
-                      loading: loading, 
-                      disabled: loading,
+                        loading: loading,
+                        disabled: loading,
                     },
-                  }}
+                }}
             >
                 <ProForm.Group>
                     <ProFormSelect
@@ -461,42 +494,54 @@ const FeedbackTemplateList: React.FC = () => {
                             },
                         ]}
                         onChange={(value) => setSelectedAction(value)}
-                   
-                    />
-            <ProFormSelect
-                    name="resource"
-                    width="md"
-                    label={intl.formatMessage({
-                        id: 'pages.searchTable.updateForm.selectResource',
-                        defaultMessage: 'Select User Type',
-                    })}
-                    valueEnum={resources.reduce((enumObj, resource) => {
-                        enumObj[resource.id] = resource.name;
-                        return enumObj;
-                    }, {})}
-                    rules={[{ required: true, message: 'Please Select User Type!' }]}
-                    onChange={(value) => setSelectedResource(value)}
-                />
 
-                {selectedAction === 'Completed' && selectedResource === 'Client' && (
+                    />
                     <ProFormSelect
-                        name="rating"
+                        name="resource"
                         width="md"
                         label={intl.formatMessage({
-                            id: 'pages.searchTable.updateForm.selectRating',
-                            defaultMessage: 'Select Rating',
+                            id: 'pages.searchTable.updateForm.selectResource',
+                            defaultMessage: 'Select User Type',
                         })}
-                        valueEnum={ratings.reduce((enumObj, rating) => {
-                            enumObj[rating.id] = rating.name;
+                        valueEnum={resources.reduce((enumObj, resource) => {
+                            enumObj[resource.id] = resource.name;
                             return enumObj;
                         }, {})}
-                        rules={[{ required: true, message: 'Please select Rating!' }]}
+                        rules={[{ required: true, message: 'Please Select User Type!' }]}
+                        onChange={(value) => setSelectedResource(value)}
                     />
-                )}
+
+                    {selectedAction === 'Completed' && selectedResource === 'Client' && (
+                        <ProFormSelect
+                            name="rating"
+                            width="md"
+                            label={intl.formatMessage({
+                                id: 'pages.searchTable.updateForm.selectRating',
+                                defaultMessage: 'Select Rating',
+                            })}
+                            valueEnum={ratings.reduce((enumObj, rating) => {
+                                enumObj[rating.id] = rating.name;
+                                return enumObj;
+                            }, {})}
+                            rules={[{ required: true, message: 'Please select Rating!' }]}
+                        />
+                    )}
+                    {(selectedAction === "Cancelled" && selectedResource === "Client") || (selectedAction === "Rejected" && selectedResource === "Provider") ? (
+                    <ProFormSelect
+                        width="md"
+                        name="context"
+                        label="Context"
+                        placeholder="Select context"
+                        rules={[{ required: true, message: 'Please select the context!' }]}
+                        valueEnum={contexts.reduce((enumObj, context) => {
+                            enumObj[context.id] = context.name;
+                            return enumObj;
+                        }, {})}
+                    />
+                ) : null}
 
 
-
-                      <ProFormText
+                    <ProFormText
                         rules={[
                             {
                                 required: true,
@@ -508,7 +553,7 @@ const FeedbackTemplateList: React.FC = () => {
                         label="Reason"
                     />
 
-                   <ProFormText
+                    <ProFormText
                         rules={[
                             {
                                 required: true,
@@ -521,8 +566,8 @@ const FeedbackTemplateList: React.FC = () => {
                     />
 
 
-           
                 </ProForm.Group>
+
             </ModalForm>
 
             <UpdateForm

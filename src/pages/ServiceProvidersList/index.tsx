@@ -23,6 +23,7 @@ import { addProvider, fetchBusinessesData, getProviders, removeProvider } from '
 import { history } from 'umi';
 import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 
 const ProviderList: React.FC = () => {
@@ -48,6 +49,17 @@ const ProviderList: React.FC = () => {
     const { initialState } = useModel('@@initialState');
     const [loading, setLoading] = useState(false);
     const formRef = useRef();
+    const navigate = useNavigate();
+    const providerRefs = useRef({});
+
+    useEffect(() => {
+        if (location.state && location.state.providerId) {
+          const providerId = location.state.providerId;
+          if (providerRefs.current[providerId]) {
+            providerRefs.current[providerId].scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }, [location.state]);
 
     
       const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
@@ -151,11 +163,12 @@ const ProviderList: React.FC = () => {
 
 
     const handleViewDocs = () => {
-        if (history) {
-            const route = `/user-management/service-providers/documents/provider/${currentRow?.id}`;
-            history.push(route);
+        if (navigate) {
+          navigate(`/user-management/service-providers/documents/provider/${currentRow?.id}`, {
+            state: { from: `/user-management/service-providers`,providerId: currentRow.id },
+          });
         }
-    };
+      }
 
 
     const handleViewEmployees = () => {
@@ -345,6 +358,7 @@ const ProviderList: React.FC = () => {
                             setCurrentRow(entity);
                             setShowDetail(true);
                         }}
+                    ref={(el) => (providerRefs.current[entity.id] = el)}
                     >
                         {dom}
                     </a>

@@ -276,7 +276,7 @@ const SubserviceChangeList: React.FC = () => {
                             <FormattedMessage id="pages.searchTable.reject" defaultMessage="Reject" />
                         </a>
                     </div>
-                    {/* <div>
+                    <div>
                         <a
                             onClick={() => {
                                
@@ -286,7 +286,7 @@ const SubserviceChangeList: React.FC = () => {
                         >
                             <FormattedMessage id="pages.searchTable.reject" defaultMessage="Approve for all" />
                         </a>
-                    </div> */}
+                    </div>
                 </>
             ),
         }

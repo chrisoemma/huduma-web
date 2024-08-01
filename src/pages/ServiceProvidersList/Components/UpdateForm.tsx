@@ -230,6 +230,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       values.action_by = currentUser?.id;
       values.package = selectedCard;
 
+
+
       const response = await updateProvider(providerId, { ...values, profile_img });
       if (response.status) {
         setImageUrl(undefined);
