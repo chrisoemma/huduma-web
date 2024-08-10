@@ -5,6 +5,9 @@ export async function getClients(
     params: {
       current?: number;
       pageSize?: number;
+      client_number,
+      phone,
+      name
       
     },
     options?: { [key: string]: any },

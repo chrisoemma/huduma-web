@@ -5,6 +5,10 @@ export async function getProviders(
     params: {
       current?: number;
       pageSize?: number;
+      provider_number,
+      nida,
+      phone,
+      name
       
     },
     options?: { [key: string]: any },

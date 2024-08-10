@@ -5,6 +5,10 @@ export async function getAgents(
     params: {
       current?: number;
       pageSize?: number;
+      client_number,
+      phone,
+      name,
+      nida
       
     },
     options?: { [key: string]: any },

@@ -324,6 +324,12 @@ const AgentList: React.FC = () => {
 
     const columns: ProColumns<API.AgentListItem>[] = [
         {
+            title: <FormattedMessage id="pages.searchTable.titleAgentNumber" defaultMessage="Number" />,
+            dataIndex: 'agent_number',
+            hideInForm: true,
+            search: true,
+          },
+        {
             title: (
                 <FormattedMessage
                     id="pages.searchTable.updateForm.ruleName.agentName"
@@ -378,7 +384,9 @@ const AgentList: React.FC = () => {
                     </>
                 );
             },
-            search: true,
+            search:{
+                name:'phone'
+            },
         },
     
         {
@@ -428,7 +436,9 @@ const AgentList: React.FC = () => {
                     </div>
                 );
             },
-            search: true,
+            search: {
+                name:'nida'
+            },
         },
         {
             title: (
@@ -453,7 +463,7 @@ const AgentList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search:false,
         },
         {
             title: (
@@ -478,11 +488,12 @@ const AgentList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search:false,
         },
         {
             title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Profile photo" />,
             dataIndex: ['user', 'profile_img'],
+            search:false,
             hideInSearch: true,
             render: (_, record) => {
                 
@@ -500,6 +511,7 @@ const AgentList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
             dataIndex: 'status',
+            search:false,
             hideInForm: true,
             render: (text, record) => {
                 let color = '';
@@ -522,6 +534,7 @@ const AgentList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
             dataIndex: 'option',
+            search:false,
             valueType: 'option',
             render: (_, record) => [
                 <a
@@ -564,23 +577,30 @@ const AgentList: React.FC = () => {
                 ]}
                 search={{
                     labelWidth: 120,
-                    filterType: 'light', // Use a light filter form for better layout
+                    filterType: 'query', // Use a light filter form for better layout
                 }}
                 request={async (params, sorter, filter) => {
                     try {
-                        const response = await getAgents();
+                        const response = await getAgents(params);
                         const agents = response.data.agents;
 
                         // Filter the data based on the search parameters
                         const filteredAgents = agents.filter(agent => {
-                            return (
-                                (params.name ? agent.name.toLowerCase().includes(params.name.toLowerCase()) : true) &&
-                                (params.phone ? agent.phone.toLowerCase().includes(params.phone.toLowerCase()) : true) &&
-                                (params.nida ? agent.nida.toLowerCase().includes(params.nida.toLowerCase()) : true) &&
-                                (params.email ? agent.user.email.toLowerCase().includes(params.email.toLowerCase()) : true) &&
-                                (params.location ? agent.location.toLowerCase().includes(params.location.toLowerCase()) : true) &&
-                                (params.status ? agent.status.toLowerCase().includes(params.status.toLowerCase()) : true)
-                            );
+                            const matchesAgentNumber = params.agent_number
+                              ? agent.agent_number?.toLowerCase().includes(params.agent_number.toLowerCase())
+                              : true;
+                            const matchesagentName = params.name
+                              ? agent.name?.toLowerCase().includes(params.name.toLowerCase())
+                              : true;
+                            const matchesPhone =params['users.phone']
+                              ? agent.users.phone?.toLowerCase().includes(params['users.phone'].toLowerCase())
+                              : true;
+            
+                              const matchesNida =params['users.nida']
+                              ? agent.users.nida?.toLowerCase().includes(params['users.nida'].toLowerCase())
+                              : true;
+                    
+                            return matchesAgentNumber && matchesagentName && matchesPhone && matchesNida;
                         });
 
                         return {

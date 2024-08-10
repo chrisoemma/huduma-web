@@ -117,6 +117,14 @@ const PastRequestList: React.FC = () => {
 
 
   const columns: ProColumns<API.PastRequestListItem>[] = [
+
+    
+    {
+      title: <FormattedMessage id="pages.searchTable.titleRequestNumber" defaultMessage="Number" />,
+      dataIndex: 'request_number',
+      hideInForm: true,
+      search: true,
+    },
     {
       title: (
         <FormattedMessage
@@ -138,7 +146,9 @@ const PastRequestList: React.FC = () => {
           </a>
         );
       },
-      search: true,
+      search: {
+        name: 'provider_name',  
+      },
     },
     
         {
@@ -162,7 +172,9 @@ const PastRequestList: React.FC = () => {
           </a>
         );
       },
-      search: true,
+      search: {
+        name: 'client_name',  
+      },
     },
 
     {
@@ -182,7 +194,7 @@ const PastRequestList: React.FC = () => {
           </span>
         );
       },
-      search: true,
+      search: false,
     },
 
 
@@ -206,7 +218,7 @@ const PastRequestList: React.FC = () => {
           </span>
         );
       },
-      search: true,
+      search: false,
     },
 
     {
@@ -227,6 +239,7 @@ const PastRequestList: React.FC = () => {
       title: <FormattedMessage id="pages.searchTable.titleRequestTime" defaultMessage="Request Time" />,
       dataIndex: 'request_time',
       valueType: 'dateTime',
+      search: false,
       hideInForm: true,
       render: (text, record) => moment(record.request_time).format('D/M/YYYY H:mm'),
     },
@@ -235,6 +248,7 @@ const PastRequestList: React.FC = () => {
       title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
       dataIndex: 'statuses',
       hideInForm: true,
+      search: false,
       render: (_, entity) => {
         const lastStatus = entity.statuses.length > 0 ? entity.statuses[entity.statuses.length - 1].status : null;
         return (
@@ -268,21 +282,31 @@ const PastRequestList: React.FC = () => {
       
         search={{
           labelWidth: 120,
-         filterType: 'light', 
+         filterType: 'query', 
         }}
         request={async (params, sorter, filter) => {
           try {      
             const response = await getPastRequests(params);
             const requests = response.data.requests;
-            // Filter the data based on the 'name' filter
-            const filteredRequests = requests.filter(request =>
-              params.name
-                ? request.provider.name
-                    .toLowerCase()
-                    .split(' ')
-                    .some(word => word.startsWith(params.name.toLowerCase()))
-                : true
-            );
+    
+            const filteredRequests = requests.filter(request => {
+              // Search by request_number
+              const matchesRequestNumber = params.request_number
+                ? request.request_number.toLowerCase().includes(params.request_number.toLowerCase())
+                : true;
+      
+              // Search by provider name (nested in provider object)
+              const matchesProviderName = params['provider.name']
+                ? request.provider && request.provider.name.toLowerCase().includes(params['provider.name'].toLowerCase())
+                : true;
+      
+              // Search by client name (nested in client object)
+              const matchesClientName = params['client.name']
+                ? request.client && request.client.name.toLowerCase().includes(params['client.name'].toLowerCase())
+                : true;
+      
+              return matchesRequestNumber && matchesProviderName && matchesClientName;
+            });
       
             return {
               data: filteredRequests,

@@ -2,20 +2,24 @@ import { API_URL } from '@/utils/config';
 import { request } from '@umijs/max';
 
 export async function getActiveRequests(
+  params: {
+    current?: number;
+    pageSize?: number;
+    request_number?: string;
+    provider_name?: string;
+    client_name?: string;
+  },
+  options?: { [key: string]: any },
+) {
+  return request(`${API_URL}/admin/active_requests`, {
+    method: 'GET',
     params: {
-      current?: number;
-      pageSize?: number;
+      ...params,
     },
-    options?: { [key: string]: any },
-  ) {
-    return request(`${API_URL}/admin/active_requests`, {
-      method: 'GET',
-      params: {
-        ...params,
-      },
-      ...(options || {}),
-    });
-  }
+    ...(options || {}),
+  });
+}
+
 
 
   export async function getPastRequests(

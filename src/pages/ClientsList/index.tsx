@@ -278,6 +278,13 @@ const ClientList: React.FC = () => {
 
 
     const columns: ProColumns<API.ClientListItem>[] = [
+
+        {
+            title: <FormattedMessage id="pages.searchTable.titleClientNumber" defaultMessage="Number" />,
+            dataIndex: 'client_number',
+            hideInForm: true,
+            search: true,
+          },
         {
             title: (
                 <FormattedMessage
@@ -332,7 +339,9 @@ const ClientList: React.FC = () => {
                     </>
                 );
             },
-            search: true,
+            search:{
+                name:'phone'
+            },
         },
         {
             title: (
@@ -381,7 +390,7 @@ const ClientList: React.FC = () => {
                     </div>
                 );
             },
-            search: true,
+            search:false,
         },
         {
             title: (
@@ -406,7 +415,7 @@ const ClientList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search:false,
         },
         {
             title: (
@@ -431,12 +440,13 @@ const ClientList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search:false,
         },
         {
             title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Profile photo" />,
             dataIndex: ['user', 'profile_img'],
             hideInSearch: true,
+            search:false,
             render: (_, record) => {
                 const profileImage = record.user.profile_img;
                 return (
@@ -452,6 +462,7 @@ const ClientList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
             dataIndex: 'status',
+            search:false,
             hideInForm: true,
             render: (text, record) => {
                 let color = '';
@@ -518,23 +529,26 @@ const ClientList: React.FC = () => {
                 ]}
                 search={{
                     labelWidth: 120,
-                    filterType: 'light', // Use a light filter form for better layout
+                    filterType: 'query', // Use a light filter form for better layout
                 }}
                 request={async (params, sorter, filter) => {
                     try {
-                        const response = await getClients();
+                        const response = await getClients(params);
                         const clients = response.data.clients;
 
                         // Filter the data based on the search parameters
                         const filteredClients = clients.filter(client => {
-                            return (
-                                (params.name ? client.name.toLowerCase().includes(params.name.toLowerCase()) : true) &&
-                                (params.phone ? client.phone.toLowerCase().includes(params.phone.toLowerCase()) : true) &&
-                                (params.nida ? client.nida.toLowerCase().includes(params.nida.toLowerCase()) : true) &&
-                                (params.email ? client.user.email.toLowerCase().includes(params.email.toLowerCase()) : true) &&
-                                (params.location ? client.location.toLowerCase().includes(params.location.toLowerCase()) : true) &&
-                                (params.status ? client.status.toLowerCase().includes(params.status.toLowerCase()) : true)
-                            );
+                            const matchesclientNumber = params.client_number
+                              ? client.client_number?.toLowerCase().includes(params.client_number.toLowerCase())
+                              : true;
+                            const matchesClientName = params.name
+                              ? client.name?.toLowerCase().includes(params.name.toLowerCase())
+                              : true;
+                            const matchesPhone =params['users.phone']
+                              ? client.users.phone?.toLowerCase().includes(params['users.phone'].toLowerCase())
+                              : true;
+            
+                            return matchesclientNumber && matchesClientName && matchesPhone;
                         });
 
                         return {

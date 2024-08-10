@@ -171,6 +171,12 @@ const EmployeeList: React.FC = () => {
 
     const columns: ProColumns<API.EmployeeListItem>[] = [
         {
+            title: <FormattedMessage id="pages.searchTable.titleEmployeeNumber" defaultMessage="Number" />,
+            dataIndex: 'employee_number',
+            hideInForm: true,
+            search: true,
+          },
+        {
             title: (
                 <FormattedMessage
                     id="pages.searchTable.updateForm.employeeName"
@@ -209,7 +215,7 @@ const EmployeeList: React.FC = () => {
             render: (dom, entity) => {
                 return entity.provider ? entity?.provider?.name : 'N/A';
             },
-            search: true,
+            search: false,
         },
     
 
@@ -241,7 +247,9 @@ const EmployeeList: React.FC = () => {
                     </>
                 );
             },
-            search: true,
+            search: {
+                name:'phone'
+            },
         },
         {
             title: (
@@ -265,7 +273,9 @@ const EmployeeList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search: {
+                name:'nida'
+            },
         },
         {
             title: (
@@ -290,7 +300,7 @@ const EmployeeList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search: false,
         },
         // {
         //     title: (
@@ -320,6 +330,7 @@ const EmployeeList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Profile photo" />,
             dataIndex: ['user', 'profile_img'],
+            search:false,
             hideInSearch: true,
             render: (_, record) => {
                 const profileImage = record.user.profile_img;
@@ -336,6 +347,7 @@ const EmployeeList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
             dataIndex: 'status',
+            search:false,
             hideInForm: true,
             render: (text, record) => {
                 let color = '';
@@ -405,25 +417,30 @@ const EmployeeList: React.FC = () => {
                 ]}
                 search={{
                     labelWidth: 120,
-                    filterType: 'light', // Use a light filter form for better layout
+                    filterType: 'query', // Use a light filter form for better layout
                 }}
                 request={async (params, sorter, filter) => {
                     try {
 
-                        const response = await getAllEmployees(Number(id), params);
+                        const response = await getAllEmployees(params);
                         const employees = response.data.employees;
 
-                        console.log('employeees12', employees)
-                        // Filter the data based on the search parameters
                         const filteredEmployees = employees.filter(employee => {
-                            return (
-                                (params.name ? employee.name.toLowerCase().includes(params.name.toLowerCase()) : true) &&
-                                (params.phone ? employee.phone.toLowerCase().includes(params.phone.toLowerCase()) : true) &&
-                                (params.nida ? employee.nida.toLowerCase().includes(params.nida.toLowerCase()) : true) &&
-                                (params.email ? employee.user.email.toLowerCase().includes(params.email.toLowerCase()) : true) &&
-                                (params.location ? employee.location.toLowerCase().includes(params.location.toLowerCase()) : true) &&
-                                (params.status ? employee.status.toLowerCase().includes(params.status.toLowerCase()) : true)
-                            );
+                            const matchesemployeeNumber = params.employee_number
+                              ? employee.employee_number?.toLowerCase().includes(params.employee_number.toLowerCase())
+                              : true;
+                            const matchesEmployeeName = params.name
+                              ? employee.name?.toLowerCase().includes(params.name.toLowerCase())
+                              : true;
+                            const matchesPhone =params['users.phone']
+                              ? employee.users.phone?.toLowerCase().includes(params['users.phone'].toLowerCase())
+                              : true;
+            
+                              const matchesNida =params['users.nida']
+                              ? employee.users.nida?.toLowerCase().includes(params['users.nida'].toLowerCase())
+                              : true;
+                    
+                            return matchesemployeeNumber && matchesEmployeeName && matchesPhone && matchesNida;
                         });
 
                         return {

@@ -5,6 +5,10 @@ import { request } from '@umijs/max';
     params: {
         current?: number;
         pageSize?: number;
+        employee_number,
+        phone,
+        name,
+        nida
       },
     options?: { [key: string]: any }) {
 
@@ -21,6 +25,10 @@ import { request } from '@umijs/max';
     params: {
         current?: number;
         pageSize?: number;
+        employee_number,
+        phone,
+        name,
+        nida
       },
     options?: { [key: string]: any }) {
 

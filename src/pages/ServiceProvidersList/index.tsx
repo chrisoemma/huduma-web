@@ -341,10 +341,16 @@ const ProviderList: React.FC = () => {
 
     const columns: ProColumns<API.ProviderListItem>[] = [
         {
+            title: <FormattedMessage id="pages.searchTable.titleProviderNumber" defaultMessage="Number" />,
+            dataIndex: 'provider_number',
+            hideInForm: true,
+            search: true,
+          },
+        {
             title: (
                 <FormattedMessage
                     id="pages.searchTable.updateForm.ruleName.providerName"
-                    defaultMessage="Provider Name"
+                    defaultMessage="Name"   
                 />
             ),
             dataIndex: 'name',
@@ -394,7 +400,9 @@ const ProviderList: React.FC = () => {
                     </>
                 );
             },
-            search: true,
+            search: {
+                name:'phone'
+            }
         },
 
         // Inside the columns definition
@@ -445,12 +453,15 @@ const ProviderList: React.FC = () => {
                     </div>
                 );
             },
-            search: true,
+           search:{
+            name:'nida'
+           }
         },
 
         {
             title: "Profession",
             dataIndex: 'designation',
+            search: false,
             valueType: 'text',
             render: (_, entity) => {
                 const englishDesignation = entity?.designation?.name?.en;
@@ -514,7 +525,7 @@ const ProviderList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search: false,
         },
         {
             title: (
@@ -539,12 +550,13 @@ const ProviderList: React.FC = () => {
                     </a>
                 );
             },
-            search: true,
+            search: false,
         },
         {
             title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Photo" />,
             dataIndex: ['user', 'profile_img'],
             hideInSearch: true,
+            search: false,
             render: (_, record) => {
                 const profileImage = record?.user?.profile_img;
                 return (
@@ -560,6 +572,7 @@ const ProviderList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
             dataIndex: 'status',
+            search: false,
             hideInForm: true,
             render: (text, record) => {
                 let color = '';
@@ -610,69 +623,77 @@ const ProviderList: React.FC = () => {
     return (
         <PageContainer>
             <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
-                <ProTable
-                    //key={categories.length}
-                    pagination={{
-                        pageSizeOptions: ['15', '30', '60', '100'],
-                        defaultPageSize: 15, 
-                        showSizeChanger: true, 
-                        locale: {items_per_page: ""}
-                      }}
-                    actionRef={actionRef}
-                    rowKey="id"
-                    toolBarRender={() => [
-                        <Button
-                            type="primary"
-                            key="primary"
-                            onClick={() => {
-                                handleModalOpen(true);
-                            }}
-                        >
-                            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
-                        </Button>,
-                    ]}
-                    search={{
-                        labelWidth: 120,
-                        filterType: 'light', // Use a light filter form for better layout
-                    }}
-                    request={async (params, sorter, filter) => {
-                        try {
-                            const response = await getProviders();
-                            const providers = response.data.providers;
-                          
-                            // Filter the data based on the search parameters
-                            const filteredProviders = providers.filter(provider => {
-                                return (
-                                    (params.name ? provider.name.toLowerCase().includes(params.name.toLowerCase()) : true) &&
-                                    (params.phone ? provider.phone.toLowerCase().includes(params.phone.toLowerCase()) : true) &&
-                                    (params.nida ? provider.nida.toLowerCase().includes(params.nida.toLowerCase()) : true) &&
-                                    (params.email ? provider.user.email.toLowerCase().includes(params.email.toLowerCase()) : true) &&
-                                    (params.location ? provider.location.toLowerCase().includes(params.location.toLowerCase()) : true) &&
-                                    (params.status ? provider.status.toLowerCase().includes(params.status.toLowerCase()) : true)
-                                );
-                            });
+               
+            <ProTable
+    // key={categories.length} // Uncomment if necessary for unique key handling
+    pagination={{
+        pageSizeOptions: ['15', '30', '60', '100'],
+        defaultPageSize: 15, 
+        showSizeChanger: true, 
+        locale: { items_per_page: "" } // Customize this if needed
+    }}
+    actionRef={actionRef} // Make sure actionRef is properly defined
+    rowKey="id" // Ensure this is the unique identifier for each row
+    toolBarRender={() => [
+        <Button
+            type="primary"
+            key="primary"
+            onClick={() => handleModalOpen(true)} // Ensure handleModalOpen is properly defined
+        >
+            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+        </Button>,
+    ]}
+    search={{
+        labelWidth: 120,
+        filterType: 'query', // Ensure this matches your filtering type
+    }}
+    request={async (params, sorter, filter) => {
+        try {
+            const response = await getProviders(params);
+            const providers = response.data.providers;
+          
+          
+            const filteredProviders = providers.filter(provider => {
+                const matchesProviderNumber = params.provider_number
+                  ? provider.provider_number?.toLowerCase().includes(params.provider_number.toLowerCase())
+                  : true;
+                const matchesProviderName = params.name
+                  ? provider.name?.toLowerCase().includes(params.name.toLowerCase())
+                  : true;
+                const matchesPhone =params['users.phone']
+                  ? provider.users.phone?.toLowerCase().includes(params['users.phone'].toLowerCase())
+                  : true;
 
-                            return {
-                                data: filteredProviders,
-                                success: true,
-                            };
-                        } catch (error) {
-                            console.error('Error fetching agents data:', error);
-                            return {
-                                data: [],
-                                success: false,
-                            };
-                        }
-                    }}
+                  const matchesNida =params['users.nida']
+                  ? provider.users.phone?.toLowerCase().includes(params['users.nida'].toLowerCase())
+                  : true;
+        
+                return matchesProviderNumber && matchesProviderName && matchesPhone && matchesNida;
+            });
 
-                    columns={columns}
-                    rowSelection={{
-                        onChange: (_, selectedRows) => {
-                            setSelectedRows(selectedRows);
-                        },
-                    }}
-                />
-                {selectedRowsState?.length > 0 && (
+            return {
+                data: filteredProviders,
+                success: true,
+            };
+        } catch (error) {
+            console.error('Error fetching providers data:', error);
+            return {
+                data: [],
+                success: false,
+            };
+        }
+    }}
+    columns={columns} // Ensure columns are properly defined
+    rowSelection={{
+        onChange: (_, selectedRows) => {
+            setSelectedRows(selectedRows); // Ensure setSelectedRows is properly defined
+        },
+    }}
+/>
+
+               
+               
+                               {selectedRowsState?.length > 0 && (
                     <FooterToolbar
                         extra={
                             <div>
