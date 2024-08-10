@@ -254,7 +254,7 @@ const EmployeeList: React.FC = () => {
         {
             title: (
                 <FormattedMessage
-                    id="pages.searchTable.updateForm.nida"
+                id="pages.searchTable.updateForm.nida"
                     defaultMessage="NIDA"
                 />
             ),
