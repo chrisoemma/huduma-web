@@ -341,10 +341,12 @@ const ProviderList: React.FC = () => {
 
     const columns: ProColumns<API.ProviderListItem>[] = [
         {
-            title: <FormattedMessage id="pages.searchTable.titleProviderNumber" defaultMessage="Number" />,
-            dataIndex: 'provider_number',
+            title: <FormattedMessage id="pages.searchTable.titleClientNumber" defaultMessage="Number" />,
+            dataIndex:  ['user','reg_number'],
             hideInForm: true,
-            search: true,
+            search: {
+                name:'reg_number'
+            },
           },
         {
             title: (
@@ -654,9 +656,9 @@ const ProviderList: React.FC = () => {
           
           
             const filteredProviders = providers.filter(provider => {
-                const matchesProviderNumber = params.provider_number
-                  ? provider.provider_number?.toLowerCase().includes(params.provider_number.toLowerCase())
-                  : true;
+                const matchesNumber =params['users.reg_number']
+                ? provider.users.reg_number?.toLowerCase().includes(params['reg_number'].toLowerCase())
+                : true;
                 const matchesProviderName = params.name
                   ? provider.name?.toLowerCase().includes(params.name.toLowerCase())
                   : true;
@@ -668,7 +670,7 @@ const ProviderList: React.FC = () => {
                   ? provider.users.phone?.toLowerCase().includes(params['users.nida'].toLowerCase())
                   : true;
         
-                return matchesProviderNumber && matchesProviderName && matchesPhone && matchesNida;
+                return matchesNumber && matchesProviderName && matchesPhone && matchesNida;
             });
 
             return {

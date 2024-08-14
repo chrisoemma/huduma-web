@@ -267,8 +267,6 @@ const AgentList: React.FC = () => {
     };
 
 
-
-
     useEffect(() => {
         async function fetchData() {
             try {
@@ -324,10 +322,12 @@ const AgentList: React.FC = () => {
 
     const columns: ProColumns<API.AgentListItem>[] = [
         {
-            title: <FormattedMessage id="pages.searchTable.titleAgentNumber" defaultMessage="Number" />,
-            dataIndex: 'agent_number',
+            title: <FormattedMessage id="pages.searchTable.titleClientNumber" defaultMessage="Number" />,
+            dataIndex:  ['user','reg_number'],
             hideInForm: true,
-            search: true,
+            search: {
+                name:'reg_number'
+            },
           },
         {
             title: (
@@ -363,7 +363,7 @@ const AgentList: React.FC = () => {
                     defaultMessage="Phone"
                 />
             ),
-            dataIndex: 'phone',
+            dataIndex: ['user','phone'],
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
@@ -586,9 +586,9 @@ const AgentList: React.FC = () => {
 
                         // Filter the data based on the search parameters
                         const filteredAgents = agents.filter(agent => {
-                            const matchesAgentNumber = params.agent_number
-                              ? agent.agent_number?.toLowerCase().includes(params.agent_number.toLowerCase())
-                              : true;
+                            const matchesNumber =params['users.reg_number']
+                            ? agent.users.reg_number?.toLowerCase().includes(params['reg_number'].toLowerCase())
+                            : true;
                             const matchesagentName = params.name
                               ? agent.name?.toLowerCase().includes(params.name.toLowerCase())
                               : true;
@@ -600,7 +600,7 @@ const AgentList: React.FC = () => {
                               ? agent.users.nida?.toLowerCase().includes(params['users.nida'].toLowerCase())
                               : true;
                     
-                            return matchesAgentNumber && matchesagentName && matchesPhone && matchesNida;
+                            return matchesNumber && matchesagentName && matchesPhone && matchesNida;
                         });
 
                         return {

@@ -25,7 +25,7 @@ import { request } from '@umijs/max';
     params: {
         current?: number;
         pageSize?: number;
-        employee_number,
+        reg_number,
         phone,
         name,
         nida

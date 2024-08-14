@@ -5,7 +5,7 @@ export async function getProviders(
     params: {
       current?: number;
       pageSize?: number;
-      provider_number,
+      reg_number,
       nida,
       phone,
       name

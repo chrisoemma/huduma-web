@@ -171,10 +171,12 @@ const EmployeeList: React.FC = () => {
 
     const columns: ProColumns<API.EmployeeListItem>[] = [
         {
-            title: <FormattedMessage id="pages.searchTable.titleEmployeeNumber" defaultMessage="Number" />,
-            dataIndex: 'employee_number',
+            title: <FormattedMessage id="pages.searchTable.titleClientNumber" defaultMessage="Number" />,
+            dataIndex:  ['user','reg_number'],
             hideInForm: true,
-            search: true,
+            search: {
+                name:'reg_number'
+            },
           },
         {
             title: (
@@ -226,7 +228,7 @@ const EmployeeList: React.FC = () => {
                     defaultMessage="Phone"
                 />
             ),
-            dataIndex: 'phone',
+            dataIndex: ['user','phone'],
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
@@ -426,9 +428,9 @@ const EmployeeList: React.FC = () => {
                         const employees = response.data.employees;
 
                         const filteredEmployees = employees.filter(employee => {
-                            const matchesemployeeNumber = params.employee_number
-                              ? employee.employee_number?.toLowerCase().includes(params.employee_number.toLowerCase())
-                              : true;
+                            const matchesNumber =params['users.reg_number']
+                            ? employee.users.reg_number?.toLowerCase().includes(params['reg_number'].toLowerCase())
+                            : true;
                             const matchesEmployeeName = params.name
                               ? employee.name?.toLowerCase().includes(params.name.toLowerCase())
                               : true;
@@ -440,7 +442,7 @@ const EmployeeList: React.FC = () => {
                               ? employee.users.nida?.toLowerCase().includes(params['users.nida'].toLowerCase())
                               : true;
                     
-                            return matchesemployeeNumber && matchesEmployeeName && matchesPhone && matchesNida;
+                            return matchesNumber && matchesEmployeeName && matchesPhone && matchesNida;
                         });
 
                         return {

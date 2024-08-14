@@ -5,7 +5,7 @@ export async function getAgents(
     params: {
       current?: number;
       pageSize?: number;
-      client_number,
+      reg_number,
       phone,
       name,
       nida

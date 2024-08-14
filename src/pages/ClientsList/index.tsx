@@ -281,9 +281,11 @@ const ClientList: React.FC = () => {
 
         {
             title: <FormattedMessage id="pages.searchTable.titleClientNumber" defaultMessage="Number" />,
-            dataIndex: 'client_number',
+            dataIndex:  ['user','reg_number'],
             hideInForm: true,
-            search: true,
+            search: {
+                name:'reg_number'
+            },
           },
         {
             title: (
@@ -318,7 +320,7 @@ const ClientList: React.FC = () => {
                     defaultMessage="Phone"
                 />
             ),
-            dataIndex: 'phone',
+            dataIndex: ['user','phone'],
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
@@ -538,8 +540,9 @@ const ClientList: React.FC = () => {
 
                         // Filter the data based on the search parameters
                         const filteredClients = clients.filter(client => {
-                            const matchesclientNumber = params.client_number
-                              ? client.client_number?.toLowerCase().includes(params.client_number.toLowerCase())
+
+                            const matchesNumber =params['users.reg_number']
+                              ? client.users.reg_number?.toLowerCase().includes(params['reg_number'].toLowerCase())
                               : true;
                             const matchesClientName = params.name
                               ? client.name?.toLowerCase().includes(params.name.toLowerCase())
@@ -547,8 +550,8 @@ const ClientList: React.FC = () => {
                             const matchesPhone =params['users.phone']
                               ? client.users.phone?.toLowerCase().includes(params['users.phone'].toLowerCase())
                               : true;
-            
-                            return matchesclientNumber && matchesClientName && matchesPhone;
+                              
+                            return matchesNumber && matchesClientName && matchesPhone;
                         });
 
                         return {
