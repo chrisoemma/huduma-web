@@ -13,17 +13,21 @@ import {
     PageLoading,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl,useModel } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message, Form } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message, Form, List, Descriptions, Typography, Divider, Space, Modal } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './Components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addProvider, fetchBusinessesData, getProviders, removeProvider } from './ServiceProviderSlice';
+import { addProvider, approveProfession, fetchBusinessesData, getProviders, removeProvider } from './ServiceProviderSlice';
 import { history } from 'umi';
 import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
+import '../../styles.css'
+
+const { Text, Title } = Typography;
+
 
 
 const ProviderList: React.FC = () => {
@@ -33,7 +37,6 @@ const ProviderList: React.FC = () => {
     const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
     const [showDetail, setShowDetail] = useState<boolean>(false);
-
     const actionRef = useRef<ActionType>();
     const [currentRow, setCurrentRow] = useState<API.ProviderListItem>();
     const [selectedRowsState, setSelectedRows] = useState<API.ProviderListItem[]>([]);
@@ -42,7 +45,10 @@ const ProviderList: React.FC = () => {
     const [currentBusinessesData, setCurrentBusinessesData] = useState([])
     const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
     const [validationResult, setValidationResult] = useState(null);
+   
 
+
+    
     const intl = useIntl();
     const [form] = ProForm.useForm();
     const { Item } = Form;
@@ -52,24 +58,42 @@ const ProviderList: React.FC = () => {
     const navigate = useNavigate();
     const providerRefs = useRef({});
 
+    const location = useLocation();
+       
+    const currentUser = initialState?.currentUser;
+
+    // console.log('location',location);
+
+    const navigateToId = location?.state?.navigateToId;
+    const tableRef = useRef<HTMLDivElement>(null);
+  
     useEffect(() => {
-        if (location.state && location.state.providerId) {
-          const providerId = location.state.providerId;
-          if (providerRefs.current[providerId]) {
-            providerRefs.current[providerId].scrollIntoView({ behavior: 'smooth' });
-          }
+        if (navigateToId && tableRef.current) {
+            // Find the row element
+            const rowElement = tableRef.current.querySelector(`[data-row-id="${navigateToId}"]`);
+            if (rowElement) {
+                // Scroll to the row element
+                rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Optionally highlight the row
+                rowElement.classList.add('highlighted-row');
+                // Remove highlight after some time or on some event
+                setTimeout(() => rowElement.classList.remove('highlighted-row'), 5000); // Remove after 5 seconds
+            }
         }
-      }, [location.state]);
+    }, [navigateToId]);
+
+
+    const getRowClassName = (record) => {
+        return record.id === navigateToId ? 'highlighted-row' : '';
+    };
 
     
       const handleRemove = async (selectedRows: API.ProviderListItem[]) => {
 
-
         const hide = message.loading('Loading....');
         if (!selectedRows) return true;
         try {
-   
-          const currentUser = initialState?.currentUser;
+
                 const  action_by=currentUser?.id;
         const response=  await removeProvider({
             key: selectedRows.map((row) => row.id),
@@ -90,6 +114,49 @@ const ProviderList: React.FC = () => {
       };
 
 
+
+
+      const handleApproval = (status) => {
+        if (!currentRow) {
+          message.error('No profession change request selected.');
+          return;
+        }
+        // Show confirmation dialog
+        Modal.confirm({
+          title: `Are you sure you want to ${status.toLowerCase()} this profession change request?`,
+          okText: 'Yes',
+          cancelText: 'No',
+          onOk: async () => {
+            try {
+              const action_by = currentUser?.id;
+              const profChangeId=currentRow?.profession_change_requests[currentRow?.profession_change_requests?.length-1]?.id;
+              const data = {
+                status: status,
+                updated_by: action_by
+              };
+     
+              const response = await approveProfession(profChangeId, data);
+      
+
+            //    console.log('response3333',response);
+
+            //    return 
+
+              if (response.status) {
+                message.success(`Profession change request has been ${status.toLowerCase()} successfully.`);
+                handleApproveProfessionDrawerClose();
+              } else {
+                message.error('An error occurred while processing the request.');
+              }
+            } catch (error) {
+              message.error('An error occurred while processing the request.');
+              console.error('Error approving/rejecting profession change request:', error);
+            }
+          }
+        });
+      };
+
+
     const handleNidaValidationDrawerOpen = () => {
         setShowNidaValidationDrawer(true);
     };
@@ -97,6 +164,16 @@ const ProviderList: React.FC = () => {
     const handleNidaValidationDrawerClose = () => {
         setValidationResult(null);
         setShowNidaValidationDrawer(false);
+    };
+
+    const [professionApprovalDrawer, setProfessionApprovalDrawer]=useState(false)
+    const handleApproveProfessionDrawerClose = () => {
+        // Open the drawer with the profession change options
+        setProfessionApprovalDrawer(false);
+      };
+
+      const handleApproveProfessionDrawerOpen = () => {
+        setProfessionApprovalDrawer(true);
     };
 
     const handleNidaChecking = async (nida) => {
@@ -318,8 +395,6 @@ const ProviderList: React.FC = () => {
     };
 
 
-
-
     useEffect(() => {
         async function fetchData() {
             try {
@@ -361,7 +436,9 @@ const ProviderList: React.FC = () => {
             render: (dom, entity) => {
 
                 return (
+                    
                     <a
+                        data-row-id={entity.id}
                         onClick={() => {
                             setCurrentRow(entity);
                             setShowDetail(true);
@@ -624,10 +701,12 @@ const ProviderList: React.FC = () => {
 
     return (
         <PageContainer>
-            <div style={{ overflowX: 'auto', maxWidth: '100%' }}>
+            <div 
+            ref={tableRef}
+            style={{ overflowY: 'auto' }}>
                
             <ProTable
-    // key={categories.length} // Uncomment if necessary for unique key handling
+           rowClassName={getRowClassName}
     pagination={{
         pageSizeOptions: ['15', '30', '60', '100'],
         defaultPageSize: 15, 
@@ -964,6 +1043,14 @@ const ProviderList: React.FC = () => {
                     <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
                     Requests
                 </Button>
+                <Button
+  type="primary"
+  key="approveProfession"
+  onClick={handleApproveProfessionDrawerOpen}
+  style={{ marginTop: '20px' }}
+>
+  Approve Profession
+</Button>
                 </Drawer>
 
                 <Drawer
@@ -1061,6 +1148,80 @@ const ProviderList: React.FC = () => {
                     </Form>
 
                 </Drawer>
+
+                <Drawer
+  width={500}
+  placement="right"
+  onClose={handleApproveProfessionDrawerClose}
+  visible={professionApprovalDrawer}
+  destroyOnClose
+  closable={false}
+>
+  {currentRow && (
+    <div>
+      <Title level={3}>Profession Change Details</Title>
+
+      <Descriptions bordered column={1} size="small">
+        <Descriptions.Item label="Current Profession">
+          <Text strong>{currentRow?.designation?.name?.en}</Text>
+        </Descriptions.Item>
+        <Descriptions.Item label="Requested Profession">
+          <Text strong>{currentRow?.pending_profession?.name.en}</Text>
+        </Descriptions.Item>
+      </Descriptions>
+
+      <Divider />
+
+      <Space
+        size="middle"
+        style={{ display: 'flex', justifyContent: 'space-around', width: '100%' }}
+      >
+        <Button
+          type="primary"
+          onClick={() => { handleApproval('Approved'); }}
+          disabled={currentRow?.profession_change_status !=='pending'}
+        >
+          Approve
+        </Button>
+        <Button
+          style={{ background: "red", borderColor: "red" }}
+          type="primary"
+          onClick={() => { handleApproval('Rejected'); }}
+          disabled={currentRow?.profession_change_status !=='pending'}
+        >
+          Reject
+        </Button>
+      </Space>
+
+      <Divider />
+
+      <Title level={4}>History</Title>
+      <List
+        dataSource={currentRow?.profession_change_requests}
+        renderItem={(item) => (
+          <List.Item>
+            <Space>
+              <Tag color="blue">{new Date(item.request_date).toLocaleDateString()}</Tag>
+              <Text>
+                Changed from <Text strong>{item?.old_profession?.name?.en}</Text> to <Text strong>{item?.new_profession?.name?.en}</Text>
+                {item?.status && (
+                  <div>
+                    <br />
+                    {'- Status '}
+                    <Tag color={item?.status === 'Pending' ? 'orange' : item?.status === 'Approved' ? 'green' : 'red'}>
+                      {item?.status}
+                    </Tag>
+                  </div>
+                )}
+              </Text>
+            </Space>
+          </List.Item>
+        )}
+      />
+    </div>
+  )}
+</Drawer>
+
             </div>
         </PageContainer>
     );

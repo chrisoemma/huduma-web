@@ -60,6 +60,20 @@ export async function updateProvider(providerId: number, options?: { [key: strin
 }
 
 
+
+
+export async function approveProfession(id: number, options?: { [key: string]: any }) {
+   
+  return request(`${API_URL}/designations/professional_approval/${id}`, {
+    method: 'PUT',
+    data: {
+      method: 'put',
+      ...(options || {}),
+    },
+  });
+}
+
+
 export async function fetchBusinessesData(providerId: number, options?: { [key: string]: any }) {
    
   return request(`${API_URL}/businesses/provider_businesses/${providerId}`, {

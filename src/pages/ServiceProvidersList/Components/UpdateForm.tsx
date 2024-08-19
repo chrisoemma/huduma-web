@@ -130,19 +130,15 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const listMissingDocuments = () => {
-    // Extract the IDs of all required documents
+
     const requiredDocumentIds = designationDocs?.map(doc => doc.id);
 
-    // Extract the working document IDs of all uploaded documents
     const uploadedWorkingDocumentIds = props?.values?.documents?.map(doc => doc?.working_document_id);
 
-    // Find the IDs of missing documents
     const missingDocumentIds = requiredDocumentIds?.filter(id => !uploadedWorkingDocumentIds.includes(id));
 
-    // Filter out the missing documents from the designationDocs
     const missingDocuments = designationDocs?.filter(doc => missingDocumentIds.includes(doc.id));
 
-    // Extract the names of missing documents
     const missingDocumentNames = missingDocuments?.map(doc => doc.doc_name);
 
     return missingDocumentNames;
@@ -150,9 +146,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
   const handleViewDocs = () => {
-    // Assuming you have a route named '/documents/:providerId'
+
     const route = `/user-management/service-providers/documents/provider/${props.values.id}`;
-    // Redirect to the documents route
     history.push(route);
   };
 
@@ -233,6 +228,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
 
       const response = await updateProvider(providerId, { ...values, profile_img });
+
+      // console.log('response34',response);
+      // return 
       if (response.status) {
         setImageUrl(undefined);
         form.resetFields();

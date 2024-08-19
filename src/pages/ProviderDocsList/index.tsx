@@ -181,6 +181,7 @@ const ProviderDocsList: React.FC = () => {
 
       const response = await getNida(nida);
 
+
       if (response.error) {
         // Case 1: Validation error
         setValidationResult({ error: response.obj.error });
@@ -235,6 +236,8 @@ const ProviderDocsList: React.FC = () => {
   const handleStatus = async (id, status) => {
 
     const response = await updateDocStatus(id, { status });
+
+
 
     if (response?.status) {
       message.success(response?.message);
@@ -986,8 +989,7 @@ const ProviderDocsList: React.FC = () => {
       {DocumentDrawer}
 
       {NidaValidationDrawer}
-
-
+      
       <Modal
         visible={designationModalVisible}
         title="Required  Documents"

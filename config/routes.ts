@@ -1,5 +1,4 @@
-﻿
-export default [
+﻿export default [
   {
     path: '/user',
     layout: false,
@@ -202,6 +201,12 @@ export default [
       },
      
     ],
+  },
+  {
+    name: 'Activities',
+    icon:'table',
+    path: '/activities',
+    component: './ActivitiesList',
   },
   
    {

@@ -10,6 +10,7 @@ import React from 'react';
 const isDev = process.env.NODE_ENV === 'development';
 const loginPath = '/user/login';
 import Cookies from 'js-cookie';
+import { NotificationBell } from './components/Notification/NotificationBell';
 
 
 export async function getInitialState(): Promise<{
@@ -39,8 +40,13 @@ export async function getInitialState(): Promise<{
 
 export const layout: RunTimeLayoutConfig = ({ initialState, setInitialState }) => {
   return {
-    actionsRender: () => [ <SelectLang key="SelectLang" />],
-    // <Question key="doc" />,
+    actionsRender: () => [ <>
+   
+   <NotificationBell key="notificationBell" />
+   <SelectLang key="SelectLang" />
+   </>
+    ],
+  
     avatarProps: {
       src: initialState?.currentUser?.profile_img,
       title: <AvatarName />,
