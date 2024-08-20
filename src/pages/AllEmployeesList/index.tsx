@@ -20,6 +20,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getAllEmployees,addEmployee } from '../EmployeeList/EmployeeSlice';
+import moment from 'moment';
 
 
 const EmployeeList: React.FC = () => {
@@ -304,6 +305,17 @@ const EmployeeList: React.FC = () => {
             },
             search: false,
         },
+        {
+            title: (
+              <FormattedMessage
+                id="pages.searchTable.updateForm.ruleName.nameDeatails"
+                defaultMessage="Created At"
+              />
+            ),
+            dataIndex: 'created_at',
+            valueType: 'text',
+            render: (text) => moment(text).format('DD/MM/YYYY h:mm A'),
+          },
         // {
         //     title: (
         //         <FormattedMessage

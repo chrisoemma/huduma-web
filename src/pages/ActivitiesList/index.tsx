@@ -11,6 +11,7 @@ import React, { useRef, useState } from 'react';
 
 import { getActivities, updateActivityStatus } from './ActivitySlice';
 import { useNavigate } from 'react-router-dom';
+import moment from 'moment';
 
 const ActivitiesList: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
@@ -108,6 +109,18 @@ const ActivitiesList: React.FC = () => {
         ),
         dataIndex: 'details',
         valueType: 'text',
+      },
+
+      {
+        title: (
+          <FormattedMessage
+            id="pages.searchTable.updateForm.ruleName.nameDeatails"
+            defaultMessage="Created At"
+          />
+        ),
+        dataIndex: 'created_at',
+        valueType: 'text',
+        render: (text) => moment(text).format('DD/MM/YYYY h:mm A'),
       },
     {
       title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,

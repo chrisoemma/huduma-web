@@ -53,7 +53,7 @@ export const NotificationBell = () => {
   const menu = (
     <Menu>
       <Menu.Item key="notifications">
-        <Link to="/notifications">
+        <Link to="/activities">
           Notifications ({notificationCount})
         </Link>
       </Menu.Item>

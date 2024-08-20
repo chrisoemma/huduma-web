@@ -25,6 +25,7 @@ import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, valid
 import { getNida, validateNida } from '../NidaSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../styles.css'
+import moment from 'moment';
 
 const { Text, Title } = Typography;
 
@@ -137,7 +138,6 @@ const ProviderList: React.FC = () => {
      
               const response = await approveProfession(profChangeId, data);
       
-
             //    console.log('response3333',response);
 
             //    return 
@@ -632,6 +632,17 @@ const ProviderList: React.FC = () => {
             search: false,
         },
         {
+            title: (
+              <FormattedMessage
+                id="pages.searchTable.updateForm.ruleName.nameDeatails"
+                defaultMessage="Created At"
+              />
+            ),
+            dataIndex: 'created_at',
+            valueType: 'text',
+            render: (text) => moment(text).format('DD/MM/YYYY h:mm A'),
+          },
+        {
             title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Photo" />,
             dataIndex: ['user', 'profile_img'],
             hideInSearch: true,
@@ -647,6 +658,7 @@ const ProviderList: React.FC = () => {
                 );
             },
         },
+
 
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,

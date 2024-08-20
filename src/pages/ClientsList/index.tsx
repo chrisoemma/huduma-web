@@ -22,6 +22,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { addClient, getClients, removeClient } from './ClientsSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
+import moment from 'moment';
 
 
 const ClientList: React.FC = () => {
@@ -444,6 +445,17 @@ const ClientList: React.FC = () => {
             },
             search:false,
         },
+        {
+            title: (
+              <FormattedMessage
+                id="pages.searchTable.updateForm.ruleName.nameDeatails"
+                defaultMessage="Created At"
+              />
+            ),
+            dataIndex: 'created_at',
+            valueType: 'text',
+            render: (text) => moment(text).format('DD/MM/YYYY h:mm A'),
+          },
         {
             title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Profile photo" />,
             dataIndex: ['user', 'profile_img'],
