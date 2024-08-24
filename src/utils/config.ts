@@ -13,6 +13,8 @@ export const MESUREMENT_ID="G-V65TCCJHSZ"
 export const ICON='https://i.ibb.co/ZYxHy9K/espe-logo-luciana-k3.png'
 export const LOGO="https://i.ibb.co/YPNpYWw/espe2.png"
 export const LOGO_WITH_LATER ='https://i.ibb.co/F3DCtJj/espe-logo-luciana-k.png'
+export const PLACES_API_KEY = 'AIzaSyBdEZINT7lRnj8V0Xs840TMX-_3dbGqXMc';
+export const GOOGLE_MAPS_API_KEY="AIzaSyB6ed4LmxDJMYpRzGgKAOUcm7N41qaXbYE";
 
 
 

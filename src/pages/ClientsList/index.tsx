@@ -523,12 +523,13 @@ const ClientList: React.FC = () => {
                 //key={categories.length}
                 pagination={{
                     pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize: 15, 
+                    defaultPageSize:30,
                     showSizeChanger: true, 
                     locale: {items_per_page: ""}
                   }}
              
                 actionRef={actionRef}
+                scroll={{ x: 1200 }} 
                 rowKey="id"
                 toolBarRender={() => [
                     <Button

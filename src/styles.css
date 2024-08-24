@@ -1,3 +1,5 @@
 .highlighted-row {
     background-color: #f7fede; /* Light blue background */
 }
+.ant-table table {
+     font-size: 12.5px; }

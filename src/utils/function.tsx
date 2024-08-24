@@ -1,4 +1,5 @@
 import { message,Space } from "antd";
+import { GOOGLE_MAPS_API_KEY } from "./config";
 
 export const formatErrorMessages=(errorObject)=>{
     if (!errorObject) {
@@ -196,5 +197,59 @@ export const resizeImage = (file: File, maxWidth: number, maxHeight: number): Pr
     };
   });
 };
+
+
+
+export const getLocationName = async (latitude, longitude) => {
+  try {
+    const response = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${GOOGLE_MAPS_API_KEY}`
+    );
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const data = await response.json();
+
+   // console.log('data',data)
+
+    if (data.results.length > 0) {
+      const result = data.results[0];
+
+      // Check if there's a formatted address
+      if (result.formatted_address) {
+        return result.formatted_address;
+      }
+
+      // Check if there's a street address
+      const streetAddress = result.address_components.find(component =>
+        component.types.includes('street_address')
+      );
+
+      if (streetAddress) {
+        return streetAddress.long_name;
+      }
+
+      // Check if there's a locality and administrative area level 1
+      const locality = result.address_components.find(component =>
+        ['locality', 'administrative_area_level_1'].includes(component.types[0])
+      );
+
+      if (locality) {
+        return locality.long_name;
+      }
+
+      // If none of the above, return the first address component
+      return result.address_components[0].long_name;
+    } else {
+      return '';
+    }
+  } catch (error) {
+    console.error('Error fetching location data:', error);
+    return '';
+  }
+};
+
 
   

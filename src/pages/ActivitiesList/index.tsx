@@ -27,13 +27,20 @@ const ActivitiesList: React.FC = () => {
   const action_by = currentUser?.id;
 
   const getLinkForUserType = (type: string, id: string) => {
+    let link = '#';
+  
     switch (type) {
       case 'Provider':
-        let link = `/user-management/service-providers`;
-        return navigate(link, { state: { navigateToId: id } });
+        link = '/user-management/service-providers';
+        break;
+      case 'Agent':
+        link = '/user-management/agents';
+        break;
       default:
-        return '#';
+        return link; // Return default link if no match is found
     }
+  
+    return navigate(link, { state: { navigateToId: id } });
   };
 
   const handleUpdateStatus = async (selectedRows: API.ActivitiesListItem[], status: string) => {

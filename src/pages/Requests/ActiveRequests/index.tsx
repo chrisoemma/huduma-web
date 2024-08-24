@@ -270,7 +270,7 @@ const ActiveRequestList: React.FC = () => {
     //         setCurrentRow(record);
     //       }}
     //     >
-    //       <FormattedMessage id="pages.searchTable.update" defaultMessage="Update" />
+    //       <FormattedMessage id="pages.searchTable.history" defaultMessage="History" />
     //     </a>,
        
     //   ],

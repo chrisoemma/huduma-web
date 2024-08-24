@@ -408,10 +408,12 @@ const EmployeeList: React.FC = () => {
                 //key={categories.length}
                 pagination={{
                     pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize: 15, 
+                    defaultPageSize:30,
+                    
                     showSizeChanger: true, 
                     locale: {items_per_page: ""}
                   }}
+                  scroll={{ x: 1200 }} 
                 headerTitle={intl.formatMessage({
                     id: 'pages.searchTable.providerEmployees',
                     defaultMessage: `Provider employees`,

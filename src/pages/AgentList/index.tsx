@@ -23,6 +23,8 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { addAgent, getAgents, removeAgent } from './AgentSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
+import { useNavigate, useLocation } from 'react-router-dom';
+import '../../styles.css'
 import moment from 'moment';
 
 
@@ -42,12 +44,35 @@ const AgentList: React.FC = () => {
     const intl = useIntl();
     const [form] = ProForm.useForm();
     const formRef = useRef();
+    const navigate = useNavigate();
 
     const [validationResult, setValidationResult] = useState(null);
     const { Item } = Form;
     const { initialState } = useModel('@@initialState');
-    
+    const location = useLocation();
+    const navigateToId = location?.state?.navigateToId;
+    const tableRef = useRef<HTMLDivElement>(null);
 
+    useEffect(() => {
+        if (navigateToId && tableRef.current) {
+            const interval = setInterval(() => {
+                const rowElement = tableRef.current.querySelector(`[data-row-id="${navigateToId}"]`);
+                if (rowElement) {
+                    clearInterval(interval); // Stop searching once the row is found
+                    rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    rowElement.classList.add('highlighted-row');
+                    setTimeout(() => rowElement.classList.remove('highlighted-row'), 5000); // Remove after 5 seconds
+                }
+            }, 100); // Check every 100ms
+            
+            // Clean up interval on unmount or on navigateToId change
+            return () => clearInterval(interval);
+        }
+    }, [navigateToId]);
+    
+    const getRowClassName = (record) => {
+        return record.id === navigateToId ? 'highlighted-row' : '';
+    };
 
     const handleViewDocs = () => {
 
@@ -547,6 +572,7 @@ const AgentList: React.FC = () => {
             title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
             dataIndex: 'option',
             search:false,
+            
             valueType: 'option',
             render: (_, record) => [
                 <a
@@ -565,11 +591,17 @@ const AgentList: React.FC = () => {
 
     return (
         <PageContainer>
+                 <div 
+            ref={tableRef}
+            style={{ overflowY: 'auto' }}>
             <ProTable
-                //key={categories.length}
+                rowClassName={getRowClassName}
+                scroll={{ x: 1200 }} 
+          
+              
                 pagination={{
                     pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize: 15,
+                    defaultPageSize:30,
                     showSizeChanger: true,
                     locale: { items_per_page: "" }
                 }}
@@ -635,6 +667,7 @@ const AgentList: React.FC = () => {
                     },
                 }}
             />
+            </div>
             {selectedRowsState?.length > 0 && (
                 <FooterToolbar
                     extra={

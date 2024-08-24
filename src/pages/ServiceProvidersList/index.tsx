@@ -21,7 +21,7 @@ import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addProvider, approveProfession, fetchBusinessesData, getProviders, removeProvider } from './ServiceProviderSlice';
 import { history } from 'umi';
-import { formatErrorMessages, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '@/utils/function';
+import { formatErrorMessages, getLocationName, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '@/utils/function';
 import { getNida, validateNida } from '../NidaSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../styles.css'
@@ -47,8 +47,6 @@ const ProviderList: React.FC = () => {
     const [showNidaValidationDrawer, setShowNidaValidationDrawer] = useState<boolean>(false);
     const [validationResult, setValidationResult] = useState(null);
    
-
-
     
     const intl = useIntl();
     const [form] = ProForm.useForm();
@@ -65,23 +63,42 @@ const ProviderList: React.FC = () => {
 
     // console.log('location',location);
 
+    const [locationData, setLocationData] = useState({})
+
     const navigateToId = location?.state?.navigateToId;
     const tableRef = useRef<HTMLDivElement>(null);
-  
-    useEffect(() => {
+
+
+    const fetchLocationData = async (providers) => {
+        const locationMap = {};
+    
+        for (const provider of providers) {
+          if (provider.latitude && provider.longitude) {
+            const locationName = await getLocationName(provider.latitude, provider.longitude);
+            locationMap[provider.id] = locationName;
+          }
+        }
+    
+        setLocationData(locationMap);
+      };
+
+      useEffect(() => {
         if (navigateToId && tableRef.current) {
-            // Find the row element
-            const rowElement = tableRef.current.querySelector(`[data-row-id="${navigateToId}"]`);
-            if (rowElement) {
-                // Scroll to the row element
-                rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                // Optionally highlight the row
-                rowElement.classList.add('highlighted-row');
-                // Remove highlight after some time or on some event
-                setTimeout(() => rowElement.classList.remove('highlighted-row'), 5000); // Remove after 5 seconds
-            }
+            const interval = setInterval(() => {
+                const rowElement = tableRef.current.querySelector(`[data-row-id="${navigateToId}"]`);
+                if (rowElement) {
+                    clearInterval(interval); // Stop searching once the row is found
+                    rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    rowElement.classList.add('highlighted-row');
+                    setTimeout(() => rowElement.classList.remove('highlighted-row'), 5000); // Remove after 5 seconds
+                }
+            }, 100); // Check every 100ms
+            
+            // Clean up interval on unmount or on navigateToId change
+            return () => clearInterval(interval);
         }
     }, [navigateToId]);
+    
 
 
     const getRowClassName = (record) => {
@@ -401,7 +418,8 @@ const ProviderList: React.FC = () => {
                 const response = await getProviders();
                 const providers = response.data.providers;
                   
-                console.log('providerss',providers);
+                fetchLocationData(providers);
+                // console.log('providerss',providers);
                 setProvider(providers);
                 actionRef.current?.reloadAndRest(); // Reload and reset the table state
             } catch (error) {
@@ -608,29 +626,29 @@ const ProviderList: React.FC = () => {
         },
         {
             title: (
-                <FormattedMessage
-                    id="pages.searchTable.updateForm.ruleName.location"
-                    defaultMessage="Location"
-                />
+              <FormattedMessage
+                id="pages.searchTable.updateForm.ruleName.location"
+                defaultMessage="Location"
+              />
             ),
-            dataIndex: 'location',
+            dataIndex: ['latitude', 'longitude'],
             valueType: 'text',
             tip: 'Location',
-            render: (dom, entity) => {
-
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
+            render: (_, entity) => {
+              const location = locationData[entity.id] || '-';
+              return (
+                <a
+                  onClick={() => {
+                    setCurrentRow(entity);
+                    setShowDetail(true);
+                  }}
+                >
+                  {location}
+                </a>
+              );
             },
             search: false,
-        },
+          },
         {
             title: (
               <FormattedMessage
@@ -719,9 +737,10 @@ const ProviderList: React.FC = () => {
                
             <ProTable
            rowClassName={getRowClassName}
+           scroll={{ x: 1200 }} 
     pagination={{
         pageSizeOptions: ['15', '30', '60', '100'],
-        defaultPageSize: 15, 
+        defaultPageSize:30, 
         showSizeChanger: true, 
         locale: { items_per_page: "" } // Customize this if needed
     }}
