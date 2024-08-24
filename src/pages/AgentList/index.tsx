@@ -57,7 +57,9 @@ const AgentList: React.FC = () => {
         if (navigateToId && tableRef.current) {
             const interval = setInterval(() => {
                 const rowElement = tableRef.current.querySelector(`[data-row-id="${navigateToId}"]`);
+               
                 if (rowElement) {
+                  
                     clearInterval(interval); // Stop searching once the row is found
                     rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     rowElement.classList.add('highlighted-row');
@@ -369,6 +371,7 @@ const AgentList: React.FC = () => {
 
                 return (
                     <a
+                     data-row-id={entity.id}
                         onClick={() => {
                             setCurrentRow(entity);
                             setShowDetail(true);
