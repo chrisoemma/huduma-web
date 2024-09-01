@@ -17,9 +17,9 @@ export const PLACES_API_KEY = 'AIzaSyBdEZINT7lRnj8V0Xs840TMX-_3dbGqXMc';
 export const GOOGLE_MAPS_API_KEY="AIzaSyB6ed4LmxDJMYpRzGgKAOUcm7N41qaXbYE";
 
 export const DO_SPACES_ENDPOINT="https://esms.espeservice.com/spaces" 
-export const DO_SPACES_REGION="us-east-1"           
-export const DO_SPACES_ACCESS_KEY="DO00GLJWXPHANA2K88VM"
-export const DO_SPACES_SECRET_KEY="zDvB4OYkhQ/YwK6l0eCiCnm/h8nPs2edrFc+3StaixY"
+export const DO_SPACES_REGION="nyc3"           
+export const DO_SPACES_ACCESS_KEY="DO00722D3ZWEYCPAXYAB"
+export const DO_SPACES_SECRET_KEY="VPFFusN+M9pANNYk8ZSg/HltvttRzmQcauyNGWHTdic"
 export const DO_SPACES_BUCKET_NAME="espedocs"
 
 
