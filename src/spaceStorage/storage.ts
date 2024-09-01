@@ -2,19 +2,20 @@ import { DO_SPACES_ACCESS_KEY, DO_SPACES_BUCKET_NAME, DO_SPACES_ENDPOINT, DO_SPA
 import { S3Client, PutObjectCommand, HeadBucketCommand, ListBucketsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
 // Check if all required environment variables are set
-if (!DO_SPACES_ENDPOINT || !DO_SPACES_REGION || !DO_SPACES_ACCESS_KEY || !DO_SPACES_SECRET_KEY || !DO_SPACES_BUCKET_NAME) {
-  console.log("Missing required DigitalOcean Spaces environment variables.");
-}
+// if (!DO_SPACES_ENDPOINT || !DO_SPACES_REGION || !DO_SPACES_ACCESS_KEY || !DO_SPACES_SECRET_KEY || !DO_SPACES_BUCKET_NAME) {
+//   console.log("Missing required DigitalOcean Spaces environment variables.");
+// }
 
 // Configure the S3 client with the imported environment variables
 const s3 = new S3Client({
-  endpoint: DO_SPACES_ENDPOINT,
-  region: DO_SPACES_REGION,
+  endpoint:"https://esms.espeservice.com/spaces",
+   forcePathStyle: false, 
+    region: "us-east-1",
   credentials: {
-    accessKeyId: DO_SPACES_ACCESS_KEY,
-    secretAccessKey: DO_SPACES_SECRET_KEY,
+    accessKeyId:"DO003D7QG49H4WDWM2RB",
+    secretAccessKey:"adS892bPO3hvA92CrZNZOXZmEmEo8ZqJCS0Gfx8Pa2o",
   },
-  forcePathStyle: true, // Uses path-style URLs (e.g., endpoint/bucket/key)
+ 
 });
 
 export { s3, DO_SPACES_BUCKET_NAME };
@@ -24,7 +25,7 @@ export { s3, DO_SPACES_BUCKET_NAME };
 export const testConnection = async () => {
   try {
     console.log("Testing connection to S3...");
-    const command = new HeadBucketCommand({ Bucket: DO_SPACES_BUCKET_NAME });
+    const command = new HeadBucketCommand({ Bucket:"espedocs" });
     await s3.send(command);
     console.log("Connection successful! Credentials are accepted and the bucket is accessible.");
   } catch (error) {
@@ -53,8 +54,8 @@ export const listBuckets = async () => {
 
 export const listObjects = async () => {
   try {
-    console.log(`Listing objects in bucket: ${DO_SPACES_BUCKET_NAME}...`);
-    const command = new ListObjectsV2Command({ Bucket: DO_SPACES_BUCKET_NAME });
+    console.log(`Listing objects in bucket: espedocs...`);
+    const command = new ListObjectsV2Command({ Bucket:"espedocs" });
     const response = await s3.send(command);
     console.log("Objects in bucket:", response.Contents);
   } catch (error) {
@@ -69,9 +70,9 @@ export const listObjects = async () => {
 export const uploadToDigitalOcean = async (file, fileName, fileType) => {
   try {
     const uploadParams = {
-      Bucket: DO_SPACES_BUCKET_NAME,
-      Key: `test/${fileName}`,
-      Body: file,
+      Bucket: "espedocs",
+      Key:`test/${fileName}`,
+      Body:file,
       ContentType:'application/octet-stream',
       ACL: "private", // Makes the uploaded file publicly readable
     };
@@ -79,7 +80,7 @@ export const uploadToDigitalOcean = async (file, fileName, fileType) => {
     const command = new PutObjectCommand(uploadParams);
     await s3.send(command);
 
-    const fileUrl = `${DO_SPACES_ENDPOINT}/${uploadParams.Key}`;
+    const fileUrl = `https://esms.espeservice.com/spaces/${uploadParams.Key}`;
     console.log("File uploaded successfully:", fileUrl);
     return fileUrl;
   } catch (error) {
