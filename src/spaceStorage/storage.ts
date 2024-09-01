@@ -1,5 +1,5 @@
 import { DO_SPACES_ACCESS_KEY, DO_SPACES_BUCKET_NAME, DO_SPACES_CDN, DO_SPACES_ENDPOINT, DO_SPACES_REGION, DO_SPACES_SECRET_KEY } from "@/utils/config";
-import { S3Client, PutObjectCommand, GetObjectCommand, GetObjectCommandOutput } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import dotenv from "dotenv";
 
@@ -29,18 +29,22 @@ export const uploadToDigitalOcean = async (file, fileName, fileType) => {
   try {
     const uploadParams = {
       Bucket: bucketName,
-      Key: `test/${fileName}`,
+      Key: `test/${fileName}`, // Ensure the correct folder path as needed
       Body: file,
-      ContentType: 'application/octet-stream',
+      ContentType: fileType || 'application/octet-stream', // Use fileType if available
       ACL: "public-read",
     };
 
     const command = new PutObjectCommand(uploadParams);
     await s3.send(command);
 
-    const fileUrl = `${process.env.DO_SPACES_CDN}/${uploadParams.Key}`;
-    console.log("File uploaded successfully:", fileUrl);
-    return fileUrl;
+    console.log("File uploaded successfully:", `${DO_SPACES_CDN}/${uploadParams.Key}`);
+
+    // Generate a presigned URL for the uploaded file
+    const presignedUrl = await generatePresignedUrl(uploadParams.Key);
+    console.log("Generated presigned URL:", presignedUrl);
+
+    return presignedUrl; // Return the presigned URL instead of the file URL
   } catch (error) {
     console.error("Error uploading file:", error);
     throw error;
@@ -53,11 +57,11 @@ export const generatePresignedUrl = async (key) => {
       Bucket: bucketName,
       Key: key,
     });
+
     const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
 
     // Swap the domain to use the CDN URL
     const cdnUrl = `${DO_SPACES_CDN}${url.split('.com')[1]}`;
-    console.log("Generated presigned URL:", cdnUrl);
     return cdnUrl;
   } catch (error) {
     console.error("Error generating presigned URL:", error);
