@@ -73,7 +73,7 @@ export const uploadToDigitalOcean = async (file, fileName, fileType) => {
       Key: `test/${fileName}`,
       Body: file,
       ContentType:'application/octet-stream',
-      ACL: "public-read", // Makes the uploaded file publicly readable
+      ACL: "private", // Makes the uploaded file publicly readable
     };
 
     const command = new PutObjectCommand(uploadParams);
