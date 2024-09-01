@@ -23,7 +23,7 @@ const s3 = new S3Client({
     accessKeyId,    
     secretAccessKey 
   },
-  forcePathStyle: true,
+  forcePathStyle:false,
 });
 
 export const uploadToDigitalOcean = async (file, fileName, fileType) => {
