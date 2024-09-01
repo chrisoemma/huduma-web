@@ -1,31 +1,30 @@
 import { DO_SPACES_ACCESS_KEY, DO_SPACES_BUCKET_NAME, DO_SPACES_ENDPOINT, DO_SPACES_REGION, DO_SPACES_SECRET_KEY } from "@/utils/config";
 import { S3Client, PutObjectCommand, HeadBucketCommand, ListBucketsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 
-const endpoint =DO_SPACES_ENDPOINT;
-const region =DO_SPACES_REGION;
-const accessKeyId =DO_SPACES_ACCESS_KEY;
-const secretAccessKey =DO_SPACES_SECRET_KEY;
-const bucketName =DO_SPACES_BUCKET_NAME;
-
-
-if (!endpoint || !region || !accessKeyId || !secretAccessKey || !bucketName) {
+// Check if all required environment variables are set
+if (!DO_SPACES_ENDPOINT || !DO_SPACES_REGION || !DO_SPACES_ACCESS_KEY || !DO_SPACES_SECRET_KEY || !DO_SPACES_BUCKET_NAME) {
   console.log("Missing required DigitalOcean Spaces environment variables.");
 }
 
+// Configure the S3 client with the imported environment variables
 const s3 = new S3Client({
-  endpoint,
-  region,
+  endpoint: DO_SPACES_ENDPOINT,
+  region: DO_SPACES_REGION,
   credentials: {
-    accessKeyId,
-    secretAccessKey,
+    accessKeyId: DO_SPACES_ACCESS_KEY,
+    secretAccessKey: DO_SPACES_SECRET_KEY,
   },
-  forcePathStyle: true,
+  forcePathStyle: true, // Uses path-style URLs (e.g., endpoint/bucket/key)
 });
+
+export { s3, DO_SPACES_BUCKET_NAME };
+
+// Example functions to interact with DigitalOcean Spaces
 
 export const testConnection = async () => {
   try {
     console.log("Testing connection to S3...");
-    const command = new HeadBucketCommand({ Bucket: bucketName });
+    const command = new HeadBucketCommand({ Bucket: DO_SPACES_BUCKET_NAME });
     await s3.send(command);
     console.log("Connection successful! Credentials are accepted and the bucket is accessible.");
   } catch (error) {
@@ -54,8 +53,8 @@ export const listBuckets = async () => {
 
 export const listObjects = async () => {
   try {
-    console.log(`Listing objects in bucket: ${bucketName}...`);
-    const command = new ListObjectsV2Command({ Bucket: bucketName });
+    console.log(`Listing objects in bucket: ${DO_SPACES_BUCKET_NAME}...`);
+    const command = new ListObjectsV2Command({ Bucket: DO_SPACES_BUCKET_NAME });
     const response = await s3.send(command);
     console.log("Objects in bucket:", response.Contents);
   } catch (error) {
@@ -70,17 +69,17 @@ export const listObjects = async () => {
 export const uploadToDigitalOcean = async (file, fileName, fileType) => {
   try {
     const uploadParams = {
-      Bucket: bucketName,
+      Bucket: DO_SPACES_BUCKET_NAME,
       Key: `test/${fileName}`,
       Body: file,
       ContentType: fileType,
-      ACL: "public-read", // Consider adjusting ACL as per security requirements
+      ACL: "public-read", // Makes the uploaded file publicly readable
     };
 
     const command = new PutObjectCommand(uploadParams);
     await s3.send(command);
 
-    const fileUrl = `${endpoint}/${uploadParams.Key}`;
+    const fileUrl = `${DO_SPACES_ENDPOINT}/${uploadParams.Key}`;
     console.log("File uploaded successfully:", fileUrl);
     return fileUrl;
   } catch (error) {
