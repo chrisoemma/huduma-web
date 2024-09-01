@@ -15,7 +15,7 @@ import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
-import  { uploadToDigitalOcean } from '../../spaceStorage/storage'
+import  { listBuckets, listObjects, testConnection, uploadToDigitalOcean } from '../../spaceStorage/storage'
 import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
 import { resizeImage } from '@/utils/function';
@@ -72,7 +72,7 @@ const CategoryList: React.FC = () => {
 
 
 
-  const handleAdd = async (formData: FormData) => {
+  const handleAdd = async (formData) => {
     const name_en = formData.get('name_en') as string;
     const name_sw = formData.get('name_sw') as string;
     const imageFile = formData.get('image') as File;
@@ -85,13 +85,15 @@ const CategoryList: React.FC = () => {
         // Resize the image if needed, and convert it to a Blob
         const resizedImageBlob = await resizeImage(imageFile, 500, 350);
   
+        // Test the connection to DigitalOcean
+        await testConnection(); // Optional: Can be removed if you just want to test periodically
+        await listBuckets();
+        await listObjects();
         // Upload to DigitalOcean Spaces
         try {
           const fileUrl = await uploadToDigitalOcean(resizedImageBlob, imageFile.name, imageFile.type);
   
-
-            
-          const categoryData: API.CategoryListItem = {
+          const categoryData = {
             id: 0,
             name_en: name_en,
             name_sw: name_sw,
@@ -107,19 +109,19 @@ const CategoryList: React.FC = () => {
         } catch (error) {
           hide();
           message.error('Adding failed, please try again!');
-          setLoading(false); 
+          setLoading(false);
           return false;
         } finally {
           handleModalOpen(false);
           actionRef.current?.reload();
         }
       } else {
-        message.error('Please, Upload an image!');
-        setLoading(false); 
+        message.error('Please, upload an image!');
+        setLoading(false);
       }
     } catch (error) {
       message.error('Image upload failed, please try again!');
-      setLoading(false); 
+      setLoading(false);
       return false;
     }
   };
