@@ -1,5 +1,6 @@
 import { DO_SPACES_ACCESS_KEY, DO_SPACES_BUCKET_NAME, DO_SPACES_ENDPOINT, DO_SPACES_REGION, DO_SPACES_SECRET_KEY } from "@/utils/config";
-import { S3Client, PutObjectCommand, HeadBucketCommand, ListBucketsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, HeadBucketCommand, ListBucketsCommand, ListObjectsV2Command,GetObjectCommand  } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 // import dotenv from "dotenv";
 
 // dotenv.config();
@@ -10,6 +11,7 @@ const region =DO_SPACES_REGION;
 const accessKeyId =DO_SPACES_ACCESS_KEY;
 const secretAccessKey =DO_SPACES_SECRET_KEY;
 const bucketName =DO_SPACES_BUCKET_NAME;
+const cdnEndpoint = "https://espedocs.nyc3.cdn.digitaloceanspaces.com";
 
 if (!endpoint || !region || !accessKeyId || !secretAccessKey || !bucketName) {
   console.log("Missing required DigitalOcean Spaces environment variables.");
@@ -83,7 +85,15 @@ export const uploadToDigitalOcean = async (file, fileName, fileType) => {
     const command = new PutObjectCommand(uploadParams);
     await s3.send(command);
 
-    const fileUrl = `${endpoint}/${uploadParams.Key}`;
+    const getObjectCommand = new GetObjectCommand({
+      Bucket: bucketName,
+      Key: uploadParams.Key,
+    });
+    const presignedGetUrl = await getSignedUrl(s3, getObjectCommand, { expiresIn: 3600 });
+
+
+    // Modify the URL to use the CDN endpoint
+    const fileUrl = presignedGetUrl.replace(endpoint, cdnEndpoint);
     console.log("File uploaded successfully:", fileUrl);
     return fileUrl;
   } catch (error) {

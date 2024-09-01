@@ -50,6 +50,7 @@
     "@ant-design/pro-components": "^2.6.28",
     "@ant-design/use-emotion-css": "1.0.4",
     "@aws-sdk/client-s3": "^3.637.0",
+    "@aws-sdk/s3-request-presigner": "^3.637.0",
     "@reduxjs/toolkit": "^1.9.7",
     "@types/firebase": "^3.2.1",
     "@umijs/route-utils": "^2.2.2",
