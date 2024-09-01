@@ -1,14 +1,15 @@
+import { DO_SPACES_ACCESS_KEY, DO_SPACES_BUCKET_NAME, DO_SPACES_ENDPOINT, DO_SPACES_REGION, DO_SPACES_SECRET_KEY } from "@/utils/config";
 import { S3Client, PutObjectCommand, HeadBucketCommand, ListBucketsCommand, ListObjectsV2Command } from "@aws-sdk/client-s3";
 // import dotenv from "dotenv";
 
 // dotenv.config();
 
 // Load environment variables
-const endpoint = process.env.DO_SPACES_ENDPOINT;
-const region = process.env.DO_SPACES_REGION;
-const accessKeyId = process.env.DO_SPACES_ACCESS_KEY;
-const secretAccessKey = process.env.DO_SPACES_SECRET_KEY;
-const bucketName = process.env.DO_SPACES_BUCKET_NAME;
+const endpoint =DO_SPACES_ENDPOINT;
+const region =DO_SPACES_REGION;
+const accessKeyId =DO_SPACES_ACCESS_KEY;
+const secretAccessKey =DO_SPACES_SECRET_KEY;
+const bucketName =DO_SPACES_BUCKET_NAME;
 
 if (!endpoint || !region || !accessKeyId || !secretAccessKey || !bucketName) {
   console.log("Missing required DigitalOcean Spaces environment variables.");
