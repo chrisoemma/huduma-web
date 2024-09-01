@@ -16,6 +16,12 @@ export const LOGO_WITH_LATER ='https://i.ibb.co/F3DCtJj/espe-logo-luciana-k.png'
 export const PLACES_API_KEY = 'AIzaSyBdEZINT7lRnj8V0Xs840TMX-_3dbGqXMc';
 export const GOOGLE_MAPS_API_KEY="AIzaSyB6ed4LmxDJMYpRzGgKAOUcm7N41qaXbYE";
 
+export const DO_SPACES_ENDPOINT="https://espedocs.nyc3.cdn.digitaloceanspaces.com" 
+export const DO_SPACES_REGION="us-east-1"           
+export const DO_SPACES_ACCESS_KEY="DO00GLJWXPHANA2K88VM"
+export const DO_SPACES_SECRET_KEY="zDvB4OYkhQ/YwK6l0eCiCnm/h8nPs2edrFc+3StaixY"
+export const DO_SPACES_BUCKET_NAME="espedocs"
+
 
 
 

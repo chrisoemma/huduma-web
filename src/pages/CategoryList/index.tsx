@@ -15,6 +15,7 @@ import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
+import  { uploadToDigitalOcean } from '../../spaceStorage/storage'
 import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
 import { resizeImage } from '@/utils/function';
@@ -71,7 +72,6 @@ const CategoryList: React.FC = () => {
 
 
 
-
   const handleAdd = async (formData: FormData) => {
     const name_en = formData.get('name_en') as string;
     const name_sw = formData.get('name_sw') as string;
@@ -80,60 +80,115 @@ const CategoryList: React.FC = () => {
     setLoading(true);
     try {
       if (imageFile) {
-
         const hide = message.loading('Loading...');
-       
-        const storageRef = ref(storage, `images/${imageFile.name}`);
+  
+        // Resize the image if needed, and convert it to a Blob
         const resizedImageBlob = await resizeImage(imageFile, 500, 350);
-        const uploadTask = uploadBytesResumable(storageRef, resizedImageBlob);
   
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
-          },
-          (error) => {
-            console.error('Upload error:', error);
-            setLoading(false); 
-          },
-          async () => {
-            try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const categoryData: API.CategoryListItem = {
-                id: 0,
-                name_en: name_en,
-                name_sw: name_sw,
-                img_url: downloadURL,
-                created_by:action_by
-              };
+        // Upload to DigitalOcean Spaces
+        try {
+          const fileUrl = await uploadToDigitalOcean(resizedImageBlob, imageFile.name, imageFile.type);
   
-              await addCategory(categoryData);
-              hide();
-              message.success('Added successfully');
-              setLoading(false); 
-              return true;
-            } catch (error) {
-              hide();
-              message.error('Adding failed, please try again!');
-              setLoading(false); // Set loading to false if adding category fails
-              return false;
-            } finally {
-              handleModalOpen(false);
-              actionRef.current?.reload();
-            }
-          }
-        );
+
+            
+          const categoryData: API.CategoryListItem = {
+            id: 0,
+            name_en: name_en,
+            name_sw: name_sw,
+            img_url: fileUrl,
+            created_by: action_by,
+          };
+  
+          await addCategory(categoryData);
+          hide();
+          message.success('Added successfully');
+          setLoading(false);
+          return true;
+        } catch (error) {
+          hide();
+          message.error('Adding failed, please try again!');
+          setLoading(false); 
+          return false;
+        } finally {
+          handleModalOpen(false);
+          actionRef.current?.reload();
+        }
       } else {
         message.error('Please, Upload an image!');
-        setLoading(false); // Set loading to false if no image is uploaded
+        setLoading(false); 
       }
     } catch (error) {
       message.error('Image upload failed, please try again!');
-      setLoading(false); // Set loading to false if there is a catch error
+      setLoading(false); 
       return false;
     }
   };
+
+
+
+
+  // const handleAdd = async (formData: FormData) => {
+  //   const name_en = formData.get('name_en') as string;
+  //   const name_sw = formData.get('name_sw') as string;
+  //   const imageFile = formData.get('image') as File;
+  
+  //   setLoading(true);
+  //   try {
+  //     if (imageFile) {
+
+  //       const hide = message.loading('Loading...');
+       
+  //       // const storageRef = ref(storage, `images/${imageFile.name}`);
+  //       // const resizedImageBlob = await resizeImage(imageFile, 500, 350);
+  //       // const uploadTask = uploadBytesResumable(storageRef, resizedImageBlob);
+  
+  //       uploadTask.on(
+  //         'state_changed',
+  //         (snapshot) => {
+  //           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+  //           console.log('Upload is ' + progress + '% done');
+  //         },
+  //         (error) => {
+  //           console.error('Upload error:', error);
+  //           setLoading(false); 
+  //         },
+  //         async () => {
+  //           try {
+  //             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+  //             const categoryData: API.CategoryListItem = {
+  //               id: 0,
+  //               name_en: name_en,
+  //               name_sw: name_sw,
+  //               img_url: downloadURL,
+  //               created_by:action_by
+  //             };
+  
+  //             await addCategory(categoryData);
+  //             hide();
+  //             message.success('Added successfully');
+  //             setLoading(false); 
+  //             return true;
+  //           } catch (error) {
+  //             hide();
+  //             message.error('Adding failed, please try again!');
+  //             setLoading(false); // Set loading to false if adding category fails
+  //             return false;
+  //           } finally {
+  //             handleModalOpen(false);
+  //             actionRef.current?.reload();
+  //           }
+  //         }
+  //       );
+  //     } else {
+  //       message.error('Please, Upload an image!');
+  //       setLoading(false); // Set loading to false if no image is uploaded
+  //     }
+  //   } catch (error) {
+  //     message.error('Image upload failed, please try again!');
+  //     setLoading(false); // Set loading to false if there is a catch error
+  //     return false;
+  //   }
+  // };
   
 
 
