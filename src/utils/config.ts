@@ -20,7 +20,7 @@ export const DO_SPACES_ENDPOINT='https://esms.espeservice.com/spaces';
 export const DO_SPACES_REGION ='us-east-1';    
 export const DO_SPACES_ACCESS_KEY='DO003D7QG49H4WDWM2RB';
 export const DO_SPACES_SECRET_KEY='adS892bPO3hvA92CrZNZOXZmEmEo8ZqJCS0Gfx8Pa2o';
-export const DO_SPACES_BUCKET_NAME="espedocs";
+export const DO_SPACES_BUCKET_NAME='espedocs';
 
 
 

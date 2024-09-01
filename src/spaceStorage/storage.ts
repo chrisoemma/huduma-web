@@ -72,7 +72,7 @@ export const uploadToDigitalOcean = async (file, fileName, fileType) => {
       Bucket: DO_SPACES_BUCKET_NAME,
       Key: `test/${fileName}`,
       Body: file,
-      ContentType: fileType,
+      ContentType:'application/octet-stream',
       ACL: "public-read", // Makes the uploaded file publicly readable
     };
 
