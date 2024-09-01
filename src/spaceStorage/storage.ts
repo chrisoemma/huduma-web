@@ -73,8 +73,7 @@ export const uploadToDigitalOcean = async (file, fileName, fileType) => {
       Bucket: "espedocs",
       Key:`test/${fileName}`,
       Body:file,
-      ContentType:'application/octet-stream',
-      ACL: "private", // Makes the uploaded file publicly readable
+      ACL: "public-read", 
     };
 
     const command = new PutObjectCommand(uploadParams);
