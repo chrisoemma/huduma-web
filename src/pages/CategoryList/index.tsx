@@ -86,9 +86,9 @@ const CategoryList: React.FC = () => {
         const resizedImageBlob = await resizeImage(imageFile, 500, 350);
   
         // Test the connection to DigitalOcean
-        await testConnection(); // Optional: Can be removed if you just want to test periodically
-        await listBuckets();
-        await listObjects();
+       // await testConnection(); // Optional: Can be removed if you just want to test periodically
+      //  await listBuckets();
+      //  await listObjects();
         // Upload to DigitalOcean Spaces
         try {
           const fileUrl = await uploadToDigitalOcean(resizedImageBlob, imageFile.name, imageFile.type);
