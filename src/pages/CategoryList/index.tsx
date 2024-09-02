@@ -15,10 +15,10 @@ import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
-import  { listBuckets, listObjects, testConnection, uploadToDigitalOcean } from '../../spaceStorage/storage'
 import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
 import { resizeImage } from '@/utils/function';
+import { testS3Connection } from '@/spaceStorage/storage';
 
 
 const CategoryList: React.FC = () => {
@@ -85,13 +85,19 @@ const CategoryList: React.FC = () => {
         // Resize the image if needed, and convert it to a Blob
         const resizedImageBlob = await resizeImage(imageFile, 500, 350);
   
-        // Test the connection to DigitalOcean
-     //  await testConnection(); // Optional: Can be removed if you just want to test periodically
-      // await listBuckets();
-      // await listObjects();
         // Upload to DigitalOcean Spaces
+
+        testS3Connection().then((isConnected) => {
+          if (isConnected) {
+            console.log("S3 connection is working correctly.");
+          } else {
+            console.log("Failed to connect to S3.");
+          }
+        });
+
+
         try {
-          const fileUrl = await uploadToDigitalOcean(resizedImageBlob, imageFile.name, imageFile.type);
+         // const fileUrl = await uploadToDigitalOcean(resizedImageBlob, imageFile.name, imageFile.type);
   
           const categoryData = {
             id: 0,

@@ -1,70 +1,39 @@
-import { DO_SPACES_ACCESS_KEY, DO_SPACES_BUCKET_NAME, DO_SPACES_CDN, DO_SPACES_ENDPOINT, DO_SPACES_REGION, DO_SPACES_SECRET_KEY } from "@/utils/config";
-import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
-import dotenv from "dotenv";
+import { S3 } from "@aws-sdk/client-s3";
 
-dotenv.config();
-
-const endpoint = DO_SPACES_ENDPOINT;
-const region = DO_SPACES_REGION;
-const accessKeyId = DO_SPACES_ACCESS_KEY;
-const secretAccessKey = DO_SPACES_SECRET_KEY;
-const bucketName = DO_SPACES_BUCKET_NAME;
-
-if (!endpoint || !region || !accessKeyId || !secretAccessKey || !bucketName) {
-  throw new Error("Missing required DigitalOcean Spaces environment variables.");
-}
-
-const s3 = new S3Client({
-  endpoint,
-  region,
-  credentials: {
-    accessKeyId,
-    secretAccessKey,
-  },
+const s3Client = new S3({
   forcePathStyle: false,
+  endpoint: "https://espedocs.nyc3.digitaloceanspaces.com",
+  region: "us-east-1",
+  credentials: {
+    accessKeyId:"DO00ANAU72KKAP9L6RY7",
+    secretAccessKey:"bVEnpl8slg8pFEYBXr3zcOfoOROB5UuSqGMtqXcN7Uc"
+  }
 });
 
-export const uploadToDigitalOcean = async (file, fileName, fileType) => {
+// Function to test the connection by listing buckets
+export const testS3Connection = async () => {
   try {
-    const uploadParams = {
-      Bucket: bucketName,
-      Key: `test/${fileName}`, // Ensure the correct folder path as needed
-      Body: file,
-      ContentType: fileType || 'application/octet-stream', // Use fileType if available
-      ACL: "public-read",
-    };
-
-    const command = new PutObjectCommand(uploadParams);
-    await s3.send(command);
-
-    console.log("File uploaded successfully:", `${DO_SPACES_CDN}/${uploadParams.Key}`);
-
-    // Generate a presigned URL for the uploaded file
-    const presignedUrl = await generatePresignedUrl(uploadParams.Key);
-    console.log("Generated presigned URL:", presignedUrl);
-
-    return presignedUrl; // Return the presigned URL instead of the file URL
+    // Attempt to list the buckets as a way to test the connection
+    const response = await s3Client.listBuckets({});
+    console.log("Connection successful. Buckets:", response.Buckets);
+    return true; // Connection is successful
   } catch (error) {
-    console.error("Error uploading file:", error);
-    throw error;
+       console.log('errorGenaral',error)
+    if (error.name === 'CredentialsError') {
+      console.error("Error: Invalid credentials. Please check your access key and secret access key.");
+    } else if (error.name === 'TimeoutError') {
+      console.error("Error: Connection timed out. Please check your network connection.");
+    } else if (error.name === 'EndpointError') {
+      console.error("Error: Invalid endpoint. Please check the S3 endpoint URL.");
+    } else {
+      // Generic error message for other types of errors
+      console.error("Error testing S3 connection:", error.message);
+    }
+    // Log the complete error object for debugging purposes
+    console.error("Detailed Error:", error);
+    return false; // Connection failed
   }
 };
 
-export const generatePresignedUrl = async (key) => {
-  try {
-    const command = new GetObjectCommand({
-      Bucket: bucketName,
-      Key: key,
-    });
-
-    const url = await getSignedUrl(s3, command, { expiresIn: 3600 });
-
-    // Swap the domain to use the CDN URL
-    const cdnUrl = `${DO_SPACES_CDN}${url.split('.com')[1]}`;
-    return cdnUrl;
-  } catch (error) {
-    console.error("Error generating presigned URL:", error);
-    throw error;
-  }
-};
+// Export the S3 client
+export { s3Client };
