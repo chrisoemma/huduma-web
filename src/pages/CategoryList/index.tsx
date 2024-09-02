@@ -18,7 +18,7 @@ import { storage } from './../../firebase/firebase';
 import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
 import { resizeImage } from '@/utils/function';
-import { testS3Connection } from '@/spaceStorage/storage';
+import { testS3Connection, uploadFile } from '@/spaceStorage/storage';
 
 
 const CategoryList: React.FC = () => {
@@ -84,26 +84,35 @@ const CategoryList: React.FC = () => {
   
         // Resize the image if needed, and convert it to a Blob
         const resizedImageBlob = await resizeImage(imageFile, 500, 350);
+        
+        const isConnected = await testS3Connection();
+        if (!isConnected) {
+          message.error('Failed to connect to S3. Please check your connection settings.');
+          setLoading(false);
+          hide();
+          return false;
+        }
   
-        // Upload to DigitalOcean Spaces
-
-        testS3Connection().then((isConnected) => {
-          if (isConnected) {
-            console.log("S3 connection is working correctly.");
-          } else {
-            console.log("Failed to connect to S3.");
-          }
-        });
+        // Upload the resized image to DigitalOcean Spaces
+        const file = {
+          filename: imageFile.name, // Set the file name for the upload
+          buffer: resizedImageBlob, // Use the resized image blob
+          mimetype: imageFile.type, // Set the correct MIME type
+        };
 
 
         try {
-         // const fileUrl = await uploadToDigitalOcean(resizedImageBlob, imageFile.name, imageFile.type);
+         
+          const filePath = await uploadFile({ bucket: 'espedocs', file });
+
+          return
+
   
           const categoryData = {
             id: 0,
             name_en: name_en,
             name_sw: name_sw,
-            img_url: fileUrl,
+           // img_url: fileUrl,
             created_by: action_by,
           };
   
