@@ -1,7 +1,6 @@
-// import {
-import React, { useEffect, useState,useRef } from 'react';
-import { Modal, Upload, Image, Form, Button, message, } from 'antd';
-import { ProFormText,   StepsForm, ProFormSelect, ProFormTextArea,ProFormRadio  } from '@ant-design/pro-form';
+import React, { useEffect, useState, useRef } from 'react';
+import { Modal, Upload, Image, Form, Button, message } from 'antd';
+import { ProFormText, StepsForm, ProFormSelect, ProFormTextArea, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
 import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
@@ -9,7 +8,6 @@ import { storage } from '@/firebase/firebase';
 import { updateService } from '../ServiceSlice';
 import { getCategories } from '@/pages/CategoryList/CategorySlice';
 import { resizeImage } from '@/utils/function';
-
 
 export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
@@ -26,14 +24,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const [categories, setCategories] = useState([]);
   const { initialState } = useModel('@@initialState');
   const currentUser = initialState?.currentUser;
-  const  action_by=currentUser?.id;
-
+  const action_by = currentUser?.id;
+  const [file, setFile] = useState<File | null>(null); 
 
   const stepsFormRef = useRef();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Fetch categories when the component mounts
     async function fetchCategories() {
       try {
         const response = await getCategories({});
@@ -46,10 +43,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
     fetchCategories();
   }, [props.updateModalOpen]);
-  
 
   useEffect(() => {
-
     if (props.updateModalOpen && categories.length > 0) {
       const categoryName = categories.find((cat) => cat.id === props.values.category_id)?.name?.en || '';
       form.setFieldsValue({
@@ -106,54 +101,49 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const handleChange = async (info: any) => {
     if (info.file.status === 'done') {
-      const downloadURL = await handleUpload(info.file.originFileObj);
-      setImageUrl(downloadURL);
+      setFile(info.file.originFileObj); // Save the file for later use in form submission
     }
   };
 
   const handleUpdate = async (values) => {
     try {
-    
       setLoading(true);
-     
-      const serviceId = props.values.id;
-       
-      const selectedCategory = 
-      categories.find((cat) => cat?.name?.en === values.category) ||
-      categories.find((cat) => cat.id == values.category);
       
-     
-    if (!selectedCategory) {
-      console.error('Selected category not found');
-      return;
-    }
+      const serviceId = props.values.id;
+      
+      const selectedCategory = 
+        categories.find((cat) => cat?.name?.en === values.category) ||
+        categories.find((cat) => cat.id == values.category);
+      
+      if (!selectedCategory) {
+        console.error('Selected category not found');
+        return;
+      }
 
-   
-    const usedValues = await form.validateFields();
+      const usedValues = await form.validateFields();
 
-   
-   let  img_url = imageUrl || props.values.images?.[0]?.img_url;
+      let img_url = imageUrl || props.values.images?.[0]?.img_url;
 
-    // Upload new image if available
-    if (values.image && values.image.length > 0) {
+      usedValues.category_id = selectedCategory.id;
+      usedValues.description_en = values.description_en;
+      usedValues.name_en = values.name_en;
+      usedValues.description_sw = values.description_sw;
+      usedValues.name_sw = values.name_sw;
+      usedValues.status = values.status;
+      usedValues.img_url = img_url;
+      usedValues.updated_by = action_by;
 
-     
-      const downloadURL = await handleUpload(values.image[0].originFileObj);
-      img_url = downloadURL;
-    }
-     
-    usedValues.category_id=selectedCategory.id;
-    usedValues.description_en = values.description_en;
-    usedValues.name_en = values.name_en;
-    usedValues.description_sw = values.description_sw;
-    usedValues.name_sw = values.name_sw;
-    usedValues.status=values.status;
-    usedValues.img_url = imageUrl || props.values.images?.[0]?.img_url;
-    usedValues.updated_by=action_by;
+      // Construct FormData to send to backend
+      const formData = new FormData();
+      Object.keys(usedValues).forEach(key => {
+        formData.append(key, usedValues[key]);
+      });
 
-    
+      if (file) {
+        formData.append('file', file);
+      } 
 
-      await updateService(serviceId, { ...usedValues, img_url });
+      await updateService(serviceId, formData);
       setLoading(false);
       setImageUrl(undefined);
       props.onCancel(true);
@@ -165,14 +155,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       console.log('Update failed:', error);
     }
   };
-  
 
   return (
     <StepsForm
-    onFinish={async (values) => {
-      await handleUpdate(values);
-      await props.onSubmit(values);
-    }}
+      onFinish={async (values) => {
+        await handleUpdate(values);
+        await props.onSubmit(values);
+      }}
       stepsProps={{
         size: 'small',
       }}
@@ -192,12 +181,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           }}
         >
           {dom}
-
-          
         </Modal>
       )}
     >
-
       {/* Step 1 */}
       <StepsForm.StepForm
         initialValues={{
@@ -213,31 +199,31 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           defaultMessage: 'Service info',
         })}
       >
-      <ProFormText
-            rules={[
-              {
-                required: true,
-                message: 'English Name is required',
-              },
-            ]}
-            width="md"
-            name="name_en"
-            label="English name"
-          />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: 'English Name is required',
+            },
+          ]}
+          width="md"
+          name="name_en"
+          label="English name"
+        />
 
-          <ProFormText
-            rules={[
-              {
-                required: true,
-                message: 'Kiswahili Name is required',
-              },
-            ]}
-            width="md"
-            name="name_sw"
-            label="Kiswahili name"
-          />
+        <ProFormText
+          rules={[
+            {
+              required: true,
+              message: 'Kiswahili Name is required',
+            },
+          ]}
+          width="md"
+          name="name_sw"
+          label="Kiswahili name"
+        />
 
-         <ProFormRadio.Group
+        <ProFormRadio.Group
           name="status"
           label={intl.formatMessage({
             id: 'pages.searchTable.updateForm.ruleProps.typeLabelStatus',
@@ -272,7 +258,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
             },
           ]}
         />
-          <ProFormTextArea
+        <ProFormTextArea
           name="description_en"
           width="md"
           label={intl.formatMessage({
@@ -315,16 +301,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
       {/* Step 2 */}
       <StepsForm.StepForm
-        // initialValues={{
-        //   image: [{ uid: '-1', name: 'image', status: 'done', url: imageUrl }],
-        // }}
         title={intl.formatMessage({
           id: 'pages.searchTable.updateForm.step2',
           defaultMessage: 'Images upload',
         })}
       >
         <Form.Item
-          name="image"
+          name="file"
           label="Image"
           valuePropName="fileList"
           getValueFromEvent={(e) => {
@@ -350,12 +333,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
         <Form.Item label="Current Image">
           {props.values.images && <Image src={props.values.images?.[0]?.img_url} width={200} />}
         </Form.Item>
-
       </StepsForm.StepForm>
-      
     </StepsForm>
   );
-  
 };
 
 export default UpdateForm;

@@ -28,6 +28,7 @@ import { updateSubService } from '../SubServiceSlice';
     const { initialState } = useModel('@@initialState');
     const currentUser = initialState?.currentUser;
     const  action_by=currentUser?.id;
+    const [file, setFile] = useState<File | null>(null); 
 
     const stepsFormRef = useRef();
   
@@ -75,41 +76,9 @@ import { updateSubService } from '../SubServiceSlice';
       return isImage;
     };
   
-    const handleUpload = async (file: File) => {
-      
-      
-
-      const storageRef = ref(storage, `images/${file.name}`);
-      const uploadTask = uploadBytesResumable(storageRef, file);
-  
-      return new Promise<string | undefined>((resolve, reject) => {
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            // Handle upload progress if needed
-          },
-          (error) => {
-            // Handle unsuccessful upload
-            console.error('Upload error:', error);
-            reject(error);
-          },
-          async () => {
-            try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              resolve(downloadURL);
-            } catch (error) {
-              console.error('Error getting download URL:', error);
-              reject(error);
-            }
-          }
-        );
-      });
-    };
-  
     const handleChange = async (info: any) => {
       if (info.file.status === 'done') {
-        const downloadURL = await handleUpload(info.file.originFileObj);
-        setImageUrl(downloadURL);
+        setFile(info.file.originFileObj); // Save the file for later use in form submission
       }
     };
   
@@ -141,8 +110,18 @@ import { updateSubService } from '../SubServiceSlice';
       usedValues.status=values.status;
       usedValues.img_url = imageUrl || props.values.default_images?.[0]?.img_url;
       usedValues.updated_by=action_by;
+
+
+      const formData = new FormData();
+      Object.keys(usedValues).forEach(key => {
+        formData.append(key, usedValues[key]);
+      });
+
+      if (file) {
+        formData.append('file', file);
+      }
   
-        await updateSubService(subServiceId, { ...usedValues, img_url });
+        await updateSubService(subServiceId,formData);
         form.resetFields();
         setImageUrl(undefined);
         props.onCancel(true);
@@ -323,7 +302,7 @@ import { updateSubService } from '../SubServiceSlice';
           >
             <Dragger
               accept="image/*"
-              beforeUpload={beforeUpload}
+              //beforeUpload={beforeUpload}
               onChange={handleChange}
             >
               <p className="ant-upload-drag-icon">

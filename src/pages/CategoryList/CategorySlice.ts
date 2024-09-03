@@ -36,17 +36,16 @@ return request(`${API_URL}/categories/destroy_bunch`, {
 });
 }
 
+// const headers = {
+//   'Content-Type': 'multipart/form-data',
+// }
 
-export async function updateCategory(categoryId: number, options?: { [key: string]: any }) {
-
-  
-   
-  return request(`${API_URL}/categories/${categoryId}`, {
-    method: 'PUT',
-    data: {
-      method: 'put',
-      ...(options || {}),
-    },
-  });
+export async function updateCategory(categoryId, formData) {
+  try {
+    return  axios.post(`${API_URL}/categories/update_category/${categoryId}`,formData);
+  } catch (error) {
+    console.error('Error updating category:', error);
+    throw error;
+  }
 }
 

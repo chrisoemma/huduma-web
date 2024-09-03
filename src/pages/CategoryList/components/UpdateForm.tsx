@@ -1,11 +1,9 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Upload, Image, Form, Button, message } from 'antd';
 import { ProFormText, ProFormRadio } from '@ant-design/pro-form';
 import { InboxOutlined } from '@ant-design/icons';
-import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 import { updateCategory } from '../CategorySlice';
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
-import { storage } from '@/firebase/firebase';
 
 export type UpdateFormProps = {
   onCancel: (flag?: boolean, formVals?: FormValueType) => void;
@@ -19,32 +17,24 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.images?.[0]?.img_url);
-
+  const [file, setFile] = useState<File | null>(null); // To store the file object
   const { Dragger } = Upload;
-
   const [loading, setLoading] = useState(false);
   const { initialState } = useModel('@@initialState');
-
   const currentUser = initialState?.currentUser;
-  const  action_by=currentUser?.id;
+  const action_by = currentUser?.id;
   
-
   useEffect(() => {
-  
     if (props.updateModalOpen) {
       form.setFieldsValue({
         name_en: props.values.name?.en || '', 
         name_sw: props.values.name?.sw || '', 
         status: props.values.status,
       });
-
     }
   }, [props.updateModalOpen, props.values, form, imageUrl]);
 
   const beforeUpload = (file: File) => {
-
-    console.log('before upload data',file);
-    
     const isImage = file.type.startsWith('image/');
     if (!isImage) {
       message.error('You can only upload image files!');
@@ -52,53 +42,41 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
     return isImage;
   };
 
-  const handleUpload = async (file: File) => {
-    const storageRef = ref(storage, `images/${file.name}`);
-    const uploadTask = uploadBytesResumable(storageRef, file);
-
-    return new Promise<string | undefined>((resolve, reject) => {
-      uploadTask.on(
-        'state_changed',
-        (snapshot) => {
-          // Handle upload progress if needed
-        },
-        (error) => {
-          // Handle unsuccessful upload
-          console.error('Upload error:', error);
-          reject(error);
-        },
-        async () => {
-          try {
-            const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-            resolve(downloadURL);
-          } catch (error) {
-            console.error('Error getting download URL:', error);
-            reject(error);
-          }
-        }
-      );
-    });
-  };
-
   const handleChange = async (info: any) => {
     if (info.file.status === 'done') {
-      const downloadURL = await handleUpload(info.file.originFileObj);
-      setImageUrl(downloadURL);
+      setFile(info.file.originFileObj); // Save the file for later use in form submission
     }
   };
 
   const handleUpdate = async () => {
-    
     try {
       setLoading(true);
       const values = await form.validateFields();
 
-     
-      const categoryId = props.values.id;
-      const img_url = imageUrl || props.values.images?.[0]?.img_url;
-      values.updated_by=action_by;
-  
-      await updateCategory(categoryId, { ...values, img_url });
+      const formData = new FormData();
+      formData.append('name_en', values.name_en);
+      formData.append('name_sw', values.name_sw);
+      formData.append('status', values.status);
+      formData.append('updated_by', action_by);
+
+      if (file) {
+        formData.append('file', file);
+      } else {
+        const img_url = imageUrl || props.values.images?.[0]?.img_url;
+        formData.append('img_url', img_url);
+      }
+
+      // formData.forEach((value, key) => {
+      //   console.log(`${key}:`, value);
+      // });
+   
+
+    const categoryId = props.values.id;
+    console.log('categoryId',categoryId)
+    const responce=  await updateCategory(categoryId,formData);
+    //   console.log('responcedatatat',responce);
+    //   return 
+    // // Update this API call to handle FormData
 
       setLoading(false);
       setImageUrl(undefined);
@@ -139,7 +117,6 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           Update
         </Button>,
       ]}
-      
       onCancel={() => {
         props.onCancel();
         form.resetFields();
@@ -152,10 +129,8 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
           name_sw: props.values.name?.sw || '', 
           status: props.values.status,
         }}
-
-
       >
-      <ProFormText
+        <ProFormText
           name="name_en"
           label={intl.formatMessage({
             id: 'pages.searchTable.updateForm.docName',

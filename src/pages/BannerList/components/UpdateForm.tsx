@@ -25,6 +25,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   const intl = useIntl();
   const [form] = Form.useForm();
   const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.url);
+  const [file, setFile] = useState<File | null>(null);
 
   const { Dragger } = Upload;
   const [loading, setLoading] = useState(false);
@@ -80,8 +81,7 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
 
   const handleChange = async (info: any) => {
     if (info.file.status === 'done') {
-      const downloadURL = await handleUpload(info.file.originFileObj);
-      setImageUrl(downloadURL);
+      setFile(info.file.originFileObj); // Save the file for later use in form submission
     }
   };
 
@@ -91,9 +91,19 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       const values = await form.validateFields();
       const bannerId = props.values.id;
 
-      const url = imageUrl || props.values.url;
+      const formData = new FormData();
+      Object.keys(values).forEach(key => {
+        formData.append(key, values[key]);
+      });
 
-      await updateBanner(bannerId, { ...values, url });
+      if (file) {
+        formData.append('url', file);
+      }else{
+        formData.append('url',imageUrl || props.values.url);
+      }
+
+     const results= await updateBanner(bannerId, formData);
+  
 
       form.resetFields();
       setImageUrl(undefined);

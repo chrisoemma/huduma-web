@@ -1,5 +1,6 @@
 import { API_URL } from '@/utils/config';
 import { request } from '@umijs/max';
+import axios from 'axios';
 
 export async function getServices(
     params: {
@@ -18,15 +19,19 @@ export async function getServices(
     });
   }
 
-  export async function addService(options?: { [key: string]: any }) {
-    return request(`${API_URL}/services`, {
-      method: 'POST',
-      data:{
-        method: 'post',
-        ...(options || {}),
-      }
-    });
-  }
+  // export async function addService(options?: { [key: string]: any }) {
+  //   return request(`${API_URL}/services`, {
+  //     method: 'POST',
+  //     data:{
+  //       method: 'post',
+  //       ...(options || {}),
+  //     }
+  //   });
+  // }
+
+  export async function addService(formData) {
+    return axios.post(`${API_URL}/services`, formData);
+}
 
   export async function removeService(options?: { [key: string]: any }) {
     const { deleted_by, ...otherOptions } = options || {};
@@ -41,14 +46,23 @@ return request(`${API_URL}/services/destroy_bunch`, {
 }
 
 
-export async function updateService(serviceId: number, options?: { [key: string]: any }) {
+// export async function updateService(serviceId: number, options?: { [key: string]: any }) {
      
-  return request(`${API_URL}/services/${serviceId}`, {
-    method: 'PUT',
-    data: {
-      method: 'put',
-      ...(options || {}),
-    },
-  });
+//   return request(`${API_URL}/services/update_service/${serviceId}`, {
+//     method: 'PUT',
+//     data: {
+//       method: 'put',
+//       ...(options || {}),
+//     },
+//   });
+// }
+
+export async function updateService(serviceId, formData) {
+  try {
+    return  axios.post(`${API_URL}/services/update_service/${serviceId}`,formData);
+  } catch (error) {
+    console.error('Error updating services', error);
+    throw error;
+  }
 }
 

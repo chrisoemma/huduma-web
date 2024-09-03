@@ -78,53 +78,26 @@ const SubSubServiceList: React.FC = () => {
     const name_sw = formData.get('name_sw') as string;
     const description_en = formData.get('description_en') as string;
     const description_sw = formData.get('description_sw') as string;
+
+    const newFormData = new FormData();
+    newFormData.append('name_en', name_en);
+    newFormData.append('name_sw', name_sw);
+    newFormData.append('description_en', description_en);
+    newFormData.append('description_sw', description_sw);
+    newFormData.append('service_id', serviceId);
+    newFormData.append('file', imageFile);
+    newFormData.append('created_by',action_by)
     setLoading(true);
     try {
-      const storageRef = ref(storage, `images/${imageFile.name}`);
-     
-    
 
+    
       if (imageFile) {
         const hide = message.loading('Loading....');
-        const uploadTask = uploadBytesResumable(storageRef, imageFile);
-
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
-            switch (snapshot.state) {
-              case 'paused':
-                console.log('Upload is paused');
-                break;
-              case 'running':
-                console.log('Upload is running');
-                break;
-            }
-          },
-          (error) => {
-            setLoading(false);
-            console.error('Upload error:', error);
-          },
-          async () => {
+   
             try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const SubServiceData: API.SubServiceListItem = {
-                name_en: name_en,
-                name_sw: name_sw,
-                description_en: description_en,
-                description_sw: description_sw,
-                service_id: serviceId,
-                img_url: downloadURL,
-                created_by:action_by
-              
-                // Save the download URL to the database
-              };
-
-
-          
+  
               try {
-                await addSubService(SubServiceData);
+                await addSubService(newFormData);
                 setLoading(false);
                 hide();
                 message.success('Added successfully');
@@ -148,8 +121,8 @@ const SubSubServiceList: React.FC = () => {
               handleModalOpen(false);
               setLoading(false); 
             }
-          }
-        );
+       
+   
       } else {
         // If no image is uploaded, create an object without img_url
         const SubServiceData: API.SubServiceListItem = {

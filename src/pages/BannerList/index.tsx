@@ -78,48 +78,25 @@ const BannerList: React.FC = () => {
     const end_date = formData.get('end_date') as string;
     const imageFile = formData.get('image') as File;
 
+    const newFormData = new FormData();
+    newFormData.append('description', description);
+    newFormData.append('start_date', start_date);
+    newFormData.append('end_date', end_date);
+    newFormData.append('url',imageFile);
+
+
+
     setLoading(true);
 
     try {
-      const storageRef = ref(storage, `banners/${imageFile.name}`);
 
       if (imageFile) {
 
-        const uploadTask = uploadBytesResumable(storageRef, imageFile);
-
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
-            switch (snapshot.state) {
-              case 'paused':
-                console.log('Upload is paused');
-                break;
-              case 'running':
-                console.log('Upload is running');
-                break;
-            }
-          },
-          (error) => {
-            // Handle unsuccessful uploads
-            console.error('Upload error:', error);
-          },
-          async () => {
             try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const BannerData: API.BannerListItem = {
-                id: 0,
-                description: description,
-                start_date: start_date,
-                end_date: end_date,
-                url: downloadURL,
-              };
-
               // Save the data to the database
               const hide = message.loading('Loading...');
               try {
-                await addBanner(BannerData);
+                await addBanner(newFormData);
                 hide();
                 setLoading(false);
                 message.success('Added successfully');
@@ -143,8 +120,6 @@ const BannerList: React.FC = () => {
               handleModalOpen(false);
             }
           }
-        );
-      }
     } catch (error) {
       message.error('Image upload failed, please try again!');
       return false

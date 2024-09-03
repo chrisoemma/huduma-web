@@ -78,57 +78,44 @@ const ServiceList: React.FC = () => {
     const name_sw = formData.get('name_sw') as string;
     const description_en = formData.get('description_en') as string;
     const description_sw = formData.get('description_sw') as string;
-    const imageFile = formData.get('image') as File;
+    const imageFile = formData.get('file') as File;
     const categoryId = formData.get('category');
-    const description = formData.get('description') as string;
-    setLoading(true);
+
+    const newFormData = new FormData();
+    newFormData.append('name_en', name_en);
+    newFormData.append('name_sw', name_sw);
+    newFormData.append('description_en', description_en);
+    newFormData.append('description_sw', description_sw);
+    newFormData.append('category_id', categoryId);
+    newFormData.append('file', imageFile);
+    newFormData.append('created_by',action_by)
 
     try {
       
       if (imageFile) {
-        const storageRef = ref(storage, `images/${imageFile.name}`);
-        const resizedImageBlob = await resizeImage(imageFile, 500, 350);
-        const uploadTask = uploadBytesResumable(storageRef, resizedImageBlob);
         const hide = message.loading('Loading...');
 
-        uploadTask.on(
-          'state_changed',
-          (snapshot) => {
-            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-            console.log('Upload is ' + progress + '% done');
-            switch (snapshot.state) {
-              case 'paused':
-                console.log('Upload is paused');
-                break;
-              case 'running':
-                console.log('Upload is running');
-                break;
-            }
-          },
-          (error) => {
-            console.error('Upload error:', error);
-            setLoading(false);
-          },
-          async () => {
             try {
-              const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-              const serviceData: API.ServiceListItem = {
-                id: 0, 
-                name_en: name_en,
-                name_sw: name_sw,
-                description_en: description_en,
-                description_sw: description_sw,
-                category_id:categoryId,
-                img_url: downloadURL,
-                description:description,
-                created_by:action_by
+          
+              // const serviceData: API.ServiceListItem = {
+              //   id: 0, 
+              //   name_en: name_en,
+              //   name_sw: name_sw,
+              //   description_en: description_en,
+              //   description_sw: description_sw,
+              //   category_id:categoryId,
+              //   file: downloadURL,
+              //   created_by:action_by
                 
-              };
+              // };
              
               
               try {
+                setLoading(true);
 
-                await addService(serviceData);
+             const responce=   await addService(newFormData);
+            //   console.log('resposss',responce)
+            //  return ;
                 hide();
                 setLoading(false);
                 message.success('Added successfully');
@@ -140,8 +127,8 @@ const ServiceList: React.FC = () => {
                 return false
               } finally {
                 handleModalOpen(false);
-                actionRef.current.reload();
-                formRef.current.resetFields();
+               actionRef.current.reload();
+               formRef.current.resetFields();
               }
             } catch (error) {
               message.error('Error getting download URL, please try again!');
@@ -149,8 +136,7 @@ const ServiceList: React.FC = () => {
             } finally {
               handleModalOpen(false);
             }
-          }
-        );
+  
       } else {
         message.error('Please upload image, please try again!');
        
@@ -441,8 +427,8 @@ const ServiceList: React.FC = () => {
           formData.append('description_en', value.description_en);
           formData.append('description_sw', value.description_sw);
           formData.append('category',value.category);
-          if (value.image) {
-            formData.append('image', value.image[0].originFileObj);
+          if (value.file) {
+            formData.append('file', value.file[0].originFileObj);
           }
 
           const success = await handleAdd(formData);
@@ -554,7 +540,7 @@ const ServiceList: React.FC = () => {
           ]}
         />
           <ProFormUploadButton
-            name="image"
+            name="file"
             label="Upload Image"
             style={{ display: 'none' }}
             fieldProps={{
