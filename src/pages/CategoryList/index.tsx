@@ -18,7 +18,7 @@ import { storage } from './../../firebase/firebase';
 import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
 import { resizeImage } from '@/utils/function';
-import { testS3Connection, uploadFile } from '@/spaceStorage/storage';
+import { testS3Connection } from '@/spaceStorage/storage';
 
 
 const CategoryList: React.FC = () => {
@@ -72,142 +72,48 @@ const CategoryList: React.FC = () => {
 
 
 
-  const handleAdd = async (formData) => {
+const handleAdd = async (formData) => {
     const name_en = formData.get('name_en') as string;
     const name_sw = formData.get('name_sw') as string;
-    const imageFile = formData.get('image') as File;
-  
+    const imageFile = formData.get('file') as File;
+
+    // Resize the image if necessary
+   // const resizedImageBlob = await resizeImage(imageFile, 500, 350);
+
+    // Create a new FormData object to send resized image
+    const newFormData = new FormData();
+    newFormData.append('name_en', name_en);
+    newFormData.append('name_sw', name_sw);
+    newFormData.append('file', imageFile);
+    newFormData.append('created_by',action_by)
+
     setLoading(true);
     try {
-      if (imageFile) {
         const hide = message.loading('Loading...');
-  
-        // Resize the image if needed, and convert it to a Blob
-        const resizedImageBlob = await resizeImage(imageFile, 500, 350);
-        
-        const isConnected = await testS3Connection();
-        if (!isConnected) {
-          message.error('Failed to connect to S3. Please check your connection settings.');
-          setLoading(false);
-          hide();
-          return false;
-        }
-  
-        // Upload the resized image to DigitalOcean Spaces
-        const file = {
-          filename: imageFile.name, // Set the file name for the upload
-          buffer: resizedImageBlob, // Use the resized image blob
-          mimetype: imageFile.type, // Set the correct MIME type
-        };
-
 
         try {
-         
-          const filePath = await uploadFile({ bucket: 'espedocs', file });
+            const response = await addCategory(newFormData);
+            console.log('response1234', response);
 
-          return
-
-  
-          const categoryData = {
-            id: 0,
-            name_en: name_en,
-            name_sw: name_sw,
-           // img_url: fileUrl,
-            created_by: action_by,
-          };
-  
-          await addCategory(categoryData);
-          hide();
-          message.success('Added successfully');
-          setLoading(false);
-          return true;
+            hide();
+            message.success('Added successfully');
+            setLoading(false);
+            return true;
         } catch (error) {
-          hide();
-          message.error('Adding failed, please try again!');
-          setLoading(false);
-          return false;
+            hide();
+            message.error('Adding failed, please try again!');
+            setLoading(false);
+            return false;
         } finally {
-          handleModalOpen(false);
-          actionRef.current?.reload();
+            handleModalOpen(false);
+            actionRef.current?.reload();
         }
-      } else {
-        message.error('Please, upload an image!');
-        setLoading(false);
-      }
     } catch (error) {
-      message.error('Image upload failed, please try again!');
-      setLoading(false);
-      return false;
+        message.error('Image upload failed, please try again!');
+        setLoading(false);
+        return false;
     }
-  };
-
-
-
-
-  // const handleAdd = async (formData: FormData) => {
-  //   const name_en = formData.get('name_en') as string;
-  //   const name_sw = formData.get('name_sw') as string;
-  //   const imageFile = formData.get('image') as File;
-  
-  //   setLoading(true);
-  //   try {
-  //     if (imageFile) {
-
-  //       const hide = message.loading('Loading...');
-       
-  //       // const storageRef = ref(storage, `images/${imageFile.name}`);
-  //       // const resizedImageBlob = await resizeImage(imageFile, 500, 350);
-  //       // const uploadTask = uploadBytesResumable(storageRef, resizedImageBlob);
-  
-  //       uploadTask.on(
-  //         'state_changed',
-  //         (snapshot) => {
-  //           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-  //           console.log('Upload is ' + progress + '% done');
-  //         },
-  //         (error) => {
-  //           console.error('Upload error:', error);
-  //           setLoading(false); 
-  //         },
-  //         async () => {
-  //           try {
-  //             const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-  //             const categoryData: API.CategoryListItem = {
-  //               id: 0,
-  //               name_en: name_en,
-  //               name_sw: name_sw,
-  //               img_url: downloadURL,
-  //               created_by:action_by
-  //             };
-  
-  //             await addCategory(categoryData);
-  //             hide();
-  //             message.success('Added successfully');
-  //             setLoading(false); 
-  //             return true;
-  //           } catch (error) {
-  //             hide();
-  //             message.error('Adding failed, please try again!');
-  //             setLoading(false); // Set loading to false if adding category fails
-  //             return false;
-  //           } finally {
-  //             handleModalOpen(false);
-  //             actionRef.current?.reload();
-  //           }
-  //         }
-  //       );
-  //     } else {
-  //       message.error('Please, Upload an image!');
-  //       setLoading(false); // Set loading to false if no image is uploaded
-  //     }
-  //   } catch (error) {
-  //     message.error('Image upload failed, please try again!');
-  //     setLoading(false); // Set loading to false if there is a catch error
-  //     return false;
-  //   }
-  // };
-  
-
+};
 
 
   useEffect(() => {
@@ -418,8 +324,8 @@ const CategoryList: React.FC = () => {
     const formData = new FormData();
     formData.append('name_en', value.name_en);
     formData.append('name_sw', value.name_sw);
-    if (value.image) {
-      formData.append('image', value.image[0].originFileObj);
+    if (value.file) {
+      formData.append('file', value.file[0].originFileObj);
     }
 
     const success = await handleAdd(formData);
@@ -463,7 +369,7 @@ const CategoryList: React.FC = () => {
       label="Kiswahili name"
     />
     <ProFormUploadButton
-      name="image"
+      name="file"
       label="Upload Image"
       fieldProps={{
         accept: 'image/*',

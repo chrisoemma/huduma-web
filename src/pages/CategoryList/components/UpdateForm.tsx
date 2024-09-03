@@ -42,6 +42,9 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
   }, [props.updateModalOpen, props.values, form, imageUrl]);
 
   const beforeUpload = (file: File) => {
+
+    console.log('before upload data',file);
+    
     const isImage = file.type.startsWith('image/');
     if (!isImage) {
       message.error('You can only upload image files!');

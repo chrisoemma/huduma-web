@@ -4,6 +4,7 @@ const s3Client = new S3({
   forcePathStyle: false,
   endpoint: "https://esms.espeservice.com/spaces",
   region: "us-east-1",
+  // signatureVersion:'v4',
   credentials: {
     accessKeyId:"DO00ANAU72KKAP9L6RY7",
     secretAccessKey:"bVEnpl8slg8pFEYBXr3zcOfoOROB5UuSqGMtqXcN7Uc"

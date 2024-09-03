@@ -1,5 +1,6 @@
 import { API_URL } from '@/utils/config';
 import { request } from '@umijs/max';
+import axios from 'axios';
 
 export async function getCategories(
     params: {
@@ -18,15 +19,9 @@ export async function getCategories(
     });
   }
 
-  export async function addCategory(options?: { [key: string]: any }) {
-    return request(`${API_URL}/categories`, {
-      method: 'POST',
-      data:{
-        method: 'post',
-        ...(options || {}),
-      }
-    });
-  }
+ export async function addCategory(formData) {
+    return axios.post(`${API_URL}/categories`, formData);
+}
 
 
   export async function removeCategory(options?: { [key: string]: any }) {
