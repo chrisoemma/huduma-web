@@ -78,7 +78,7 @@ const handleAdd = async (formData) => {
     const imageFile = formData.get('file') as File;
 
     // Resize the image if necessary
-   // const resizedImageBlob = await resizeImage(imageFile, 500, 350);
+ //   const resizedImageBlob = await resizeImage(imageFile, 500, 350);
 
     // Create a new FormData object to send resized image
     const newFormData = new FormData();
@@ -89,12 +89,11 @@ const handleAdd = async (formData) => {
 
     setLoading(true);
     try {
+      if (imageFile) {
         const hide = message.loading('Loading...');
 
         try {
             const response = await addCategory(newFormData);
-            console.log('response1234', response);
-
             hide();
             message.success('Added successfully');
             setLoading(false);
@@ -108,6 +107,10 @@ const handleAdd = async (formData) => {
             handleModalOpen(false);
             actionRef.current?.reload();
         }
+      } else {
+        message.error('Please, Upload an image!');
+        setLoading(false); // Set loading to false if no image is uploaded
+      }
     } catch (error) {
         message.error('Image upload failed, please try again!');
         setLoading(false);
