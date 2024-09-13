@@ -20,7 +20,7 @@ yarn.lock
 package-lock.json
 *bak
 .vscode
-src/utils/config.ts
+/src/utils/config.ts
 
 
 # visual studio code
