@@ -152,18 +152,17 @@ const ProviderList: React.FC = () => {
                 status: status,
                 updated_by: action_by
               };
+             
      
               const response = await approveProfession(profChangeId, data);
-      
-            //    console.log('response3333',response);
 
-            //    return 
+        
 
               if (response.status) {
                 message.success(`Profession change request has been ${status.toLowerCase()} successfully.`);
                 handleApproveProfessionDrawerClose();
               } else {
-                message.error('An error occurred while processing the request.');
+                message.error(response.message);
               }
             } catch (error) {
               message.error('An error occurred while processing the request.');

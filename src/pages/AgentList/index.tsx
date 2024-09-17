@@ -398,7 +398,7 @@ const AgentList: React.FC = () => {
             render: (dom, entity) => {
                 // Check if phone_verified_at is null or not
                     //console.log('entitiees',entity);
-                const verifiedTag = entity.user.phone_verified_at ? (
+                const verifiedTag = entity?.user?.phone_verified_at ? (
                      <Tag color="green"> Verified</Tag>
                 ) : (
                      <Tag color="red">Not Verified</Tag>
