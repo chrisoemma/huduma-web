@@ -462,7 +462,7 @@ const ClientList: React.FC = () => {
             hideInSearch: true,
             search:false,
             render: (_, record) => {
-                const profileImage = record.user.profile_img;
+                const profileImage = record?.user?.profile_img;
                 return (
                     <Image
                         src={profileImage ? profileImage : ''}
