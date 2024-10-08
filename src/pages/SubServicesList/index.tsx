@@ -17,10 +17,10 @@ import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 // import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './Components/UpdateForm';
-import { storage } from './../../firebase/firebase';
+import { storage } from '../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addSubService, getSubServices, removeSubService } from './SubServiceSlice';
-import { getServices } from '../ServicesList/ServiceSlice';
+import { getSubCategories } from '../SubCategory/SubCategorySlice';
 
 
 const SubSubServiceList: React.FC = () => {
@@ -182,7 +182,7 @@ const SubSubServiceList: React.FC = () => {
   useEffect(() => {
     async function fetchData() {
       try {
-        const response = await getServices();
+        const response = await getSubCategories();
         const services = response.data.services;
         console.log('services:', services);
         setServices(services);

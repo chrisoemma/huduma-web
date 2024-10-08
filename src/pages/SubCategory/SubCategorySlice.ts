@@ -2,7 +2,7 @@ import { API_URL } from '@/utils/config';
 import { request } from '@umijs/max';
 import axios from 'axios';
 
-export async function getSubServices(
+export async function getSubCategories(
     params: {
       current?: number;
       pageSize?: number;
@@ -10,7 +10,7 @@ export async function getSubServices(
     },
     options?: { [key: string]: any },
   ) {
-    return request(`${API_URL}/admin/sub_services`, {
+    return request(`${API_URL}/admin/services`, {
       method: 'GET',
       params: {
         ...params,
@@ -19,8 +19,8 @@ export async function getSubServices(
     });
   }
 
-  // export async function addSubService(options?: { [key: string]: any }) {
-  //   return request(`${API_URL}/sub_services`, {
+  // export async function addService(options?: { [key: string]: any }) {
+  //   return request(`${API_URL}/services`, {
   //     method: 'POST',
   //     data:{
   //       method: 'post',
@@ -29,13 +29,13 @@ export async function getSubServices(
   //   });
   // }
 
-  export async function addSubService(formData) {
-    return axios.post(`${API_URL}/sub_services`, formData);
+  export async function addSubCategory(formData) {
+    return axios.post(`${API_URL}/services`, formData);
 }
 
-  export async function removeSubService(options?: { [key: string]: any }) {
+  export async function removeSubCategory(options?: { [key: string]: any }) {
     const { deleted_by, ...otherOptions } = options || {};
-return request(`${API_URL}/sub_services/destroy_bunch`, {
+return request(`${API_URL}/services/destroy_bunch`, {
   method: 'DELETE',
   data:{
     method: 'delete',
@@ -46,9 +46,9 @@ return request(`${API_URL}/sub_services/destroy_bunch`, {
 }
 
 
-// export async function updateSubService(serviceId: number, options?: { [key: string]: any }) {
+// export async function updateService(serviceId: number, options?: { [key: string]: any }) {
      
-//   return request(`${API_URL}/sub_services/${serviceId}`, {
+//   return request(`${API_URL}/services/update_service/${serviceId}`, {
 //     method: 'PUT',
 //     data: {
 //       method: 'put',
@@ -57,12 +57,11 @@ return request(`${API_URL}/sub_services/destroy_bunch`, {
 //   });
 // }
 
-
-export async function updateSubService(serviceId, formData) {
+export async function updateSubCategory(serviceId, formData) {
   try {
-    return  axios.post(`${API_URL}/sub_services/update_subservice/${serviceId}`,formData);
+    return  axios.post(`${API_URL}/services/update_service/${serviceId}`,formData);
   } catch (error) {
-    console.error('Error updating sub_services', error);
+    console.error('Error updating services', error);
     throw error;
   }
 }

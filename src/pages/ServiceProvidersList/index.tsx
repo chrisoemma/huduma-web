@@ -718,7 +718,6 @@ const ProviderList: React.FC = () => {
                 <a
                     key="businesses-link"
                     onClick={() => {
-                        // Open the drawer and pass the record (provider) to display business details
                         handleBusinessesDrawerOpen(record);
                     }}
                 >
@@ -741,22 +740,22 @@ const ProviderList: React.FC = () => {
         pageSizeOptions: ['15', '30', '60', '100'],
         defaultPageSize:30, 
         showSizeChanger: true, 
-        locale: { items_per_page: "" } // Customize this if needed
+        locale: { items_per_page: "" } 
     }}
-    actionRef={actionRef} // Make sure actionRef is properly defined
-    rowKey="id" // Ensure this is the unique identifier for each row
+    actionRef={actionRef} 
+    rowKey="id" 
     toolBarRender={() => [
         <Button
             type="primary"
             key="primary"
-            onClick={() => handleModalOpen(true)} // Ensure handleModalOpen is properly defined
+            onClick={() => handleModalOpen(true)} 
         >
             <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
         </Button>,
     ]}
     search={{
         labelWidth: 120,
-        filterType: 'query', // Ensure this matches your filtering type
+        filterType: 'query',
     }}
     request={async (params, sorter, filter) => {
         try {

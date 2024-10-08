@@ -14,11 +14,8 @@ import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 import UpdateForm from './components/UpdateForm';
-import { storage } from './../../firebase/firebase';
-import {  ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addCategory, getCategories, removeCategory } from './CategorySlice';
-import { resizeImage } from '@/utils/function';
-import { testS3Connection } from '@/spaceStorage/storage';
+
 
 
 const CategoryList: React.FC = () => {
@@ -184,6 +181,7 @@ const handleAdd = async (formData) => {
     {
       title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
       dataIndex: 'status',
+      search: false,
       hideInForm: true,
       render: (text, record) => {
           let color = '';
@@ -251,14 +249,19 @@ const handleAdd = async (formData) => {
             const response = await getCategories(params);
             const categories = response.data.categories;
             // Filter the data based on the 'name' filter
-            const filteredCategories = categories.filter(category =>
-              params.name
-                ? category.name
-                  .toLowerCase()
-                  .split(' ')
-                  .some(word => word.startsWith(params.name.toLowerCase()))
-                : true
-            );
+            const filteredCategories = categories.filter(category =>{
+              // params.name
+              //   ? category.name
+              //     .toLowerCase()
+              //     .split(' ')
+              //     .some(word => word.startsWith(params.name.toLowerCase()))
+              //   : true
+              const matchesName = params.name
+              ? category.name?.toLowerCase().includes(params.name.toLowerCase())
+              : true;
+
+              return matchesName;
+          });
 
             return {
               data: filteredCategories,

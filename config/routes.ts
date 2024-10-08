@@ -249,14 +249,14 @@
         component: './CategoryList',
       },
       {
-        path: '/settings/services',
-        name: 'Services', 
-        component: './ServicesList',
+        path: '/settings/sub-categories',
+        name: 'Sub category', 
+        component: './SubCategory',
       },
       {
-        path: '/settings/sub-services',
-        name: 'Sub services',
-        component: './SubServicesList',
+        path: '/settings/services',
+        name: 'Services',
+        component: './ServicesList',
       },
       {
         path: '/settings/documents',

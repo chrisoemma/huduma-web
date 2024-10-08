@@ -49,7 +49,7 @@ declare namespace API {
     progress?: number;
   };
 
-  type CategoryListItem = {
+  type SubCategoryListItem = {
      id:number;
      name_en: string,
      name_sw: string,
@@ -64,15 +64,10 @@ declare namespace API {
     img_url:array;
  }
 
- type ServiceListItem = {
-  id:number;
-  name:string;
-  category_id:number,
-  img_url:array;
-}
 
 
-type SubServiceListItem = {
+
+type ServiceListItem = {
   id:number;
   name:string;
   service_id:number,

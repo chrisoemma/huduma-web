@@ -10,7 +10,7 @@ export async function getServices(
     },
     options?: { [key: string]: any },
   ) {
-    return request(`${API_URL}/admin/services`, {
+    return request(`${API_URL}/admin/sub_services`, {
       method: 'GET',
       params: {
         ...params,
@@ -19,8 +19,8 @@ export async function getServices(
     });
   }
 
-  // export async function addService(options?: { [key: string]: any }) {
-  //   return request(`${API_URL}/services`, {
+  // export async function addSubService(options?: { [key: string]: any }) {
+  //   return request(`${API_URL}/sub_services`, {
   //     method: 'POST',
   //     data:{
   //       method: 'post',
@@ -30,12 +30,12 @@ export async function getServices(
   // }
 
   export async function addService(formData) {
-    return axios.post(`${API_URL}/services`, formData);
+    return axios.post(`${API_URL}/sub_services`, formData);
 }
 
   export async function removeService(options?: { [key: string]: any }) {
     const { deleted_by, ...otherOptions } = options || {};
-return request(`${API_URL}/services/destroy_bunch`, {
+return request(`${API_URL}/sub_services/destroy_bunch`, {
   method: 'DELETE',
   data:{
     method: 'delete',
@@ -46,9 +46,9 @@ return request(`${API_URL}/services/destroy_bunch`, {
 }
 
 
-// export async function updateService(serviceId: number, options?: { [key: string]: any }) {
+// export async function updateSubService(serviceId: number, options?: { [key: string]: any }) {
      
-//   return request(`${API_URL}/services/update_service/${serviceId}`, {
+//   return request(`${API_URL}/sub_services/${serviceId}`, {
 //     method: 'PUT',
 //     data: {
 //       method: 'put',
@@ -57,11 +57,12 @@ return request(`${API_URL}/services/destroy_bunch`, {
 //   });
 // }
 
+
 export async function updateService(serviceId, formData) {
   try {
-    return  axios.post(`${API_URL}/services/update_service/${serviceId}`,formData);
+    return  axios.post(`${API_URL}/sub_services/update_subservice/${serviceId}`,formData);
   } catch (error) {
-    console.error('Error updating services', error);
+    console.error('Error updating sub_services', error);
     throw error;
   }
 }

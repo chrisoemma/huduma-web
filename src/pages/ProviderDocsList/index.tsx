@@ -167,7 +167,6 @@ const ProviderDocsList: React.FC = () => {
   const handleNidaValidationDrawerClose = () => {
     setValidationResult(null);
     setShowNidaValidationDrawer(false);
-
   };
 
   const handleNidaChecking = async (nida) => {
