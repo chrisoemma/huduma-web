@@ -15,9 +15,10 @@ import {
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
-import UpdateForm from './Components/UpdateForm';
+
 import { addService, getServices, removeService } from './ServiceSlice';
 import { getSubCategories } from '../SubCategory/SubCategorySlice';
+import UpdateForm from './Components/UpdateForm';
 
 //change name from sub service to service
 

@@ -9,7 +9,7 @@
 
   import { getSubCategories } from '@/pages/SubCategory/SubCategorySlice';
 import { updateService } from '../ServiceSlice';
-//import { updateSubService } from '../SubServiceSlice';
+
   
   
   export type UpdateFormProps = {
