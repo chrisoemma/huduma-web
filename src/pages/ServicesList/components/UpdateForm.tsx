@@ -1,11 +1,9 @@
-// import {
-  import React, { useEffect, useState,useRef } from 'react';
+import React, { useEffect, useState,useRef } from 'react';
   import { Modal, Upload, Image, Form, Button, message } from 'antd';
   import { ProFormText,   StepsForm, ProFormSelect, ProFormTextArea,ProFormRadio } from '@ant-design/pro-form';
   import { InboxOutlined } from '@ant-design/icons';
-  import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+
   import { FormattedMessage, useIntl, useModel } from '@umijs/max';
-  import { storage } from '@/firebase/firebase';
 
   import { getSubCategories } from '@/pages/SubCategory/SubCategorySlice';
 import { updateService } from '../ServiceSlice';
