@@ -18,7 +18,7 @@ import { updateService } from '../ServiceSlice';
     onTableReload: () => void;
   };
   
-  const UpdateForm: React.FC<UpdateFormProps> = (props) => {
+  const ServiceUpdate: React.FC<UpdateFormProps> = (props) => {
     const intl = useIntl();
     const [form] = Form.useForm();
     const [imageUrl, setImageUrl] = useState<string | undefined>(props.values.default_images?.[0]?.img_url);
@@ -321,5 +321,5 @@ import { updateService } from '../ServiceSlice';
     
   };
   
-  export default UpdateForm;
+  export default ServiceUpdate;
   

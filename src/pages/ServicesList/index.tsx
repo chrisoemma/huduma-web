@@ -18,7 +18,7 @@ import React, { useRef, useState, useEffect } from 'react';
 
 import { addService, getServices, removeService } from './ServiceSlice';
 import { getSubCategories } from '../SubCategory/SubCategorySlice';
-import UpdateForm from './Components/UpdateForm';
+import ServiceUpdate from './Components/ServiceUpdate';
 
 
 //change name from sub service to service
@@ -565,7 +565,7 @@ const ServicesList: React.FC = () => {
           />
         </ProForm.Group>
       </ModalForm>
-      <UpdateForm
+      <ServiceUpdate
         onSubmit={async (value) => {
           const success = await handleUpdate(value);
           if (success) {
