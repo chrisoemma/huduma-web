@@ -288,6 +288,11 @@
         name: 'Set Commission Amount',
         component: './setCommissionAmountList',
       },
+      {
+        path: '/settings/terms-of-services',
+        name: 'Terms of services',
+        component: './TermsOfServices',
+      },
 
     ],
   },
