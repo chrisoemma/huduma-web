@@ -1,5 +1,6 @@
 import { PlusOutlined } from '@ant-design/icons';
 import type { ActionType, ProColumns, ProDescriptionsItemProps } from '@ant-design/pro-components';
+import Tesseract from 'tesseract.js';
 import {
   FooterToolbar,
   ModalForm,
@@ -39,6 +40,43 @@ const ProviderDocsList: React.FC = () => {
   const [updateModalOpen, handleUpdateModalOpen] = useState<boolean>(false);
 
   const [showDetail, setShowDetail] = useState<boolean>(false);
+  const [ocrResult, setOcrResult] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+
+
+  const handleExtractNida = async (docUrl: string) => {
+    setIsProcessing(true);
+
+    console.log('docUrl123',docUrl)
+    try {
+      const { data: { text } } = await Tesseract.recognize(docUrl, 'eng', {
+        logger: (info) => console.log(info),
+      });
+
+
+      console.log('Extracted Text:', text);
+  
+      // Regex to extract NIDA number
+      const nidaRegex = /\b(\d{8}-\d{5}-\d{5}-\d{2}|\d{20})\b/;
+      const match = text.match(nidaRegex);
+  
+      if (match) {
+        setOcrResult(`Extracted NIDA Number: ${match[0]}`);
+        message.success('NIDA number extracted successfully!');
+      } else {
+        setOcrResult('No valid NIDA number found in the document.');
+        message.warning('No NIDA number detected in the document.');
+      }
+    } catch (error) {
+      console.log('OCR Error:', error);
+      message.error('Failed to extract NIDA number.');
+      setOcrResult('Error occurred while processing the document.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+ 
 
   const actionRef = useRef<ActionType>();
   const [currentRow, setCurrentRow] = useState<API.ProviderDocsListItem>();
@@ -67,6 +105,10 @@ const ProviderDocsList: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
+
+
+
+  //console.log('currentDocument?.doc_format',currentDocument);
 
   const handleBackClick = () => {
     if (location.state && location.state.from) {
@@ -235,9 +277,6 @@ const ProviderDocsList: React.FC = () => {
   const handleStatus = async (id, status) => {
 
     const response = await updateDocStatus(id, { status });
-
-
-
     if (response?.status) {
       message.success(response?.message);
       setDocumentDrawerVisible(false);
@@ -254,6 +293,32 @@ const ProviderDocsList: React.FC = () => {
     }
     //   return true;
   }
+
+
+
+  const handleTogglePreviewable = (doc: API.ProviderDocsListItem) => {
+    setPreviewableDocs((prev) => {
+      if (prev.some((d) => d.id === doc.id)) {
+        // Remove document from previewable list
+        return prev.filter((d) => d.id !== doc.id);
+      } else {
+        // Add document to previewable list (limit to 2 for comparison)
+        if (prev.length < 2) {
+          const updatedDocs = [...prev, doc];
+  
+          // Open the modal automatically if it's the second previewable document
+          if (updatedDocs.length === 2) {
+            setIsModalVisible(true);// Assuming you have a state to control modal visibility
+          }
+  
+          return updatedDocs;
+        } else {
+          message.warning('Only two documents can be previewed at a time.');
+          return prev;
+        }
+      }
+    });
+  };
 
 
 
@@ -361,13 +426,15 @@ const ProviderDocsList: React.FC = () => {
           <Button style={{ marginRight: 20 }} onClick={() => handleStatus(currentDocument?.id, 'Approved')}>Approve</Button>
         )}
 
-        {
-          currentDocument?.doc_format == 'Nida/Passport' ? (
-            <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
-              Validate NIDA
-            </Button>
-          ) : (<></>)
-        }
+
+
+{
+  currentDocument?.working_document?.doc_name?.toLowerCase().includes('nida') ? (
+    <Button style={{ marginLeft: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+      Validate NIDA
+    </Button>
+  ) : (<></>)
+}
 
       </div>
       <div style={{ paddingTop: 20 }}>
@@ -395,6 +462,9 @@ const ProviderDocsList: React.FC = () => {
     </Drawer>
   );
 
+
+
+   //console.log('current',currentDocument);
 
   const handleRemove = async (selectedRows: API.ProviderDocsListItem[]) => {
 
@@ -526,6 +596,16 @@ const ProviderDocsList: React.FC = () => {
   };
 
 
+
+  const [previewableDocs, setPreviewableDocs] = useState<API.ProviderDocsListItem[]>([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  
+  
+  // Manual button to open the modal
+  const handleManualOpenModal = () => {
+    setIsModalVisible(true);
+  };
+
   const columns: ProColumns<API.ProviderDocsListItem>[] = [
     {
       title: (
@@ -551,6 +631,21 @@ const ProviderDocsList: React.FC = () => {
         );
       },
       search: true,
+    },
+    {
+      title: 'Action',
+      dataIndex: 'action',
+      render: (_, record) => {
+        const isPreviewable = previewableDocs.some((doc) => doc.id === record.id);
+        return (
+          <Button
+            type={isPreviewable ? 'default' : 'primary'}
+            onClick={() => handleTogglePreviewable(record)}
+          >
+            {isPreviewable ? 'Remove Previewable' : 'Add to Previewable'}
+          </Button>
+        );
+      },
     },
 
     {
@@ -659,23 +754,6 @@ const ProviderDocsList: React.FC = () => {
         );
       },
     },
-
-    // {
-    //   title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
-    //   dataIndex: 'option',
-    //   valueType: 'option',
-    //   render: (_, record) => [
-    //     <a
-    //       key="config"
-    //       onClick={() => {
-    //         handleUpdateModalOpen(true);
-    //         setCurrentRow(record);
-    //       }}
-    //     >
-    //       <FormattedMessage id="pages.searchTable.edit" defaultMessage="Edit" />
-    //     </a>,
-    //   ],
-    // },
   ];
 
   return (
@@ -695,6 +773,15 @@ const ProviderDocsList: React.FC = () => {
         actionRef={actionRef}
         rowKey="id"
         toolBarRender={() => [
+
+          <Button
+          type="default"
+          key="previewModal"
+          onClick={handleManualOpenModal}
+          disabled={previewableDocs.length === 0} // Disable button if no previewable docs
+        >
+          <FormattedMessage id="pages.searchTable.previewDocs" defaultMessage="Preview Docs" />
+        </Button>,
 
           <Button
           type="primary"
@@ -988,6 +1075,77 @@ const ProviderDocsList: React.FC = () => {
       {DocumentDrawer}
 
       {NidaValidationDrawer}
+
+
+      <Modal
+      visible={isModalVisible}
+      title="Preview Documents"
+      onCancel={() => setIsModalVisible(false)}
+      footer={null}
+      width={800}
+    >
+      {previewableDocs.length > 0 ? (
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          {previewableDocs.map((doc) => (
+            <div key={doc.id} style={{ border: '1px solid #ddd', padding: '1rem', width: '45%' }}>
+              <h4>{doc.doc_format}</h4>
+              {/* Check if document is an image */}
+              {doc.doc_type.includes('image') ? (
+                <Image.PreviewGroup>
+                  <Image
+                    src={doc.doc_url}
+                    alt={doc.doc_format}
+                    style={{ width: '100%', height: 'auto' }}
+                  />
+                </Image.PreviewGroup>
+              ) : (
+                <iframe
+                  src={doc.doc_url}
+                  style={{ width: '100%', height: '300px' }}
+                  title={doc.doc_format}
+                />
+              )}
+
+{doc.working_document?.doc_name
+                  ?.toLowerCase()
+                  .includes('tin') && (
+                  <Button
+                    type="primary"
+                    onClick={() => handleExtractNida(doc.doc_url)}
+                    loading={isProcessing}
+                    style={{ marginTop: 10 }}
+                  >
+                    Extract NIDA Number
+                  </Button>
+                )}
+            </div>
+          ))}
+        </div>
+
+        
+      ) : (
+        <p>No documents available for preview.</p>
+      )}
+
+{ocrResult && (
+            <div style={{ marginTop: 20 }}>
+              <h4>Extracted NIDA Number:</h4>
+              <p>{ocrResult}</p>
+            </div>
+          )}
+
+{previewableDocs.some((doc) =>
+    doc.working_document?.doc_name?.toLowerCase().includes('nida')
+  ) && (
+    <Button
+      style={{ marginTop: 20 }}
+      type="primary"
+      onClick={handleNidaValidationDrawerOpen}
+    >
+      Validate NIDA
+    </Button>
+  )}
+    </Modal>
       
       <Modal
         visible={designationModalVisible}

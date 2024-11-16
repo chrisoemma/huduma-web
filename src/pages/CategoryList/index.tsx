@@ -316,7 +316,6 @@ const handleAdd = async (formData) => {
         </FooterToolbar>
       )}
 
-
 <ModalForm
   title={intl.formatMessage({
     id: 'pages.searchTable.createForm.newCategory',
