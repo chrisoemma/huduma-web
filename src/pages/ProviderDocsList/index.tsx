@@ -45,20 +45,58 @@ const ProviderDocsList: React.FC = () => {
 
 
 
-  const handleExtractNida = async (docUrl: string) => {
-    setIsProcessing(true);
+  const preprocessImage = async (url: string): Promise<string> => {
+    const img = document.createElement('img'); 
+    img.src = url;
+  
+    await new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    });
+  
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+  
+    if (!ctx) {
+      throw new Error('Unable to get canvas 2D context');
+    }
+  
+    canvas.width = img.width;
+    canvas.height = img.height;
+  
+    // Draw the image on the canvas
+    ctx.drawImage(img, 0, 0);
+  
+    // Convert to grayscale
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+  
+    for (let i = 0; i < data.length; i += 4) {
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3; // Calculate the average of RGB values
+      data[i] = data[i + 1] = data[i + 2] = avg; // Set RGB to the grayscale value
+    }
+  
+    ctx.putImageData(imageData, 0, 0);
+  
+    // Return the preprocessed image as a data URL
+    return canvas.toDataURL();
+  };
+  
 
-    console.log('docUrl123',docUrl)
+  
+  
+  const handleExtractNida = async (docUrl) => {
+    setIsProcessing(true);
+  
     try {
-      const { data: { text } } = await Tesseract.recognize(docUrl, 'eng', {
+      const preprocessedUrl = await preprocessImage(docUrl);
+      const { data: { text } } = await Tesseract.recognize(preprocessedUrl, 'eng', {
         logger: (info) => console.log(info),
       });
-
-
+  
       console.log('Extracted Text:', text);
   
-      // Regex to extract NIDA number
-      const nidaRegex = /\b(\d{8}-\d{5}-\d{5}-\d{2}|\d{20})\b/;
+      const nidaRegex = /(\d{8}[-.\s]?\d{5}[-.\s]?\d{5}[-.\s]?\d{2})/;
       const match = text.match(nidaRegex);
   
       if (match) {
@@ -69,7 +107,7 @@ const ProviderDocsList: React.FC = () => {
         message.warning('No NIDA number detected in the document.');
       }
     } catch (error) {
-      console.log('OCR Error:', error);
+      console.error('OCR Error:', error);
       message.error('Failed to extract NIDA number.');
       setOcrResult('Error occurred while processing the document.');
     } finally {
