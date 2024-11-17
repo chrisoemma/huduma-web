@@ -65,7 +65,7 @@ const ProviderDocsList: React.FC = () => {
     canvas.width = img.width;
     canvas.height = img.height;
   
-    // Draw the image on the canvas
+    ctx.filter = 'contrast(1.5) brightness(1.2)';
     ctx.drawImage(img, 0, 0);
   
     // Convert to grayscale
@@ -73,10 +73,10 @@ const ProviderDocsList: React.FC = () => {
     const data = imageData.data;
   
     for (let i = 0; i < data.length; i += 4) {
-      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3; // Calculate the average of RGB values
-      data[i] = data[i + 1] = data[i + 2] = avg; // Set RGB to the grayscale value
+      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+      const threshold = avg > 128 ? 255 : 0; 
+      data[i] = data[i + 1] = data[i + 2] = threshold; 
     }
-  
     ctx.putImageData(imageData, 0, 0);
   
     // Return the preprocessed image as a data URL
