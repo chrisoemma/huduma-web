@@ -58,9 +58,13 @@ const ProviderDocsList: React.FC = () => {
     const { data: { words } } = await Tesseract.recognize(img, 'eng', {
       logger: (info) => console.log(info),
     });
+
+    console.log('wordssss',words);
   
     // Filter words matching the desired pattern (e.g., 16–20 digits with/without dashes)
-    const targetWords = words.filter((word) => /\b\d{16,20}\b/.test(word.text));
+    const targetWords = words.filter((word) => /\b\d{11,20}\b/.test(word.text));
+
+    console.log('targeted words',targetWords);
   
     if (targetWords.length === 0) {
       throw new Error('No matching text found in the image');
@@ -97,7 +101,7 @@ const ProviderDocsList: React.FC = () => {
     console.log('Refined Text:', text);
   
     // Extract the NIDA number
-    const nidaRegex = /\b\d{8}-?\d{5}-?\d{5}-?\d{2}\b/;
+    const nidaRegex = /\b\d{16,20}\b/;
     const match = text.match(nidaRegex);
   
     return match ? match[0] : 'No valid NIDA number found.';
