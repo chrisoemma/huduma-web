@@ -47,6 +47,7 @@ const ProviderDocsList: React.FC = () => {
 
   const preprocessImage = async (url: string): Promise<string> => {
     const img = document.createElement('img'); 
+    img.crossOrigin = 'anonymous'
     img.src = url;
   
     await new Promise((resolve, reject) => {
