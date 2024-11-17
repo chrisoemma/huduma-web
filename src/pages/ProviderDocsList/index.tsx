@@ -45,9 +45,9 @@ const ProviderDocsList: React.FC = () => {
 
 
 
-  const preprocessImage = async (url: string): Promise<string> => {
-    const img = document.createElement('img'); 
-    img.crossOrigin = 'anonymous'
+  const processAndCropByPattern = async (url: string) => {
+    const img = document.createElement('img');
+    img.crossOrigin = 'anonymous';
     img.src = url;
   
     await new Promise((resolve, reject) => {
@@ -55,53 +55,68 @@ const ProviderDocsList: React.FC = () => {
       img.onerror = reject;
     });
   
+    const { data: { words } } = await Tesseract.recognize(img, 'eng', {
+      logger: (info) => console.log(info),
+    });
+  
+    // Filter words matching the desired pattern (e.g., 16–20 digits with/without dashes)
+    const targetWords = words.filter((word) => /\b\d{16,20}\b/.test(word.text));
+  
+    if (targetWords.length === 0) {
+      throw new Error('No matching text found in the image');
+    }
+  
+    // Get the bounding box of the first matching word
+    const { x0, y0, x1, y1 } = targetWords[0]; // Bounding box coordinates of the word
+  
+    // Crop the image based on the bounding box
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
   
-    if (!ctx) {
-      throw new Error('Unable to get canvas 2D context');
-    }
+    if (!ctx) throw new Error('Unable to get canvas 2D context');
   
-    canvas.width = img.width;
-    canvas.height = img.height;
+    // Set canvas size to match the bounding box
+    canvas.width = x1 - x0;
+    canvas.height = y1 - y0;
   
-    // Draw the image on the canvas
-    ctx.drawImage(img, 0, 0);
+    // Draw cropped region onto canvas
+    ctx.drawImage(img, x0, y0, x1 - x0, y1 - y0, 0, 0, x1 - x0, y1 - y0);
   
-    // Convert to grayscale
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
-  
-    for (let i = 0; i < data.length; i += 4) {
-      const avg = (data[i] + data[i + 1] + data[i + 2]) / 3; // Calculate the average of RGB values
-      data[i] = data[i + 1] = data[i + 2] = avg; // Set RGB to the grayscale value
-    }
-  
-    ctx.putImageData(imageData, 0, 0);
-  
-    // Return the preprocessed image as a data URL
+    // Return the cropped image as a data URL
     return canvas.toDataURL();
   };
-  
 
+
+
+  const refineOCRForCroppedRegion = async (croppedImageUrl: string) => {
+    const { data: { text } } = await Tesseract.recognize(croppedImageUrl, 'eng', {
+      logger: (info) => console.log(info),
+      tessedit_char_whitelist: '0123456789-', // Focus only on valid characters
+    });
   
+    console.log('Refined Text:', text);
   
-  const handleExtractNida = async (docUrl) => {
+    // Extract the NIDA number
+    const nidaRegex = /\b\d{8}-?\d{5}-?\d{5}-?\d{2}\b/;
+    const match = text.match(nidaRegex);
+  
+    return match ? match[0] : 'No valid NIDA number found.';
+  };
+
+
+
+  const handleExtractNida = async (docUrl: string) => {
     setIsProcessing(true);
   
     try {
-      const preprocessedUrl = await preprocessImage(docUrl);
-      const { data: { text } } = await Tesseract.recognize(preprocessedUrl, 'eng', {
-        logger: (info) => console.log(info),
-      });
+      // Step 1: Detect and Crop the Region with Numbers
+      const croppedRegionUrl = await processAndCropByPattern(docUrl);
   
-      console.log('Extracted Text:', text);
+      // Step 2: Perform OCR on the Cropped Region
+      const nidaNumber = await refineOCRForCroppedRegion(croppedRegionUrl);
   
-      const nidaRegex = /(\d{8}[-.\s]?\d{5}[-.\s]?\d{5}[-.\s]?\d{2})/;
-      const match = text.match(nidaRegex);
-  
-      if (match) {
-        setOcrResult(`Extracted NIDA Number: ${match[0]}`);
+      if (nidaNumber) {
+        setOcrResult(`Extracted NIDA Number: ${nidaNumber}`);
         message.success('NIDA number extracted successfully!');
       } else {
         setOcrResult('No valid NIDA number found in the document.');
@@ -115,6 +130,7 @@ const ProviderDocsList: React.FC = () => {
       setIsProcessing(false);
     }
   };
+  
  
 
   const actionRef = useRef<ActionType>();
