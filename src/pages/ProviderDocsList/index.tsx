@@ -15,7 +15,7 @@ import {
   PageLoading,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl, useRequest } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message, Form, Modal, List } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message, Form, Modal, List, Select } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
@@ -33,6 +33,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 
 
+
 const ProviderDocsList: React.FC = () => {
 
   const [createModalOpen, handleModalOpen] = useState<boolean>(false);
@@ -42,6 +43,8 @@ const ProviderDocsList: React.FC = () => {
   const [showDetail, setShowDetail] = useState<boolean>(false);
   const [ocrResult, setOcrResult] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [selectedNidaType, setSelectedNidaType] = useState(null);
+  const [nidaNumberValidation, setNidaNumberValidation] = useState(currentRow?.nida || '');
 
 
  
@@ -73,8 +76,7 @@ const ProviderDocsList: React.FC = () => {
 
   const navigate = useNavigate();
   const location = useLocation();
-
-
+  const { Option } = Select;
 
   //console.log('currentDocument?.doc_format',currentDocument);
 
@@ -179,36 +181,20 @@ const ProviderDocsList: React.FC = () => {
     setShowNidaValidationDrawer(false);
   };
 
-  const handleNidaChecking = async (nida) => {
+  const handleNidaChecking = async (nida,type) => {
     try {
-      setLoadingValidation(true); // Set loading to true when starting the operation
-
-      const nidaValidationData = {
-        status: '',
-        user_type: 'Provider',
-      };
+      setLoading(true); 
 
       const response = await getNida(nida);
 
+      console.log('nida checking',nida)
 
       if (response.error) {
-        // Case 1: Validation error
         setValidationResult({ error: response.obj.error });
-      } else if (response.obj.error) {
-        // Case 2: NIDA number does not exist
-        nidaValidationData.status = 'A.Invalid';
-
-        const nidaResponse = await validateNida(currentDocument?.provider_id, nidaValidationData);
-        actionRef.current?.reloadAndRest();
-
+      } else if (response.obj.error) {    
         setValidationResult({ error: 'NIDA Number does not exist' });
+        actionRef.current?.reloadAndRest();
       } else if (response.obj.result) {
-        // Case 3: Successful NIDA number validation
-        const { FIRSTNAME, MIDDLENAME, SURNAME, SEX, DateofBirth } = response.obj.result;
-
-        // Update state with successful result
-        nidaValidationData.status = 'A.Valid';
-        const nidaResponse = await validateNida(currentDocument?.provider_id, nidaValidationData);
         actionRef.current?.reloadAndRest();
         setValidationResult({ result: response.obj.result });
       }
@@ -219,9 +205,54 @@ const ProviderDocsList: React.FC = () => {
       setValidationResult({ error: 'Failed to perform NIDA checking' });
       return { error: 'Failed to perform NIDA checking' };
     } finally {
-      setLoadingValidation(false);
+      setLoading(false);
     }
   };
+
+
+  const handleNidaTypeChange = (value) => {
+    setSelectedNidaType(value);
+  };
+
+  
+  const handleNidaApproval = async(value,nida,type)=>{
+
+    Modal.confirm({
+        title: `Are you sure you want to ${value.toLowerCase()} this`,
+        okText: 'Yes',
+        cancelText: 'No',
+        onOk: async () => {
+
+    try{
+      const nidaValidationData = {
+        status: '',
+        user_type: 'Provider',
+      };
+
+      setLoading(true);
+       let dataMessage=''
+      if (value=='Reject') {
+        nidaValidationData.status = 'A.Invalid';
+         dataMessage='Rejected successfully'
+      } else{         
+        nidaValidationData.status = 'A.Valid';
+         dataMessage='Approved successfully'
+      }
+
+      const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+      message.success(dataMessage);
+      actionRef.current?.reloadAndRest();
+        
+    } catch (error) {
+        console.error(error);
+        return { error: 'Failed to perform NIDA checking' };
+      } finally {
+        setLoading(false);
+      }
+
+    }
+});
+}
 
 
   const getStatusColor = (status) => {
@@ -291,7 +322,6 @@ const ProviderDocsList: React.FC = () => {
 
 
   const NidaValidationDrawer = (
-
     <Drawer
       width={400}
       title="Validate NIDA Number"
@@ -300,52 +330,86 @@ const ProviderDocsList: React.FC = () => {
       visible={showNidaValidationDrawer}
       destroyOnClose
     >
-
-
-      <Form>
+      <Form layout="vertical">
+        {validationResult?.error && (
+          <div style={{ marginBottom: 20 }}>
+            <Tag color="red">Error: {validationResult.error}</Tag>
+          </div>
+        )}
+  
+        {/* Dropdown for NIDA Type Selection */}
+        <Item
+          label="Select NIDA Type"
+          name="nidaType"
+          rules={[{ required: true, message: 'Please select a NIDA type' }]}
+        >
+          <Select placeholder="Choose NIDA Type" onChange={handleNidaTypeChange}>
+            <Option value="guarantor">Guarantor NIDA</Option>
+            <Option value="provider">Provider NIDA</Option>
+          </Select>
+        </Item>
+  
+        {/* Editable Input for NIDA Number */}
+        <Item
+          label="NIDA Number"
+          name="nidaNumber"
+          rules={[{ required: true, message: 'Please enter NIDA Number' }]}
+        >
+          <Input
+            placeholder="Enter NIDA Number"
+            value={nidaNumberValidation}
+            onChange={(e) => setNidaNumberValidation(e.target.value)}
+          />
+        </Item>
+  
+        {/* Validate NIDA Button */}
+        <div style={{ marginBottom: 20 }}>
+          <Button
+            type="primary"
+            onClick={() => handleNidaChecking(nidaNumberValidation, selectedNidaType)}
+            disabled={loading}
+          >
+            {loading ? 'Validating...' : 'Validate NIDA'}
+          </Button>
+        </div>
+  
+        {loading && <PageLoading />}
+  
+        {/* Validation Result and Comparison */}
         {validationResult && (
-
           <div style={{ marginTop: 20 }}>
             {validationResult.error ? (
               <Tag color="red">Error: {validationResult.error}</Tag>
             ) : (
-              <div>
-                <Tag color="green" style={{ fontWeight: 'bold' }}>
-                  NIDA Validation Successful!
-                </Tag>
-                <p>First Name: {validationResult.result.FIRSTNAME}</p>
-                <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
-                <p> Last Name: {validationResult.result.SURNAME}</p>
-                {/* Add more fields as needed */}
-              </div>
+              <Tag color="green" style={{ fontWeight: 'bold' }}>
+                NIDA Validation Successful!
+              </Tag>
             )}
           </div>
         )}
-        <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
-        <Item
-          label="NIDA Number"
-          name="nidaNumber"
-          initialValue={nidaNumber || ''}
-          rules={[
-            {
-              required: true,
-              message: 'Please enter NIDA Number',
-            },
-          ]}
-        >
-          <Input
-            value={nidaNumber || ''}
-            disabled
-
-          />
-        </Item>
-
-        <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loadingValidation}>
-          {loadingValidation ? 'Validating...' : 'Validate NIDA'}
-        </Button>
-        {loadingValidation && <PageLoading />}
-
+  
+        {/* Approve/Reject Buttons */}
+        <div style={{ marginTop: 20, display: 'flex', gap: '10px' }}>
+          <Button
+            type="primary"
+            danger
+            onClick={() => handleNidaApproval('Reject', nidaNumberValidation, selectedNidaType)}
+            disabled={loading}
+          >
+            {loading ? 'Rejecting...' : 'Reject'}
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => handleNidaApproval('Approve', nidaNumberValidation, selectedNidaType)}
+            disabled={loading}
+          >
+            {loading ? 'Approving...' : 'Approve'}
+          </Button>
+        </div>
+  
+        {/* NIDA Status History */}
         <div style={{ marginTop: 20 }}>
+          <h4>NIDA Status History</h4>
           <p>This NIDA has passed through the following statuses:</p>
           {currentRow?.nida_statuses?.map((status, index) => (
             <Tag key={index} color={getStatusColor(status.status)}>
@@ -354,10 +418,9 @@ const ProviderDocsList: React.FC = () => {
           ))}
         </div>
       </Form>
-
     </Drawer>
-
   );
+  
 
   const DocumentDrawer = (
     <Drawer
@@ -1076,10 +1139,10 @@ const ProviderDocsList: React.FC = () => {
 
 {doc.working_document?.doc_name
                   ?.toLowerCase()
-                  .includes('tin') && (
+                  .includes('nida') && (
                   <Button
                     type="primary"
-                    onClick={() => handleExtractNida(doc.doc_url)}
+                    onClick={() => {}}
                     loading={isProcessing}
                     style={{ marginTop: 10 }}
                   >
