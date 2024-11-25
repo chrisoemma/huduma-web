@@ -232,7 +232,7 @@ const ProviderList: React.FC = () => {
           if (response.error) {
             setValidationResult({ error: response.obj.error });
           } else if (response.obj.error) {    
-          //  const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+            setValidationResult({ error: 'NIDA Number does not exist' });
             actionRef.current?.reloadAndRest();
           } else if (response.obj.result) {
             actionRef.current?.reloadAndRest();
