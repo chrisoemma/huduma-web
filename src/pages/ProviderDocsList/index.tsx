@@ -80,6 +80,8 @@ const ProviderDocsList: React.FC = () => {
 
   const { provider, from } = location.state || {};
 
+  console.log('providerrrrr',provider);
+
   //console.log('currentDocument?.doc_format',currentDocument);
 
   const handleBackClick = () => {

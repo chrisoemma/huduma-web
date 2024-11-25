@@ -1206,7 +1206,7 @@ const ProviderList: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
               {/* Current User Details */}
               <div>
-                <h4>User Input Details</h4>
+                <h4>Provider Input Details</h4>
                 <p>First Name: {currentRow?.first_name || 'N/A'}</p>
                 <p>Last Name: {currentRow?.last_name || 'N/A'}</p>
                 <p>Phone Number: {currentRow?.phone || 'N/A'}</p>
