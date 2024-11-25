@@ -320,6 +320,10 @@ const ProviderDocsList: React.FC = () => {
   };
 
 
+  const isValidateButtonDisabled =
+  !selectedNidaType ||
+  nidaNumberValidation.length !== 20 ||
+  !/^\d{20}$/.test(nidaNumberValidation);
 
   const NidaValidationDrawer = (
     <Drawer
@@ -351,23 +355,35 @@ const ProviderDocsList: React.FC = () => {
   
         {/* Editable Input for NIDA Number */}
         <Item
-          label="NIDA Number"
-          name="nidaNumber"
-          rules={[{ required: true, message: 'Please enter NIDA Number' }]}
-        >
-          <Input
-            placeholder="Enter NIDA Number"
-            value={nidaNumberValidation}
-            onChange={(e) => setNidaNumberValidation(e.target.value)}
-          />
-        </Item>
+  label="NIDA Number"
+  name="nidaNumber"
+  rules={[
+    { required: true, message: 'Please enter NIDA Number' },
+    {
+      pattern: /^\d*$/,
+      message: 'NIDA Number must contain only digits',
+    },
+  ]}
+>
+  <div style={{ position: 'relative' }}>
+    <Input
+      placeholder="Enter NIDA Number"
+      value={nidaNumberValidation}
+      onChange={(e) => setNidaNumberValidation(e.target.value)}
+      maxLength={20} // Optional: Limit input to 20 digits
+    />
+    <div style={{ marginTop: 5, fontSize: '12px', color: '#888' }}>
+      {`Digits entered: ${nidaNumberValidation.length}/20`}
+    </div>
+  </div>
+</Item>
   
         {/* Validate NIDA Button */}
         <div style={{ marginBottom: 20 }}>
           <Button
             type="primary"
             onClick={() => handleNidaChecking(nidaNumberValidation, selectedNidaType)}
-            disabled={loading}
+            disabled={isValidateButtonDisabled || loading}
           >
             {loading ? 'Validating...' : 'Validate NIDA'}
           </Button>
@@ -381,9 +397,28 @@ const ProviderDocsList: React.FC = () => {
             {validationResult.error ? (
               <Tag color="red">Error: {validationResult.error}</Tag>
             ) : (
+              <>
               <Tag color="green" style={{ fontWeight: 'bold' }}>
                 NIDA Validation Successful!
               </Tag>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
+              {/* Current User Details */}
+              <div>
+                <h4>User Input Details</h4>
+                <p>First Name: {currentRow?.first_name || 'N/A'}</p>
+                <p>Last Name: {currentRow?.last_name || 'N/A'}</p>
+                <p>Phone Number: {currentRow?.phone || 'N/A'}</p>
+              </div>
+
+              {/* NIDA Details */}
+              <div>
+                <h4>NIDA Details</h4>
+                <p>First Name: {validationResult.result.FIRSTNAME}</p>
+                <p>Last Name: {validationResult.result.SURNAME}</p>
+                <p>Phone Number: {validationResult.result.PHONE || 'N/A'}</p>
+              </div>
+            </div>
+              </>
             )}
           </div>
         )}
@@ -394,14 +429,14 @@ const ProviderDocsList: React.FC = () => {
             type="primary"
             danger
             onClick={() => handleNidaApproval('Reject', nidaNumberValidation, selectedNidaType)}
-            disabled={loading}
+            disabled={isValidateButtonDisabled || loading}
           >
             {loading ? 'Rejecting...' : 'Reject'}
           </Button>
           <Button
             type="primary"
             onClick={() => handleNidaApproval('Approve', nidaNumberValidation, selectedNidaType)}
-            disabled={loading}
+            disabled={isValidateButtonDisabled || loading}
           >
             {loading ? 'Approving...' : 'Approve'}
           </Button>
@@ -420,6 +455,7 @@ const ProviderDocsList: React.FC = () => {
       </Form>
     </Drawer>
   );
+  
   
 
   const DocumentDrawer = (
