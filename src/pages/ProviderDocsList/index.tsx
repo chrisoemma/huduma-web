@@ -14,14 +14,14 @@ import {
   ProFormSelect,
   PageLoading,
 } from '@ant-design/pro-components';
-import { FormattedMessage, useIntl, useRequest } from '@umijs/max';
+import { FormattedMessage, useIntl, useModel, useRequest } from '@umijs/max';
 import { Button, Drawer, Image, Input, Tag, message, Form, Modal, List, Select } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './components/UpdateForm';
 import { storage } from './../../firebase/firebase';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
-import { addProviderDoc, getProviderBusiness, getProviderDocs, providerDesignationDoc, removeDocs, updateDocStatus } from './ProviderDocsSlice';
+import { addProviderDoc, getProviderBusiness, getProviderDocs, postGuarantorData, providerDesignationDoc, removeDocs, updateDocStatus } from './ProviderDocsSlice';
 import { useParams } from 'react-router-dom';
 
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
@@ -80,7 +80,15 @@ const ProviderDocsList: React.FC = () => {
 
   const { provider, from } = location.state || {};
 
-  console.log('providerrrrr',provider);
+  const { initialState } = useModel('@@initialState');
+
+
+
+
+  const currentUser = initialState?.currentUser;
+  const  action_by=currentUser?.id;
+
+  // console.log('providerrrrr',provider);
 
   //console.log('currentDocument?.doc_format',currentDocument);
 
@@ -240,6 +248,17 @@ const ProviderDocsList: React.FC = () => {
         user_type: 'Provider',
       };
 
+      const guarantorData={
+        status:'',
+        provider_id:provider?.id,
+        created_by:action_by,
+        first_name:validationResult.result.FIRSTNAME,
+        middle_name:validationResult.result.MIDDLENAME,
+        last_name:validationResult.result.SURNAME,
+        nida:validationResult.result.NationalIDNumber
+       
+      }
+
       setLoading(true);
        let dataMessage=''
       if (value=='Reject') {
@@ -250,7 +269,13 @@ const ProviderDocsList: React.FC = () => {
          dataMessage='Approved successfully'
       }
 
-      const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+       if(type=='provider'){
+        const nidaResponse = await validateNida(provider?.id, nidaValidationData);
+       }else{
+        //agent nida validation to server
+        const GuarantorResponse = await postGuarantorData(guarantorData);
+       }
+     
       message.success(dataMessage);
       actionRef.current?.reloadAndRest();
         

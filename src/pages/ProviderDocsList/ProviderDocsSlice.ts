@@ -65,6 +65,18 @@ import { request } from '@umijs/max';
   }
 
 
+  export async function postGuarantorData(options?: { [data: string]: any }) {
+
+    return request(`${API_URL}/providers/guarantor_nida/`, {
+      method: 'POST',
+      data:{
+        method: 'post',
+        ...(options || {}),
+      }
+    });
+  }
+
+
    export async function getProviderBusiness(providerId: number,
     params: {
         current?: number;
