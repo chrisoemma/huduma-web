@@ -78,6 +78,8 @@ const ProviderDocsList: React.FC = () => {
   const location = useLocation();
   const { Option } = Select;
 
+  const { provider, from } = location.state || {};
+
   //console.log('currentDocument?.doc_format',currentDocument);
 
   const handleBackClick = () => {
@@ -210,8 +212,15 @@ const ProviderDocsList: React.FC = () => {
   };
 
 
-  const handleNidaTypeChange = (value) => {
+   const handleNidaTypeChange = (value) => {
     setSelectedNidaType(value);
+    if (value === 'provider') {
+      // If "Provider NIDA" is selected, populate the NIDA number field with provider's NIDA (if available)
+      setNidaNumberValidation(provider?.nida || '');
+    } else {
+      // If "Guarantor NIDA" is selected, clear the NIDA number field
+      setNidaNumberValidation('');
+    }
   };
 
   
@@ -327,13 +336,32 @@ const ProviderDocsList: React.FC = () => {
 
   const NidaValidationDrawer = (
     <Drawer
-      width={400}
+      width={600}
       title="Validate NIDA Number"
       placement="right"
       onClose={handleNidaValidationDrawerClose}
       visible={showNidaValidationDrawer}
       destroyOnClose
     >
+
+{selectedNidaType=='provider' && !validationResult && (
+  <div style={{ marginBottom: 20 }}>
+    <h3>User Input Informations</h3>
+    <p>Phone Number: {provider?.phone || 'N/A'}</p>
+    <p>First Name: {provider?.first_name || 'N/A'}</p>
+    <p>Last Name: {provider?.last_name || 'N/A'}</p>
+  </div>
+)}
+
+{selectedNidaType=='provider' && validationResult?.error && (
+  <div style={{ marginBottom: 20 }}>
+    <Tag color="red">Error: {validationResult.error}</Tag>
+    <h3> User Input Informations</h3>
+    <p>Phone Number: {provider?.phone || 'N/A'}</p>
+    <p>First Name: {provider?.first_name || 'N/A'}</p>
+    <p>Last Name: {provider?.last_name || 'N/A'}</p>
+  </div>
+)}
       <Form layout="vertical">
         {validationResult?.error && (
           <div style={{ marginBottom: 20 }}>
@@ -403,12 +431,15 @@ const ProviderDocsList: React.FC = () => {
               </Tag>
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
               {/* Current User Details */}
-              <div>
-                <h4>User Input Details</h4>
-                <p>First Name: {currentRow?.first_name || 'N/A'}</p>
-                <p>Last Name: {currentRow?.last_name || 'N/A'}</p>
-                <p>Phone Number: {currentRow?.phone || 'N/A'}</p>
-              </div>
+              {
+                selectedNidaType=='provider'?(   <div>
+                  <h4>Provider Input Details</h4>
+                  <p>First Name: {provider?.first_name || 'N/A'}</p>
+                  <p>Last Name: {provider?.last_name || 'N/A'}</p>
+                  <p>Phone Number: {provider?.phone || 'N/A'}</p>
+                </div>):(<></>)
+              }
+           
 
               {/* NIDA Details */}
               <div>
@@ -446,7 +477,7 @@ const ProviderDocsList: React.FC = () => {
         <div style={{ marginTop: 20 }}>
           <h4>NIDA Status History</h4>
           <p>This NIDA has passed through the following statuses:</p>
-          {currentRow?.nida_statuses?.map((status, index) => (
+          {provider?.nida_statuses?.map((status, index) => (
             <Tag key={index} color={getStatusColor(status.status)}>
               {status.status}
             </Tag>
@@ -1173,7 +1204,7 @@ const ProviderDocsList: React.FC = () => {
                 />
               )}
 
-{doc.working_document?.doc_name
+{/* {doc.working_document?.doc_name
                   ?.toLowerCase()
                   .includes('nida') && (
                   <Button
@@ -1184,7 +1215,7 @@ const ProviderDocsList: React.FC = () => {
                   >
                     Extract NIDA Number
                   </Button>
-                )}
+                )} */}
             </div>
           ))}
         </div>

@@ -282,7 +282,7 @@ const ProviderList: React.FC = () => {
     const handleViewDocs = () => {
         if (navigate) {
           navigate(`/user-management/service-providers/documents/provider/${currentRow?.id}`, {
-            state: { from: `/user-management/service-providers`,providerId: currentRow.id },
+            state: { from: `/user-management/service-providers`,providerId: currentRow.id,provider: currentRow},
           });
         }
       }
