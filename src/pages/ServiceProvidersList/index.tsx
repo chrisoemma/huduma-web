@@ -195,6 +195,13 @@ const ProviderList: React.FC = () => {
 
 
     const handleNidaApproval = async(value)=>{
+
+        Modal.confirm({
+            title: `Are you sure you want to ${value.toLowerCase()} this`,
+            okText: 'Yes',
+            cancelText: 'No',
+            onOk: async () => {
+
         try{
           const nidaValidationData = {
             status: '',
@@ -221,6 +228,9 @@ const ProviderList: React.FC = () => {
           } finally {
             setLoading(false);
           }
+
+        }
+    });
     }
 
     const handleNidaChecking = async (nida) => {
