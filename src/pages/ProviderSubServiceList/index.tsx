@@ -90,16 +90,25 @@ const ProviderSubServiceList: React.FC = () => {
             search: false,
             valueType: 'text',
             render: (dom, entity) => {
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
+                const serviceName = entity.name;
+                if (serviceName) {
+                    return (
+                        <a
+                            onClick={() => {
+                                setCurrentRow(entity);
+                                setShowDetail(true);
+                            }}
+                        >
+                            <div style={{ marginBottom: 10 }}>
+                                <b>English:</b> {serviceName.en || 'N/A'}
+                            </div>
+                            <div>
+                                <b>Swahili:</b> {serviceName.sw || 'N/A'}
+                            </div>
+                        </a>
+                    );
+                }
+                return '-------';
             },
         },
         {

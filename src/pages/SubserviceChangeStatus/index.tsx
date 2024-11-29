@@ -12,7 +12,7 @@ import {
     ProTable,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message } from 'antd';
+import { Button, Drawer, Form, Image, Input, Tag, message } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 
 //import UpdateForm from './components/UpdateForm';
@@ -40,10 +40,21 @@ const SubserviceChangeList: React.FC = () => {
     const [approveAllModalOpen, handleApproveAllModalOpen] = useState<boolean>(false);
 
 
+    const [fileList, setFileList] = useState<any[]>([]);
+
+// Make sure that fileList is always an array before using it
+const handleFileChange = ({ fileList: newFileList }: any) => {
+    setFileList(newFileList || []);  // Ensure fileList is an array
+};
+
+
     const handleApprovalModal = (action: string) => {
         setApprovalAction(action);
         handleApprovalModalOpen(true);
     };
+
+
+
 
     const handleApprovalModalOpen = (isOpen: boolean) => {
         handleApproveModalOpen(isOpen);
@@ -54,6 +65,19 @@ const SubserviceChangeList: React.FC = () => {
     };
 
 
+    const [form] = Form.useForm();
+
+useEffect(() => {
+  if (currentRow) {
+    form.setFieldsValue({
+      name_en: currentRow.name?.en || "",
+      name_sw: currentRow.name?.sw || "",
+      description_en: currentRow.description?.en || "",
+      description_sw: currentRow.description?.sw || "",
+      
+    });
+  }
+}, [currentRow]);
 
      const handleApproval  = async (status)=>{
 
@@ -62,7 +86,12 @@ const SubserviceChangeList: React.FC = () => {
             const statusChangeData= {
                 status:status
             }
+
+            console.log('row selected',currentRow?.id)
+            console.log('status change',statusChangeData);
             const response= await changeStatus(currentRow.id,statusChangeData);
+
+            console.log('responceeee',response)
             hide();
             message.success('Status successfully changed');
             return true
@@ -162,14 +191,11 @@ const SubserviceChangeList: React.FC = () => {
             valueType: 'text',
             render: (dom, entity) => {
                 return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
+              
+                        <div>
+                            {dom}
+                        </div>
+                    
                 );
             },
         },
@@ -205,18 +231,28 @@ const SubserviceChangeList: React.FC = () => {
             search: false,
             valueType: 'text',
             render: (dom, entity) => {
-                return (
-                    <a
-                        onClick={() => {
-                            setCurrentRow(entity);
-                            setShowDetail(true);
-                        }}
-                    >
-                        {dom}
-                    </a>
-                );
+                const serviceName = entity.name;
+                if (serviceName) {
+                    return (
+                        <a
+                            onClick={() => {
+                                setCurrentRow(entity);
+                                setShowDetail(true);
+                            }}
+                        >
+                            <div style={{ marginBottom: 10 }}>
+                                <b>English:</b> {serviceName.en || 'N/A'}
+                            </div>
+                            <div>
+                                <b>Swahili:</b> {serviceName.sw || 'N/A'}
+                            </div>
+                        </a>
+                    );
+                }
+                return '-------';
             },
         },
+        
         {
             title: <FormattedMessage id="pages.searchTable.titleImage" defaultMessage="Image" />,
             dataIndex: 'assets',
@@ -276,7 +312,7 @@ const SubserviceChangeList: React.FC = () => {
                             <FormattedMessage id="pages.searchTable.reject" defaultMessage="Reject" />
                         </a>
                     </div>
-                    <div>
+                    {/* <div>
                         <a
                             onClick={() => {
                                
@@ -286,7 +322,7 @@ const SubserviceChangeList: React.FC = () => {
                         >
                             <FormattedMessage id="pages.searchTable.reject" defaultMessage="Approve for all" />
                         </a>
-                    </div>
+                    </div> */}
                 </>
             ),
         }
@@ -381,6 +417,13 @@ const SubserviceChangeList: React.FC = () => {
                 width="600px"
                 visible={approveAllModalOpen}
                 onVisibleChange={handleApproveAllModal}
+                initialValues={{
+                    name_en: currentRow?.name?.en || '',
+                    name_sw: currentRow?.name?.sw || '',
+                    description_en: currentRow?.description?.en || '',
+                    description_sw: currentRow?.description?.sw || '',
+                    img_url: currentRow?.assets?.[0]?.img_url,
+                }}
                 onFinish={async (value) => {
                     const formData = new FormData();
                     formData.append('description', value.description);
@@ -399,32 +442,88 @@ const SubserviceChangeList: React.FC = () => {
                     }
                 }}
             >
-                {/* Add form fields for approving all, e.g., an image upload and a text area */}
-                <ProFormText
-                  
-                        name="name"
-                        label="Name"
-                        placeholder="Please enter name, if you wish  to change name of this sub service"
-                    />
+
+        <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'English Name is required',
+              },
+            ]}
+            width="md"
+            name="name_en"
+            label="Please enter name, if you wish  to change name of this sub service"
+          />
+
+          <ProFormText
+            rules={[
+              {
+                required: true,
+                message: 'Kiswahili Name is required',
+              },
+            ]}
+            width="md"
+            name="name_sw"
+            label="Tafadhali ingiza jina,kama unatakata kubadilisha jina huduma"
+          />
                 
-           
-                <ProFormTextArea
+        {/* <ProFormTextArea
                     name="description"
                     label="Description"
                     placeholder="Enter description..."
-                />
+                /> */}
 
-                  <ProFormUploadButton
-                    name="img_url"
-                    label="Upload New Image"
-                    fieldProps={{
-                        accept: 'image/*',
-                        max: 1,
-                        listType: 'picture-card',
-                        title: 'Click or Drag to Upload',
-                        placeholder: 'Click or Drag to Upload',
-                    }}
-                />
+           <ProFormTextArea
+            name="description_en"
+            width="md"
+            label={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.description_eng',
+              defaultMessage: 'English Description',
+            })}
+            placeholder={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+              defaultMessage: 'Description in English',
+            })}
+            rules={[
+              {
+                required: true,
+                message: 'Please enter the description!',
+                min: 5,
+              },
+            ]}
+          />
+
+          <ProFormTextArea
+            name="description_sw"
+            width="md"
+            label={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.description_sw',
+              defaultMessage: 'Kiswahili Description',
+            })}
+            placeholder={intl.formatMessage({
+              id: 'pages.searchTable.updateForm.ruleDesc.descPlaceholder',
+              defaultMessage: 'Description in Kiswahili',
+            })}
+            rules={[
+              {
+                required: true,
+                message: 'Please enter the description!',
+                min: 5,
+              },
+            ]}
+          />
+{/* <ProFormUploadButton
+  name="img_url"
+  label="Upload New Image"
+  fieldProps={{
+    accept: 'image/*',
+    max: 1,
+    listType: 'picture-card',
+    title: 'Click or Drag to Upload',
+    placeholder: 'Click or Drag to Upload',
+    onChange: handleFileChange, 
+  }}
+/> */}
                 {/* Add other fields or components as needed */}
             </ModalForm>
 
