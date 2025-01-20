@@ -13,7 +13,7 @@ import {
     PageLoading,
 } from '@ant-design/pro-components';
 import { FormattedMessage, useIntl, useModel } from '@umijs/max';
-import { Button, Drawer, Image, Input, Tag, message, Form } from 'antd';
+import { Button, Drawer, Image, Input, Tag, message, Form, Modal } from 'antd';
 import React, { useRef, useState, useEffect } from 'react';
 //import type { FormValueType } from './components/UpdateForm';
 import UpdateForm from './Components/UpdateForm';
@@ -22,7 +22,7 @@ import { history } from 'umi';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { addAgent, getAgents, removeAgent } from './AgentSlice';
 import { formatErrorMessages, showErrorWithLineBreaks, validateTanzanianPhoneNumber } from '@/utils/function';
-import { getNida, validateNida } from '../NidaSlice';
+import { getNida, request_nida_from_api, validateNida } from '../NidaSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../styles.css'
 import moment from 'moment';
@@ -57,21 +57,21 @@ const AgentList: React.FC = () => {
         if (navigateToId && tableRef.current) {
             const interval = setInterval(() => {
                 const rowElement = tableRef.current.querySelector(`[data-row-id="${navigateToId}"]`);
-               
+
                 if (rowElement) {
-                  
+
                     clearInterval(interval); // Stop searching once the row is found
                     rowElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     rowElement.classList.add('highlighted-row');
                     setTimeout(() => rowElement.classList.remove('highlighted-row'), 5000); // Remove after 5 seconds
                 }
             }, 100); // Check every 100ms
-            
+
             // Clean up interval on unmount or on navigateToId change
             return () => clearInterval(interval);
         }
     }, [navigateToId]);
-    
+
     const getRowClassName = (record) => {
         return record.id === navigateToId ? 'highlighted-row' : '';
     };
@@ -102,7 +102,7 @@ const AgentList: React.FC = () => {
             hide();
             message.success('Deleted successfully');
             if (actionRef.current) {
-              //  console.log('invoking this which is null')
+                //  console.log('invoking this which is null')
                 actionRef.current.reloadAndRest();
             }
             return true;
@@ -126,34 +126,26 @@ const AgentList: React.FC = () => {
 
     const handleNidaChecking = async (nida) => {
 
-         
         try {
-            setLoading(true); 
+            setLoading(true);
 
             const nidaValidationData = {
                 status: '',
                 user_type: 'Agent',
             };
 
-            const response = await getNida(nida);
+            const nidaData = {
+                nida: nida
+            }
+
+            const response = await request_nida_from_api(nidaData);
+
             if (response.error) {
-                // Case 1: Validation error
                 setValidationResult({ error: response.obj.error });
             } else if (response.obj.error) {
-                // Case 2: NIDA number does not exist
-                nidaValidationData.status = 'A.Invalid';
-
-                const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
-                actionRef.current?.reloadAndRest();
-
                 setValidationResult({ error: 'NIDA Number does not exist' });
+                actionRef.current?.reloadAndRest();
             } else if (response.obj.result) {
-                // Case 3: Successful NIDA number validation
-                const { FIRSTNAME, MIDDLENAME, SURNAME, SEX, DateofBirth } = response.obj.result;
-
-                // Update state with successful result
-                nidaValidationData.status = 'A.Valid';
-                const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
                 actionRef.current?.reloadAndRest();
                 setValidationResult({ result: response.obj.result });
             }
@@ -164,9 +156,51 @@ const AgentList: React.FC = () => {
             setValidationResult({ error: 'Failed to perform NIDA checking' });
             return { error: 'Failed to perform NIDA checking' };
         } finally {
-            setLoading(false); // Set loading to false when the operation is done (whether success or error)
+            setLoading(false);
         }
     };
+
+
+
+    const handleNidaApproval = async (value) => {
+
+        Modal.confirm({
+            title: `Are you sure you want to ${value.toLowerCase()} this`,
+            okText: 'Yes',
+            cancelText: 'No',
+            onOk: async () => {
+
+                try {
+                    const nidaValidationData = {
+                        status: '',
+                        user_type: 'Agent',
+                    };
+
+                    setLoading(true);
+                    let dataMessage = ''
+                    if (value == 'Reject') {
+                        nidaValidationData.status = 'A.Invalid';
+                        dataMessage = 'Rejected successfully'
+                    } else {
+                        nidaValidationData.status = 'A.Valid';
+                        dataMessage = 'Approved successfully'
+                    }
+
+                    const nidaResponse = await validateNida(currentRow?.id, nidaValidationData);
+                    message.success(dataMessage);
+                    actionRef.current?.reloadAndRest();
+
+                } catch (error) {
+                    console.error(error);
+                    return { error: 'Failed to perform NIDA checking' };
+                } finally {
+                    setLoading(false);
+                }
+
+            }
+        });
+
+    }
 
 
     const getStatusColor = (status) => {
@@ -219,13 +253,13 @@ const AgentList: React.FC = () => {
                         'state_changed',
                         (snapshot) => {
                             const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-                         //   console.log('Upload is ' + progress + '% done');
+                            //   console.log('Upload is ' + progress + '% done');
                             switch (snapshot.state) {
                                 case 'paused':
-                                  //  console.log('Upload is paused');
+                                    //  console.log('Upload is paused');
                                     break;
                                 case 'running':
-                                   // console.log('Upload is running');
+                                    // console.log('Upload is running');
                                     break;
                             }
                         },
@@ -260,35 +294,35 @@ const AgentList: React.FC = () => {
             const hide = message.loading('Loading...');
             try {
 
-           
+
                 const response = await addAgent(agentData);
                 if (response.status) {
-                    setLoading(false); 
+                    setLoading(false);
                     hide();
                     message.success(response.message);
                     return true;
                 } else {
-                    setLoading(false); 
+                    setLoading(false);
                     if (response.data) {
                         const errors = response.data.errors;
                         showErrorWithLineBreaks(formatErrorMessages(errors));
                     } else {
-                        setLoading(false); 
+                        setLoading(false);
                         message.error(response.message);
                     }
                 }
             } catch (error) {
-                setLoading(false); 
+                setLoading(false);
                 hide();
                 message.error('Adding failed, please try again!');
                 return false;
             } finally {
                 handleModalOpen(false);
-                setLoading(false); 
+                setLoading(false);
                 actionRef.current.reload();
             }
         } catch (error) {
-            setLoading(false); 
+            setLoading(false);
             message.error('Image upload failed, please try again!');
             return false;
         }
@@ -351,12 +385,12 @@ const AgentList: React.FC = () => {
     const columns: ProColumns<API.AgentListItem>[] = [
         {
             title: <FormattedMessage id="pages.searchTable.titleClientNumber" defaultMessage="Number" />,
-            dataIndex:  ['user','reg_number'],
+            dataIndex: ['user', 'reg_number'],
             hideInForm: true,
             search: {
-                name:'reg_number'
+                name: 'reg_number'
             },
-          },
+        },
         {
             title: (
                 <FormattedMessage
@@ -371,7 +405,7 @@ const AgentList: React.FC = () => {
 
                 return (
                     <a
-                     data-row-id={entity.id}
+                        data-row-id={entity.id}
                         onClick={() => {
                             setCurrentRow(entity);
                             setShowDetail(true);
@@ -383,7 +417,7 @@ const AgentList: React.FC = () => {
             },
             search: true,
         },
-       
+
 
         {
             title: (
@@ -392,32 +426,32 @@ const AgentList: React.FC = () => {
                     defaultMessage="Phone"
                 />
             ),
-            dataIndex: ['user','phone'],
+            dataIndex: ['user', 'phone'],
             valueType: 'text',
             tip: 'The phone number is unique',
             render: (dom, entity) => {
                 // Check if phone_verified_at is null or not
-                    //console.log('entitiees',entity);
+                //console.log('entitiees',entity);
                 const verifiedTag = entity?.user?.phone_verified_at ? (
-                     <Tag color="green"> Verified</Tag>
+                    <Tag color="green"> Verified</Tag>
                 ) : (
-                     <Tag color="red">Not Verified</Tag>
+                    <Tag color="red">Not Verified</Tag>
                 );
-        
+
                 return (
                     <>
                         {dom}
                         {' '}
-                         {verifiedTag}
-                    
+                        {verifiedTag}
+
                     </>
                 );
             },
-            search:{
-                name:'phone'
+            search: {
+                name: 'phone'
             },
         },
-    
+
         {
             title: (
                 <FormattedMessage
@@ -425,7 +459,7 @@ const AgentList: React.FC = () => {
                     defaultMessage="NIDA"
                 />
             ),
-            dataIndex: ['user','nida'],
+            dataIndex: ['user', 'nida'],
             valueType: 'text',
             tip: 'The NIDA number is unique',
             render: (dom, entity) => {
@@ -466,7 +500,7 @@ const AgentList: React.FC = () => {
                 );
             },
             search: {
-                name:'nida'
+                name: 'nida'
             },
         },
         {
@@ -492,7 +526,7 @@ const AgentList: React.FC = () => {
                     </a>
                 );
             },
-            search:false,
+            search: false,
         },
         {
             title: (
@@ -517,26 +551,26 @@ const AgentList: React.FC = () => {
                     </a>
                 );
             },
-            search:false,
+            search: false,
         },
         {
             title: (
-              <FormattedMessage
-                id="pages.searchTable.updateForm.ruleName.nameDeatails"
-                defaultMessage="Created At"
-              />
+                <FormattedMessage
+                    id="pages.searchTable.updateForm.ruleName.nameDeatails"
+                    defaultMessage="Created At"
+                />
             ),
             dataIndex: 'created_at',
             valueType: 'text',
             render: (text) => moment(text).format('DD/MM/YYYY h:mm A'),
-          },
+        },
         {
             title: <FormattedMessage id="pages.searchTable.profilePhoto" defaultMessage="Profile photo" />,
             dataIndex: ['user', 'profile_img'],
-            search:false,
+            search: false,
             hideInSearch: true,
             render: (_, record) => {
-                
+
                 const profileImage = record?.user?.profile_img;
                 return (
                     <Image
@@ -551,7 +585,7 @@ const AgentList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.titleStatus" defaultMessage="Status" />,
             dataIndex: 'status',
-            search:false,
+            search: false,
             hideInForm: true,
             render: (text, record) => {
                 let color = '';
@@ -574,8 +608,8 @@ const AgentList: React.FC = () => {
         {
             title: <FormattedMessage id="pages.searchTable.titleOption" defaultMessage="Action" />,
             dataIndex: 'option',
-            search:false,
-            
+            search: false,
+
             valueType: 'option',
             render: (_, record) => [
                 <a
@@ -594,82 +628,82 @@ const AgentList: React.FC = () => {
 
     return (
         <PageContainer>
-                 <div 
-            ref={tableRef}
-            style={{ overflowY: 'auto' }}>
-            <ProTable
-                rowClassName={getRowClassName}
-                scroll={{ x: 1200 }} 
-          
-              
-                pagination={{
-                    pageSizeOptions: ['15', '30', '60', '100'],
-                    defaultPageSize:30,
-                    showSizeChanger: true,
-                    locale: { items_per_page: "" }
-                }}
-             
-                actionRef={actionRef}
-                rowKey="id"
-                toolBarRender={() => [
-                    <Button
-                        type="primary"
-                        key="primary"
-                        onClick={() => {
-                            handleModalOpen(true);
-                        }}
-                    >
-                        <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
-                    </Button>,
-                ]}
-                search={{
-                    labelWidth: 120,
-                    filterType: 'query', // Use a light filter form for better layout
-                }}
-                request={async (params, sorter, filter) => {
-                    try {
-                        const response = await getAgents(params);
-                        const agents = response.data.agents;
+            <div
+                ref={tableRef}
+                style={{ overflowY: 'auto' }}>
+                <ProTable
+                    rowClassName={getRowClassName}
+                    scroll={{ x: 1200 }}
 
-                        // Filter the data based on the search parameters
-                        const filteredAgents = agents.filter(agent => {
-                            const matchesNumber =params['users.reg_number']
-                            ? agent.users.reg_number?.toLowerCase().includes(params['reg_number'].toLowerCase())
-                            : true;
-                            const matchesagentName = params.name
-                              ? agent.name?.toLowerCase().includes(params.name.toLowerCase())
-                              : true;
-                            const matchesPhone =params['users.phone']
-                              ? agent.users.phone?.toLowerCase().includes(params['users.phone'].toLowerCase())
-                              : true;
-            
-                              const matchesNida =params['users.nida']
-                              ? agent.users.nida?.toLowerCase().includes(params['users.nida'].toLowerCase())
-                              : true;
-                    
-                            return matchesNumber && matchesagentName && matchesPhone && matchesNida;
-                        });
 
-                        return {
-                            data: filteredAgents,
-                            success: true,
-                        };
-                    } catch (error) {
-                       // console.error('Error fetching agents data:', error);
-                        return {
-                            data: [],
-                            success: false,
-                        };
-                    }
-                }}
+                    pagination={{
+                        pageSizeOptions: ['15', '30', '60', '100'],
+                        defaultPageSize: 30,
+                        showSizeChanger: true,
+                        locale: { items_per_page: "" }
+                    }}
 
-                columns={columns}
-                rowSelection={{
-                    onChange: (_, selectedRows) => {
-                        setSelectedRows(selectedRows);
-                    },
-                }}
-            />
+                    actionRef={actionRef}
+                    rowKey="id"
+                    toolBarRender={() => [
+                        <Button
+                            type="primary"
+                            key="primary"
+                            onClick={() => {
+                                handleModalOpen(true);
+                            }}
+                        >
+                            <PlusOutlined /> <FormattedMessage id="pages.searchTable.new" defaultMessage="New" />
+                        </Button>,
+                    ]}
+                    search={{
+                        labelWidth: 120,
+                        filterType: 'query', // Use a light filter form for better layout
+                    }}
+                    request={async (params, sorter, filter) => {
+                        try {
+                            const response = await getAgents(params);
+                            const agents = response.data.agents;
+
+                            // Filter the data based on the search parameters
+                            const filteredAgents = agents.filter(agent => {
+                                const matchesNumber = params['users.reg_number']
+                                    ? agent.users.reg_number?.toLowerCase().includes(params['reg_number'].toLowerCase())
+                                    : true;
+                                const matchesagentName = params.name
+                                    ? agent.name?.toLowerCase().includes(params.name.toLowerCase())
+                                    : true;
+                                const matchesPhone = params['users.phone']
+                                    ? agent.users.phone?.toLowerCase().includes(params['users.phone'].toLowerCase())
+                                    : true;
+
+                                const matchesNida = params['users.nida']
+                                    ? agent.users.nida?.toLowerCase().includes(params['users.nida'].toLowerCase())
+                                    : true;
+
+                                return matchesNumber && matchesagentName && matchesPhone && matchesNida;
+                            });
+
+                            return {
+                                data: filteredAgents,
+                                success: true,
+                            };
+                        } catch (error) {
+                            // console.error('Error fetching agents data:', error);
+                            return {
+                                data: [],
+                                success: false,
+                            };
+                        }
+                    }}
+
+                    columns={columns}
+                    rowSelection={{
+                        onChange: (_, selectedRows) => {
+                            setSelectedRows(selectedRows);
+                        },
+                    }}
+                />
             </div>
             {selectedRowsState?.length > 0 && (
                 <FooterToolbar
@@ -684,8 +718,8 @@ const AgentList: React.FC = () => {
                     }
                 >
                     <Button
-                    type="primary"
-                    danger
+                        type="primary"
+                        danger
                         onClick={async () => {
 
                             await handleRemove(selectedRowsState);
@@ -745,10 +779,10 @@ const AgentList: React.FC = () => {
 
                 submitter={{
                     submitButtonProps: {
-                      loading: loading, 
-                      disabled: loading,
+                        loading: loading,
+                        disabled: loading,
                     },
-                  }}
+                }}
             >
                 <ProForm.Group>
                     <ProFormText
@@ -912,72 +946,132 @@ const AgentList: React.FC = () => {
                         columns={columns as ProDescriptionsItemProps<API.AgentListItem>[]}
                     />
                 )}
-                  <Button type="primary" onClick={handleViewDocs}>
-                        View Docs
-                  </Button>
+                <Button type="primary" onClick={handleViewDocs}>
+                    View Docs
+                </Button>
 
-                <Button style={{margin:20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
+                <Button style={{ margin: 20 }} type="primary" onClick={handleNidaValidationDrawerOpen}>
                     Validate NIDA
                 </Button>
-                <Button style={{margin:20, }} type="primary" onClick={handleViewCommissions}>
+                <Button style={{ margin: 20, }} type="primary" onClick={handleViewCommissions}>
                     Commisions History
                 </Button>
-                <Button style={{margin:20, }} type="primary" onClick={handleViewProviders}>
+                <Button style={{ margin: 20, }} type="primary" onClick={handleViewProviders}>
                     Providers
                 </Button>
-                <Button style={{margin:20, }} type="primary" onClick={handleViewClients}>
+                <Button style={{ margin: 20, }} type="primary" onClick={handleViewClients}>
                     Clients
                 </Button>
             </Drawer>
+
+
             <Drawer
-                width={400}
+                width={600}
                 title="Validate NIDA Number"
                 placement="right"
                 onClose={handleNidaValidationDrawerClose}
                 visible={showNidaValidationDrawer}
                 destroyOnClose
             >
-                <Form>
+                <Form layout="vertical">
+                    {!validationResult && (
+                        <div style={{ marginBottom: 20 }}>
+                            <h3>User Input Informations</h3>
+                            <p>Phone Number: {currentRow?.phone || 'N/A'}</p>
+                            <p>First Name: {currentRow?.first_name || 'N/A'}</p>
+                            <p>Last Name: {currentRow?.last_name || 'N/A'}</p>
+                        </div>
+                    )}
+
+                    {validationResult?.error && (
+                        <div style={{ marginBottom: 20 }}>
+                            <Tag color="red">Error: {validationResult.error}</Tag>
+                            <h3> User Input Informations</h3>
+                            <p>Phone Number: {currentRow?.phone || 'N/A'}</p>
+                            <p>First Name: {currentRow?.first_name || 'N/A'}</p>
+                            <p>Last Name: {currentRow?.last_name || 'N/A'}</p>
+                        </div>
+                    )}
+
+                    <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '20px' }}>
+                        <Item
+                            label="NIDA Number"
+                            name="nidaNumber"
+                            initialValue={currentRow?.nida || ''}
+                            style={{ flex: 1 }}
+                            rules={[
+                                {
+                                    required: true,
+                                    message: 'Please enter NIDA Number',
+                                },
+                            ]}
+                        >
+                            <Input value={currentRow?.nida || ''} disabled />
+                        </Item>
+
+                        <Button
+                            type="primary"
+                            onClick={() => handleNidaChecking(currentRow?.nida)}
+                            disabled={loading}
+                        >
+                            {loading ? 'Validating...' : 'Validate NIDA'}
+                        </Button>
+                    </div>
+                    {loading && <PageLoading />}
+
+                    {/* Validation Result and Comparison */}
                     {validationResult && (
                         <div style={{ marginTop: 20 }}>
                             {validationResult.error ? (
                                 <Tag color="red">Error: {validationResult.error}</Tag>
                             ) : (
-                                <div>
+                                <>
                                     <Tag color="green" style={{ fontWeight: 'bold' }}>
                                         NIDA Validation Successful!
                                     </Tag>
-                                    <p>First Name: {validationResult.result.FIRSTNAME}</p>
-                                    <p>Middle Name: {validationResult.result.MIDDLENAME}</p>
-                                    <p> Last Name: {validationResult.result.SURNAME}</p>
-                                    {/* Add more fields as needed */}
-                                </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 20 }}>
+                                        {/* Current User Details */}
+                                        <div>
+                                            <h4>Provider Input Details</h4>
+                                            <p>First Name: {currentRow?.first_name || 'N/A'}</p>
+                                            <p>Last Name: {currentRow?.last_name || 'N/A'}</p>
+                                            <p>Phone Number: {currentRow?.phone || 'N/A'}</p>
+                                        </div>
+
+                                        {/* NIDA Details */}
+                                        <div>
+                                            <h4>NIDA Details</h4>
+                                            <p>First Name: {validationResult.result.FIRSTNAME}</p>
+                                            <p>Last Name: {validationResult.result.SURNAME}</p>
+                                            <p>Phone Number: {validationResult.result.PHONE || 'N/A'}</p>
+                                        </div>
+                                    </div>
+                                </>
                             )}
                         </div>
                     )}
-                    <p>The NIDA status is : <Tag color={getStatusColor(currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status)}>{currentRow?.nida_statuses?.[currentRow?.nida_statuses.length - 1]?.status}</Tag></p>
-                    <Item
-                        label="NIDA Number"
-                        name="nidaNumber"
-                        initialValue={currentRow?.nida || ''}
-                        rules={[
-                            {
-                                required: true,
-                                message: 'Please enter NIDA Number',
-                            },
-                        ]}
-                    >
-                        <Input
-                            value={currentRow?.nida || ''}
-                            disabled
 
-                        />
-                    </Item>
-                    <Button type="primary" onClick={() => handleNidaChecking(currentRow?.nida)} disabled={loading}>
-                        {loading ? 'Validating...' : 'Validate NIDA'}
-                    </Button>
-                    {loading && <PageLoading />}
+                    {/* Admin Actions */}
+                    <div style={{ marginTop: 20, display: 'flex', gap: '10px' }}>
+                        <Button
+                            style={{ background: "red", borderColor: "red" }}
+                            type="primary"
+                            onClick={() => { handleNidaApproval('Reject') }}
+                            disabled={loading}
+                        >
+                            {loading ? 'Rejecting...' : 'Reject'}
+                        </Button>
+                        <Button type="primary"
+                            onClick={() => { handleNidaApproval('Approve') }}
+                            disabled={loading}
+                        >
+                            {loading ? 'Approving...' : 'Approve'}
+                        </Button>
+                    </div>
+
+                    {/* NIDA Status Stages */}
                     <div style={{ marginTop: 20 }}>
+                        <h4>NIDA Status History</h4>
                         <p>This NIDA has passed through the following statuses:</p>
                         {currentRow?.nida_statuses?.map((status, index) => (
                             <Tag key={index} color={getStatusColor(status.status)}>
@@ -986,8 +1080,8 @@ const AgentList: React.FC = () => {
                         ))}
                     </div>
                 </Form>
-
             </Drawer>
+
         </PageContainer>
     );
 };

@@ -22,7 +22,7 @@ import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/
 import { addProvider, approveProfession, fetchBusinessesData, getProviders, removeProvider } from './ServiceProviderSlice';
 import { history } from 'umi';
 import { formatErrorMessages, getLocationName, showErrorWithLineBreaks, validateNIDANumber, validateTanzanianPhoneNumber } from '@/utils/function';
-import { getNida, validateNida } from '../NidaSlice';
+import { getNida, request_nida_from_api, validateNida } from '../NidaSlice';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../styles.css'
 import moment from 'moment';
@@ -231,14 +231,18 @@ const ProviderList: React.FC = () => {
 
         }
     });
+    
     }
 
     const handleNidaChecking = async (nida) => {
         try {
+
           setLoading(true); 
-    
-          const response = await getNida(nida);
-    
+          const nidaData={
+            nida:nida
+        }
+         const response = await request_nida_from_api(nidaData);
+
           if (response.error) {
             setValidationResult({ error: response.obj.error });
           } else if (response.obj.error) {    
@@ -248,7 +252,6 @@ const ProviderList: React.FC = () => {
             actionRef.current?.reloadAndRest();
             setValidationResult({ result: response.obj.result });
           }
-    
           return response;
         } catch (error) {
           console.error(error);

@@ -26,7 +26,7 @@ import { useParams } from 'react-router-dom';
 
 import { getRegistrationDoc } from '../RegistrationDocList/RegistrationDocSlice';
 import { formatErrorMessages, showErrorWithLineBreaks } from '@/utils/function';
-import { getNida, validateNida } from '../NidaSlice';
+import { getNida, request_nida_from_api, validateNida } from '../NidaSlice';
 import { Document, Page,pdfjs } from 'react-pdf';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -197,9 +197,13 @@ const ProviderDocsList: React.FC = () => {
     try {
       setLoading(true); 
 
-      const response = await getNida(nida);
+      const nidaData={
+        nida:nida
+    }
 
-      console.log('nida checking',nida)
+        const response = await request_nida_from_api(nidaData);
+
+      // console.log('nida checking',nida)
 
       if (response.error) {
         setValidationResult({ error: response.obj.error });
