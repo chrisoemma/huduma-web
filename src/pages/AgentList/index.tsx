@@ -464,7 +464,7 @@ const AgentList: React.FC = () => {
             tip: 'The NIDA number is unique',
             render: (dom, entity) => {
                 // Get the last status from the nida_statuses array
-                const lastStatus = entity.nida_statuses?.[entity.nida_statuses.length - 1]?.status;
+                const lastStatus = entity?.user?.nida_statuses?.[entity?.user?.nida_statuses.length - 1]?.status;
 
                 let tagColor;
                 switch (lastStatus) {
