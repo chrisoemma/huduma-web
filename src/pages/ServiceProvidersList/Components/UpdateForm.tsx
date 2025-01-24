@@ -214,12 +214,13 @@ const UpdateForm: React.FC<UpdateFormProps> = (props) => {
       const profile_img = imageUrl || props.values.user?.profile_img;
       values.profile_img = profile_img;
 
-      if (props?.values?.active_subscription == null) {
-        if (!selectedCard) {
-          message.error('Please select a subscription package');
-          return;
-        }
-      }
+      // if (props?.values?.active_subscription == null) {
+      //   if (!selectedCard) {
+      //     message.error('Please select a subscription package');
+      //     return;
+      //   }
+      // }
+
       values.phone = validateTanzanianPhoneNumber(values.phone);
       const currentUser = initialState?.currentUser;
       values.action_by = currentUser?.id;
